@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Native Vegetable Seeds - Next Gen Organic Seeds</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background: #fff;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            padding: 10px 15px;
+            transition: color 0.3s ease;
+        }
+
+        .navbar a:hover {
+            color: #4CAF50;
+        }
+
+        /* Dropdown Styling */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            min-width: 200px;
+            z-index: 1;
+            border-radius: 5px;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown-content a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: #333;
+            transition: background 0.3s;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Page Heading */
+        h1 {
+            text-align: center;
+            margin-top: 30px;
+            color: #2c3e50;
+        }
+
+        /* Product List */
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            padding: 30px;
+            justify-content: center;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        /* Seed Card Styling */
+        .seed-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            padding: 15px;
+            transition: transform 0.3s ease;
+            overflow: hidden;
+        }
+
+        .seed-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .seed-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .seed-card h2 {
+            font-size: 18px;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        .seed-card p {
+            font-size: 16px;
+            color: #555;
+            margin: 5px 0;
+        }
+
+        /* Button Styling */
+        .seed-card button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .seed-card button:hover {
+            background: #388E3C;
+        }
+
+        /* Footer Styling */
+        .footer {
+            background: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <div class="navbar">
+            <a href="{% url 'home' %}">Home</a> <!-- Add this -->
+    <a href="{% url 'home' %}">Next Gen Organic Seeds</a>
+
+        <!-- Dropdown for Vegetable Seeds -->
+        <div class="dropdown">
+            <a href="#">Vegetable Seeds</a>
+            <div class="dropdown-content">
+                <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
+                <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
+                <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
+                <a href="{% url 'hybrid_vegetable_seeds' %}">Hybrid Vegetable Seeds</a>
+            </div>
+        </div>
+
+        <a href="#">Flower Seeds</a>
+        <a href="#">Grow Bags</a>
+        <a href="{% url 'view_cart' %}" class="cart-icon">
+            <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png" alt="Cart" style="width: 25px;">
+            <span id="cart-count">{{ cart_count }}</span>
+        </a>
+    </div>
+
+    <!-- Page Heading -->
+    <h1>Native Vegetable Seeds</h1>
+
+    <!-- Product List -->
+    <div class="container">
+        <!-- Dynamic Product List -->
+        {% for seed in seeds %}
+<div class="seed-card">
+    <img src="{{ seed.image.url }}" alt="{{ seed.name }}">
+    <h2>{{ seed.name }}</h2>
+    <p>{{ seed.description }}</p>
+    <p><strong>Price: ₹{{ seed.price }}</strong></p>
+
+    <!-- Quantity Input -->
+    <input type="number" class="quantity-input" data-seed-id="{{ seed.id }}" value="1" min="1" style="width: 50px; text-align: center;">
+
+    <!-- Add to Cart Button -->
+    <button class="add-to-cart-btn" data-seed-id="{{ seed.id }}">Add to Cart</button>
+</div>
+
+        {% endfor %}
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>&copy; 2025 Next Gen Organic Seeds. All Rights Reserved.</p>
+    </div>
+<script>
+    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const seedId = this.getAttribute('data-seed-id'); // Get the product ID
+
+            fetch(`/cart/add/${seedId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}', // CSRF token for security
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ quantity: 1 }) // Always send quantity as 1
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.error) {
+                    document.getElementById('cart-count').textContent = data.cart_count; // Update cart count with unique item count
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 900px;
+            margin-top: 50px;
+        }
+
+        /* Header */
+        h1 {
+            text-align: center;
+            color: #2e3d58;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        /* Cart List */
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            border-bottom: 1px solid #ddd;
+            padding: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+
+        .item-details {
+            flex: 1;
+            margin-left: 20px;
+        }
+
+        .item-details h2 {
+            font-size: 1.2rem;
+            margin: 0;
+            color: #2e3d58;
+        }
+
+        .item-details p {
+            color: #555;
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        /* Buttons */
+        button, .checkout-btn {
+            background: linear-gradient(135deg, #28a745, #218838);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.3s ease-in-out;
+        }
+
+        button:hover, .checkout-btn:hover {
+            background: #1e7e34;
+        }
+
+        .remove-btn {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+
+        .remove-btn:hover {
+            background: #b21f2d;
+        }
+
+        .checkout-btn {
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+        }
+
+        .checkout-btn:hover {
+            background: #004494;
+        }
+
+        /* Total Amount */
+        .total-amount {
+            font-size: 1.4rem;
+            color: #333;
+            margin-top: 20px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        /* Empty Cart Message */
+        .empty-cart {
+            text-align: center;
+            color: #888;
+            font-size: 1.2rem;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .item-details h2 {
+                font-size: 1rem;
+            }
+
+            .item-details p {
+                font-size: 0.85rem;
+            }
+
+            button, .checkout-btn {
+                font-size: 0.9rem;
+                padding: 8px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Your Cart</h1>
+
+        {% if cart_items %}
+            <ul>
+                {% for item in cart_items %}
+    <li>
+        <div class="item-details">
+            <h2>{{ item.seed.name }}</h2>
+            <p>Price: ₹{{ item.seed.price }}</p>
+            <p>Quantity: {{ item.quantity }}</p>
+            <p>Total: ₹{{ item.total_price }}</p>
+        </div>
+
+        {% if item.seed and item.seed.id %}
+            <form action="{% url 'remove_from_cart' item.seed.id %}" method="post" class="remove-form">
+                {% csrf_token %}
+                <button type="submit" class="remove-btn">Remove</button>
+            </form>
+        {% else %}
+            <p class="error">Error: Invalid cart item.</p>
+        {% endif %}
+    </li>
+{% endfor %}
+
+            </ul>
+
+            <div class="total-amount">
+                Total Amount: ₹{{ total_amount }}
+            </div>
+
+            <a href="{% url 'checkout' %}" class="checkout-btn">Proceed to Checkout</a>
+        {% else %}
+            <p class="empty-cart">Your cart is empty. Start shopping now!</p>
+        {% endif %}
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.remove-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const form = this.closest('form');
+
+            if (!form) {
+                console.error("Error: No form found for this button!");
+                return;
+            }
+
+            const cartId = form.action.split('/').pop();
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': form.querySelector('[name="csrfmiddlewaretoken"]').value,
+                },
+                body: JSON.stringify({ cart_id: cartId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === "Item removed from cart!") {
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                alert("Error removing item!");
+                console.error(error);
+            });
+        });
+    });
+});
+
+</script>
+
+</body>
+</html>

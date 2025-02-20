@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPI Payment</title>
+</head>
+<body>
+    <h1>Complete Your Payment</h1>
+    <p>Scan the QR Code or Click the Button Below</p>
+
+    <img src="/media/upi_payment.png" alt="UPI Payment QR Code">
+
+    <br><br>
+
+    <a href="{{ upi_url }}"><button>Pay Now</button></a>
+
+    <p>Once payment is completed, please click "Confirm Payment".</p>
+
+    <form action="{% url 'payment_success' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Confirm Payment</button>
+    </form>
+</body>
+</html>
