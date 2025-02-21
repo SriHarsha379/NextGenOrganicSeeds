@@ -16,20 +16,34 @@ def add_to_cart(request, seed_id):
         seed = Seed.objects.get(id=seed_id)
 
         # Get or create session cart
-        cart = request.session.get('cart', {})
+        cart = request.session.get("cart", {})
 
-        # Ensure price is stored as a float
-        cart[seed_id] = {
-            "name": seed.name,
-            "price": float(seed.price),  # Convert Decimal to float
-            "quantity": cart.get(seed_id, {}).get("quantity", 0) + 1
-        }
+        # Get quantity from request
+        data = json.loads(request.body)
+        quantity = int(data.get("quantity", 1))  # Default to 1 if no quantity provided
+
+        # Check if the item is already in the cart
+        if str(seed_id) in cart:
+            cart[str(seed_id)]["quantity"] += quantity  # Increase quantity
+        else:
+            cart[str(seed_id)] = {
+                "name": seed.name,
+                "price": float(seed.price),  # Convert Decimal to float
+                "quantity": quantity
+            }
 
         # Save back to session
         request.session["cart"] = cart
         request.session.modified = True
 
-        return JsonResponse({"message": "Item added successfully"})
+        # Get unique count of items
+        unique_item_count = len(cart)  # Number of unique items
+
+        return JsonResponse({
+            "message": "Item added successfully",
+            "cart_count": unique_item_count,  # Unique items count
+            "cart": cart
+        })
 
     except Seed.DoesNotExist:
         return JsonResponse({"error": "Seed not found"}, status=404)
@@ -41,22 +55,27 @@ def view_cart(request):
     cart_items = []
 
     for seed_id, item in cart.items():
+        if not seed_id.isdigit():  # Skip invalid IDs
+            continue
+
         try:
-            seed = Seed.objects.get(id=seed_id)  # Fetch seed from DB
+            seed = Seed.objects.get(id=int(seed_id))
             cart_items.append({
-                'seed': seed,  # Pass the entire seed object
+                'seed': seed,
                 'quantity': item['quantity'],
                 'total_price': seed.price * item['quantity'],
             })
         except Seed.DoesNotExist:
-            continue  # Ignore if seed doesn't exist
+            continue  # Ignore missing seeds
+    print("Current Cart Session:", cart)
+    # print("✅ Cart ID being used:", seed_id)
 
     total_amount = sum(item['total_price'] for item in cart_items)
 
     return render(request, 'cart/cart.html', {'cart_items': cart_items, 'total_amount': total_amount})
 
 
-def remove_from_cart(request, cart_id):  # Change seed_id to cart_id
+def remove_from_cart(request, cart_id):
     if request.method == "POST":
         cart = request.session.get('cart', {})
 
@@ -67,6 +86,9 @@ def remove_from_cart(request, cart_id):  # Change seed_id to cart_id
 
         total_amount = sum(item['price'] * item['quantity'] for item in cart.values())
         cart_count = sum(item['quantity'] for item in cart.values())
+
+        print(f"Cart after removal: {cart}")  # Debugging
+        print(f"Updated cart count: {cart_count}")  # Debugging
 
         return JsonResponse({
             "message": "Item removed from cart!",
@@ -103,25 +125,36 @@ def update_cart_quantity(request, item_id):
 
 def process_order(request):
     if request.method == "POST":
-        full_name = request.POST.get("full_name")
-        email = request.POST.get("email")
-        phone = request.POST.get("phone")
-        address = request.POST.get("address")
+        try:
+            data = json.loads(request.body)
+            print("Received Order Data:", data)  # Debugging print
 
-        cart = request.session.get('cart', {})
-        total_amount = sum(item['price'] * item['quantity'] for item in cart.values())
+            full_name = data.get("full_name")
+            email = data.get("email")
+            phone = data.get("phone")
+            address = data.get("address")
+            cart_items = data.get("cart_items")
+            total_amount = data.get("total_amount")
+            payment_status = data.get("payment_status", "Pending")
 
-        order = Order.objects.create(
-            full_name=full_name,
-            email=email,
-            phone=phone,
-            address=address,
-            total_amount=total_amount,
-            payment_status="Pending",  # Can be updated later
-        )
+            if not all([full_name, email, phone, address, cart_items, total_amount]):
+                return JsonResponse({"error": "Missing required fields"}, status=400)
 
-        # Clear session cart after order is placed
-        request.session['cart'] = {}
-        request.session.modified = True
+            order = Order.objects.create(
+                full_name=full_name,
+                email=email,
+                phone=phone,
+                address=address,
+                cart_items=cart_items,
+                total_amount=total_amount,
+                payment_status=payment_status,
+            )
 
-        return redirect("payment_page")  # Redirect to payment processing
+            return JsonResponse({"message": "Order placed successfully!", "order_id": order.id})
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON data"}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request method"}, status=400)

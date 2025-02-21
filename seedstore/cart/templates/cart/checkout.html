@@ -106,6 +106,22 @@
         .payment-btn:hover {
             background: #004494;
         }
+
+        .back-btn {
+            display: inline-block;
+            text-decoration: none;
+            background: #6c757d;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .back-btn:hover {
+            background: #495057;
+        }
     </style>
 </head>
 <body>
@@ -113,51 +129,101 @@
     <div class="container">
         <h2>Checkout</h2>
 
-<ul>
-    {% for item in cart_items %}
-        <li>{{ item.name }} - {{ item.quantity }} x ₹{{ item.price }} = ₹{{ item.total_price }}</li>
-    {% endfor %}
-</ul>
+        {% if cart_items %}
+            <ul>
+                {% for item in cart_items %}
+                    <li>
+                        <strong>{{ item.name }}</strong>
+                        - {{ item.quantity }} × ₹{{ item.price }}
+                        <br><small>Total: ₹{{ item.total_price }}</small>
+                    </li>
+                {% endfor %}
+            </ul>
 
+            <p class="total-amount"><strong>Total Amount:</strong> ₹{{ total_amount }}</p>
 
-        <p class="total-amount"><strong>Total Amount:</strong> ₹{{ total_amount }}</p>
-
-        <!-- QR Code Payment Section -->
-        <div class="qr-container">
-            <h3>Scan & Pay via UPI</h3>
-            <img src="{% static 'images/wp1867301.jpg' %}" alt="PhonePe QR Code">
-            <p class="secure-payment">🔒 Secure UPI Payment</p>
-        </div>
-
-        <!-- Customer Details Form -->
-        <form action="{% url 'process_order' %}" method="post">
-            {% csrf_token %}
-
-            <div class="customer-details">
-                <label for="full_name">Full Name</label>
-                <input type="text" id="full_name" name="full_name" required>
-
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
-
-                <label for="phone">Phone</label>
-                <input type="tel" id="phone" name="phone" required>
-
-                <label for="address">Delivery Address</label>
-                <input type="text" id="address" name="address" required>
+            <!-- QR Code Payment Section -->
+            <div class="qr-container">
+                <h3>Scan & Pay via UPI</h3>
+                <img src="{% static 'images/qr_code.png' %}" alt="QR Code Payment">
+                <p class="secure-payment">🔒 Secure UPI Payment</p>
             </div>
 
-            <button type="submit" class="payment-btn">Confirm Order</button>
-        </form>
+            <!-- Customer Details Form -->
+            <form action="{% url 'process_order' %}" method="post">
+                {% csrf_token %}
+
+                <div class="customer-details">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" required>
+
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" title="Enter a valid 10-digit phone number" required>
+
+                    <label for="address">Delivery Address</label>
+                    <input type="text" id="address" name="address" required>
+                </div>
+
+                <button type="submit" class="payment-btn">Confirm Order</button>
+            </form>
+
+            <a href="{% url 'view_cart' %}" class="back-btn">← Back to Cart</a>
+        {% else %}
+            <p>Your cart is empty. <a href="{% url 'home' %}">Continue shopping</a></p>
+        {% endif %}
     </div>
+<script>
+    document.querySelector("form").addEventListener("submit", function (event) {
+    event.preventDefault();
 
-    <script>
-        function copyUPI() {
-            var upiText = document.getElementById("upi-id").innerText;
-            navigator.clipboard.writeText(upiText);
-            alert("UPI ID copied to clipboard!");
+    let cartItems = localStorage.getItem("cart");
+
+    if (!cartItems || cartItems === "[]") {
+        alert("Error: Your cart is empty!");
+        return;
+    }
+
+    try {
+        cartItems = JSON.parse(cartItems);
+    } catch (error) {
+        alert("Error: Invalid cart data.");
+        return;
+    }
+
+    const formData = {
+        full_name: document.getElementById("full_name").value,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value,
+        address: document.getElementById("address").value,
+        cart_items: cartItems,
+        total_amount: document.querySelector(".total-amount").textContent.replace(/\D/g, ""),
+        payment_status: "Pending",
+    };
+
+    fetch("/cart/process_order/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+        },
+        body: JSON.stringify(formData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert("Order placed successfully!");
+            localStorage.removeItem("cart");  // Clear cart after order
+            window.location.href = "/order-success/";
+        } else {
+            alert("Error placing order: " + data.error);
         }
-    </script>
+    })
+    .catch(error => console.error("Error:", error));
+});
 
+</script>
 </body>
 </html>

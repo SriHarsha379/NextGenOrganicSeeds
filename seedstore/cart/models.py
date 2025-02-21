@@ -20,10 +20,12 @@ class Order(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=15)
     address = models.TextField()
+    cart_items = models.JSONField(default=list)  # ✅ Set default to an empty list
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_status = models.CharField(max_length=50, default="Pending")  # Pending, Paid
+    payment_status = models.CharField(max_length=20, choices=[('Pending', 'Pending'), ('Paid', 'Paid')], default='Pending')
+    payment_id = models.CharField(max_length=100, blank=True, null=True)  # Razorpay Payment ID
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Order {self.id} - {self.full_name} - ₹{self.total_amount}"
+        return f"Order #{self.id} - {self.full_name} - {self.payment_status}"
 

@@ -203,28 +203,52 @@
         <p>&copy; 2025 Next Gen Organic Seeds. All Rights Reserved.</p>
     </div>
 <script>
+    // Function to get CSRF token from cookies
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith('csrftoken=')) {
+                    cookieValue = cookie.substring('csrftoken='.length, cookie.length);
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     document.querySelectorAll('.add-to-cart-btn').forEach(button => {
         button.addEventListener('click', function() {
             const seedId = this.getAttribute('data-seed-id'); // Get the product ID
+            const quantityInput = document.querySelector(`.quantity-input[data-seed-id="${seedId}"]`);
+            const quantity = quantityInput ? parseInt(quantityInput.value, 10) : 1; // Get quantity from input
 
             fetch(`/cart/add/${seedId}/`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': '{{ csrf_token }}', // CSRF token for security
+                    'X-CSRFToken': getCSRFToken(), // ✅ Get CSRF token from cookies
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ quantity: 1 }) // Always send quantity as 1
+                body: JSON.stringify({ quantity: quantity }) // ✅ Send actual quantity
             })
             .then(response => response.json())
             .then(data => {
                 if (!data.error) {
-                    document.getElementById('cart-count').textContent = data.cart_count; // Update cart count with unique item count
+                    const cartCountElement = document.getElementById('cart-count');
+                    if (cartCountElement) {
+                        cartCountElement.textContent = data.cart_count; // ✅ Update cart count
+                    }
+                } else {
+                    console.error("Error adding to cart:", data.error);
                 }
             })
             .catch(error => console.error('Error:', error));
         });
     });
 </script>
+
 
 </body>
 </html>
