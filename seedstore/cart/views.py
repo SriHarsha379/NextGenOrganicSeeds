@@ -123,11 +123,16 @@ def update_cart_quantity(request, item_id):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+
+
 def process_order(request):
     if request.method == "POST":
         try:
-            data = json.loads(request.body)
-            print("Received Order Data:", data)  # Debugging print
+            print("Raw Request Body:", request.body)  # Debugging Line
+
+            data = json.loads(request.body)  # This is where it fails
+
+            print("Parsed JSON Data:", data)  # Debugging Line
 
             full_name = data.get("full_name")
             email = data.get("email")
@@ -158,3 +163,8 @@ def process_order(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request method"}, status=400)
+
+
+def get_cart(request):
+    cart = request.session.get("cart", {})
+    return JsonResponse(cart)

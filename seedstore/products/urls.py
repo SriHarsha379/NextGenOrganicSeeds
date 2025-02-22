@@ -1,7 +1,7 @@
 from django.urls import path
 
 from . import views
-from .views import seed_list, wishlist, homepage
+from .views import seed_list, wishlist, homepage, search_seeds
 
 urlpatterns = [
     path('', seed_list, name='seed_list'),
@@ -11,4 +11,5 @@ urlpatterns = [
     path('seeds/leafy-vegetable-seeds/', views.leafy_vegetable_seeds, name='leafy_vegetable_seeds'),
     path('seeds/exotic-vegetable-seeds/', views.exotic_vegetable_seeds, name='exotic_vegetable_seeds'),
     path('seeds/hybrid-vegetable-seeds/', views.hybrid_vegetable_seeds, name='hybrid_vegetable_seeds'),
+    path('search/', search_seeds, name='search_seeds'),
 ]

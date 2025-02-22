@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+    <link rel="stylesheet" href="{% static 'css/seed_list.css' %}">
+</head>
+<body>
+
+<!-- BACK TO HOME -->
+<a href="{% url 'seed_list' %}" style="display: block; margin: 20px; text-decoration: none; font-weight: bold;">⬅ Back to Home</a>
+
+<!-- PAGE TITLE -->
+<h1>Search Results for "{{ query }}"</h1>
+
+<!-- RESULTS CONTAINER -->
+<div class="container">
+    {% if results %}
+        {% for seed in results %}
+            <div class="seed-card">
+                <img src="/media/{{ seed.image }}" alt="{{ seed.name }}">
+                <h2>{{ seed.name }}</h2>
+                <p>Price: ₹{{ seed.price }}</p>
+                <form class="add-to-cart-form" data-seed-id="{{ seed.id }}">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}">
+                        <button type="submit">Add to Cart</button>
+                    </div>
+                </form>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No seeds found matching your search.</p>
+    {% endif %}
+</div>
+
+</body>
+</html>

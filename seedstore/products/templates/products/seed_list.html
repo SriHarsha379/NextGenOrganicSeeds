@@ -26,6 +26,16 @@
 </div>
 
 <!-- NAVBAR -->
+<div class="search-container">
+    <form action="{% url 'search_seeds' %}" method="GET" class="search-form">
+        <input type="text" name="q" placeholder="🔍 Search for seeds..." required>
+        <button type="submit">
+            <img src="https://cdn-icons-png.flaticon.com/512/482/482631.png" alt="Search" class="search-icon">
+        </button>
+    </form>
+</div>
+
+<!-- NAVBAR -->
 <div class="navbar">
     <a href="#" class="website-name">Next Gen Organic Seeds</a>
 
@@ -39,18 +49,6 @@
             <a href="{% url 'hybrid_vegetable_seeds' %}">Hybrid Vegetable Seeds</a>
         </div>
     </div>
-
-    <!-- All Categories Dropdown -->
-    <div class="dropdown">
-        <a class="elementor-item elementor-item-anchor has-submenu dropdown">Flowers</a>
-        <div class="dropdown-content">
-            <a href="#">Winter Flower Seeds</a>
-            <a href="#">All Seasonal Flower Seeds</a>
-            <a href="#">Summer Flower Seeds</a>
-        </div>
-    </div>
-
-    <a href="{% url 'seed_list' %}">Grow Bags</a>
 
     <a href="{% url 'view_cart' %}" id="cart-link">
         <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png"
@@ -211,6 +209,10 @@ document.querySelectorAll('.add-to-cart-form').forEach(form => {
                 });
             });
         });
+     // Clear search field when user returns to homepage
+    window.onload = function() {
+        document.querySelector('.search-form input').value = "";
+    };
 </script>
 
 

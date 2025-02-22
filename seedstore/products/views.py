@@ -40,3 +40,9 @@ def hybrid_vegetable_seeds(request):
     category = get_object_or_404(Category, name="Hybrid")
     seeds = Seed.objects.filter(category=category)
     return render(request, 'products/hybrid-vegetable-seeds.html', {'seeds': seeds})
+
+def search_seeds(request):
+    query = request.GET.get('q', '')  # Get the search query
+    results = Seed.objects.filter(name__icontains=query) if query else []  # Case-insensitive search
+
+    return render(request, 'products/search_results.html', {'results': results, 'query': query})
