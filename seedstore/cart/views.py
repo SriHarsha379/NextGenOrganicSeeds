@@ -6,6 +6,7 @@ from products.models import Seed
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 import json
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Sum
 from django.contrib import messages
 from orders.models import Order
@@ -99,13 +100,31 @@ def remove_from_cart(request, cart_id):
 
 
 def checkout(request):
-    cart = request.session.get('cart', {})  # Get cart from session
-    total_amount = sum(item['price'] * item['quantity'] for item in cart.values())
+    cart = request.session.get("cart", {})
 
-    return render(request, 'cart/checkout.html', {
-        'cart_items': cart.values(),
-        'total_amount': total_amount
-    })
+    cart_items = []
+    total_quantity = 0
+    total_amount = 0
+
+    for seed_id, item in cart.items():
+        item_total = item["quantity"] * item["price"]
+        cart_items.append({
+            "id": seed_id,
+            "name": item["name"],
+            "price": item["price"],
+            "quantity": item["quantity"],
+            "total_price": item_total
+        })
+        total_quantity += item["quantity"]
+        total_amount += item_total  # ✅ Calculate total amount
+
+    context = {
+        "cart_items": cart_items,
+        "total_quantity": total_quantity,
+        "total_amount": total_amount,  # ✅ Pass total amount to template
+    }
+    return render(request, "cart/checkout.html", context)
+
 
 
 def update_cart_quantity(request, item_id):
@@ -125,46 +144,55 @@ def update_cart_quantity(request, item_id):
 
 
 
+@csrf_exempt
+@login_required
 def process_order(request):
     if request.method == "POST":
         try:
-            print("Raw Request Body:", request.body)  # Debugging Line
+            data = json.loads(request.body.decode("utf-8"))
+            print("Received Data:", data)
 
-            data = json.loads(request.body)  # This is where it fails
-
-            print("Parsed JSON Data:", data)  # Debugging Line
-
-            full_name = data.get("full_name")
-            email = data.get("email")
-            phone = data.get("phone")
-            address = data.get("address")
-            cart_items = data.get("cart_items")
-            total_amount = data.get("total_amount")
-            payment_status = data.get("payment_status", "Pending")
-
-            if not all([full_name, email, phone, address, cart_items, total_amount]):
+            # Validate required fields
+            required_fields = ["full_name", "email", "phone", "address", "cart_items", "total_quantity", "total_amount"]
+            if not all(key in data for key in required_fields):
                 return JsonResponse({"error": "Missing required fields"}, status=400)
 
+            # ✅ Create the order
             order = Order.objects.create(
-                full_name=full_name,
-                email=email,
-                phone=phone,
-                address=address,
-                cart_items=cart_items,
-                total_amount=total_amount,
-                payment_status=payment_status,
+                user=request.user,
+                full_name=data["full_name"],
+                email=data["email"],
+                phone=data["phone"],
+                address=data["address"],
+                cart_items=data["cart_items"],
+                total_quantity=data["total_quantity"],
+                total_amount=data["total_amount"],
+                payment_status="Pending",
             )
 
-            return JsonResponse({"message": "Order placed successfully!", "order_id": order.id})
+            # ✅ Clear the session cart after order is placed
+            request.session["cart"] = {}  # Clear session cart
+            request.session.modified = True  # Ensure session updates
 
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON data"}, status=400)
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
+            return JsonResponse({"message": "Order placed successfully!"})
 
-    return JsonResponse({"error": "Invalid request method"}, status=400)
+        except json.JSONDecodeError as e:
+            print("JSON Decode Error:", e)
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
+    else:
+        return JsonResponse({"error": "Invalid request method"}, status=405)
+
 
 
 def get_cart(request):
-    cart = request.session.get("cart", {})
-    return JsonResponse(cart)
+    cart = request.session.get("cart", {})  # ✅ Get cart from session
+    return JsonResponse(cart)  # ✅ Return JSON response
+
+
+def clear_cart(request):
+    request.session["cart"] = {}  # ✅ Clear cart session
+    request.session.modified = True
+    return JsonResponse({"message": "Cart cleared"})
+
+def order_success(request):
+    return render(request, "cart/order_success.html")

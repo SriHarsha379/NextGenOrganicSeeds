@@ -50,6 +50,14 @@
         </div>
     </div>
 
+    <!-- Show Login/Register if user is not logged in -->
+    {% if not user.is_authenticated %}
+        <a href="{% url 'login' %}" class="auth-link">Login</a>
+        <a href="{% url 'register' %}" class="auth-link">Register</a>
+    {% else %}
+        <a href="{% url 'logout' %}" class="auth-link">Logout</a>
+    {% endif %}
+
     <a href="{% url 'view_cart' %}" id="cart-link">
         <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png"
              alt="Cart"
@@ -60,6 +68,7 @@
         </span>
     </a>
 </div>
+
 
 <!-- HERO SECTION -->
 <div class="hero">

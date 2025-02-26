@@ -2,15 +2,17 @@ from django.shortcuts import render
 from .models import Seed, Category
 from cart.models import Cart  # Import the Cart model
 from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 
+@login_required(login_url="/accounts/login/")
 def seed_list(request):
     seeds = Seed.objects.all()
+    cart = request.session.get("cart", {})  # Retrieve cart from session
+    cart_count = len(cart)  # Count unique items in the cart
 
-    context = {
-        'seeds': seeds,
-    }
-    return render(request, 'products/seed_list.html', context)
+    context = {"seeds": seeds, "cart_count": cart_count}
+    return render(request, "products/seed_list.html", context)
 
 
 def homepage(request):

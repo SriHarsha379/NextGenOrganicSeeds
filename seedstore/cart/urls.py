@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import add_to_cart, view_cart, remove_from_cart, checkout, update_cart_quantity, \
-    process_order  # Import checkout
+    process_order, clear_cart, get_cart  # Import checkout
+from .views import order_success
 
 urlpatterns = [
     path('add/<int:seed_id>/', add_to_cart, name='add_to_cart'),
@@ -9,4 +10,8 @@ urlpatterns = [
     path('checkout/', checkout, name='checkout'),  # ✅ Add this line
     path('update/<int:item_id>/', update_cart_quantity, name='update_cart_quantity'),
     path("process_order/", process_order, name="process_order"),
+    path('clear_cart/', clear_cart, name='clear_cart'),
+    path("get_cart/", get_cart, name="get_cart"),
+    path("order-success/", order_success, name="order_success"),
+
 ]
