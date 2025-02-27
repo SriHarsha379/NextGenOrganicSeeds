@@ -19,7 +19,7 @@
 
         .container {
             background-color: #ffffff;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 30px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             width: 90%;
@@ -54,8 +54,7 @@
         }
 
         .qr-container {
-            margin-top: 20px;
-            text-align: center;
+            margin: 20px 0;
         }
 
         .qr-container img {
@@ -65,30 +64,25 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .secure-payment {
-            font-size: 0.9rem;
-            color: #666;
-            margin-top: 10px;
-        }
-
-        .customer-details {
+        .form-group {
             text-align: left;
-            margin-top: 20px;
+            margin-bottom: 15px;
         }
 
-        label {
+        .form-group label {
             font-weight: bold;
             display: block;
-            margin-top: 10px;
+            margin-bottom: 5px;
         }
 
-        input {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+input, select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
 
         .payment-btn {
             background: linear-gradient(135deg, #007bff, #0056b3);
@@ -103,146 +97,179 @@
             margin-top: 20px;
         }
 
-        .payment-btn:hover {
-            background: #004494;
-        }
-
-        .back-btn {
-            display: inline-block;
-            text-decoration: none;
-            background: #6c757d;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            width: 100%;
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        .back-btn:hover {
-            background: #495057;
-        }
+        .payment-btn:hover { background: #004494; }
     </style>
 </head>
 <body>
-
     <div class="container">
         <h2>Checkout</h2>
-
         {% if cart_items %}
             <ul>
                 {% for item in cart_items %}
-                    <li>
-    <strong>{{ item.name }}</strong> - {{ item.quantity }} × ₹{{ item.price }}
-    <br><small>Total: ₹{{ item.total_price }}</small>
-</li>
-
+                    <li><strong>{{ item.name }}</strong> - {{ item.quantity }} × ₹{{ item.price }}</li>
                 {% endfor %}
             </ul>
-            <p><strong>Total Quantity:</strong> {{ total_quantity }}</p>
+            <p class="total-amount"><strong>Total:</strong> ₹{{ total_amount }}</p>
 
-            <p class="total-amount"><strong>Total Amount:</strong> ₹{{ total_amount }}</p>
-
-            <!-- QR Code Payment Section -->
             <div class="qr-container">
                 <h3>Scan & Pay via UPI</h3>
                 <img src="{% static 'images/qr_code.png' %}" alt="QR Code Payment">
-                <p class="secure-payment">🔒 Secure UPI Payment</p>
             </div>
 
-            <!-- Customer Details Form -->
-            <form action="{% url 'process_order' %}" method="post">
-                {% csrf_token %}
+<form id="checkout-form" method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="full_name">Full Name</label>
+        <input type="text" id="full_name" name="full_name" required>
+    </div>
 
-                <div class="customer-details">
-                    <label for="full_name">Full Name</label>
-                    <input type="text" id="full_name" name="full_name" required>
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+    </div>
 
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
+    <div class="form-group">
+        <label for="phone">Phone (10 digits)</label>
+        <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" required>
+    </div>
 
-                    <label for="phone">Phone</label>
-                    <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" title="Enter a valid 10-digit phone number" required>
+    <div class="form-group">
+        <label for="address_line1">Street Address</label>
+        <input type="text" id="address_line1" name="address_line1" required>
+    </div>
 
-                    <label for="address">Delivery Address</label>
-                    <input type="text" id="address" name="address" required>
-                </div>
+    <div class="form-group">
+        <label for="address_line2">Apartment, Suite, etc. (Optional)</label>
+        <input type="text" id="address_line2" name="address_line2">
+    </div>
 
-                <button type="submit" class="payment-btn">Confirm Order</button>
-            </form>
+    <div class="form-group">
+        <label for="city">City</label>
+        <input type="text" id="city" name="city" required>
+    </div>
 
-            <a href="{% url 'view_cart' %}" class="back-btn">← Back to Cart</a>
+    <div class="form-group">
+        <label for="state">State</label>
+        <select id="state" name="state" required>
+            <option value="" disabled selected>Select your state</option>
+            <option value="Andhra Pradesh">Andhra Pradesh</option>
+            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+            <option value="Assam">Assam</option>
+            <option value="Bihar">Bihar</option>
+            <option value="Chhattisgarh">Chhattisgarh</option>
+            <option value="Goa">Goa</option>
+            <option value="Gujarat">Gujarat</option>
+            <option value="Haryana">Haryana</option>
+            <option value="Himachal Pradesh">Himachal Pradesh</option>
+            <option value="Jharkhand">Jharkhand</option>
+            <option value="Karnataka">Karnataka</option>
+            <option value="Kerala">Kerala</option>
+            <option value="Madhya Pradesh">Madhya Pradesh</option>
+            <option value="Maharashtra">Maharashtra</option>
+            <option value="Manipur">Manipur</option>
+            <option value="Meghalaya">Meghalaya</option>
+            <option value="Mizoram">Mizoram</option>
+            <option value="Nagaland">Nagaland</option>
+            <option value="Odisha">Odisha</option>
+            <option value="Punjab">Punjab</option>
+            <option value="Rajasthan">Rajasthan</option>
+            <option value="Sikkim">Sikkim</option>
+            <option value="Tamil Nadu">Tamil Nadu</option>
+            <option value="Telangana">Telangana</option>
+            <option value="Tripura">Tripura</option>
+            <option value="Uttar Pradesh">Uttar Pradesh</option>
+            <option value="Uttarakhand">Uttarakhand</option>
+            <option value="West Bengal">West Bengal</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="postal_code">Postal Code</label>
+        <input type="text" id="postal_code" name="postal_code" required>
+    </div>
+
+    <div class="form-group">
+        <label for="country">Country</label>
+        <input type="text" id="country" name="country" value="India" required>
+    </div>
+
+    <button type="button" class="payment-btn" onclick="confirmOrder()">Place Order & Pay Now</button>
+</form>
+
         {% else %}
             <p>Your cart is empty. <a href="{% url 'home' %}">Continue shopping</a></p>
         {% endif %}
     </div>
+
 <script>
-document.querySelector("form").addEventListener("submit", function (event) {
-    event.preventDefault();
-
-    fetch("/cart/get_cart/")
-    .then(response => response.json())
-    .then(cartData => {
-        console.log("Cart Data Received:", cartData);  // Debugging
-
-        if (!cartData || Object.keys(cartData).length === 0) {
-            alert("Error: Your cart is empty!");
-            return;
-        }
-
-        // Convert object `{ id: { name, price, quantity } }` to an array
-        const cartItems = Object.keys(cartData).map(key => ({
-            id: key,
-            name: cartData[key].name,
-            price: cartData[key].price,
-            quantity: cartData[key].quantity,
-            total_price: cartData[key].price * cartData[key].quantity
-        }));
-
-        console.log("Formatted Cart Items:", cartItems);  // Debugging
-
-        const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-        const totalAmount = cartItems.reduce((sum, item) => sum + item.total_price, 0);
-
-        const formData = {
-            full_name: document.getElementById("full_name").value,
-            email: document.getElementById("email").value,
-            phone: document.getElementById("phone").value,
-            address: document.getElementById("address").value,
-            cart_items: cartItems,
-            total_quantity: totalQuantity,
-            total_amount: totalAmount,
-            payment_status: "Pending",
-        };
-
-        console.log("Sending Form Data:", JSON.stringify(formData, null, 2));  // Debugging
-
-        return fetch("/cart/process_order/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
-            },
-            body: JSON.stringify(formData),
-        });
-    })
-    .then(response => response.text())  // Read response as text to debug issues
-    .then(text => {
-        console.log("Raw Response:", text);  // Debugging
-        return JSON.parse(text);  // Convert manually to catch errors
-    })
-    .then(data => {
-    if (data.message) {
-        localStorage.removeItem("cart");  // ✅ Clear cart after order
-        window.location.href = "/order-success/";  // ✅ Redirect silently
-    } else {
-        alert("Error placing order: " + data.error);
+function confirmOrder() {
+    if (!document.getElementById("full_name").value || !document.getElementById("phone").value) {
+        alert("Please fill in all details!");
+        return;
     }
-})
+    submitOrder();
+}
 
-    .catch(error => console.error("Error:", error));
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("placeOrderBtn").addEventListener("click", submitOrder);
 });
 
+function submitOrder() {
+    fetch("/cart/get_cart/")
+        .then(response => response.json())
+        .then(cartData => {
+            if (!cartData || Object.keys(cartData).length === 0) {
+                alert("Error: Your cart is empty!");
+                return;
+            }
+
+            const cartItems = Object.keys(cartData).map(key => ({
+                id: key,
+                name: cartData[key].name,
+                price: cartData[key].price,
+                quantity: cartData[key].quantity,
+                total_price: cartData[key].price * cartData[key].quantity
+            }));
+
+            const totalQuantity = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+            const totalAmount = cartItems.reduce((sum, item) => sum + item.total_price, 0);
+
+            const formData = {
+                full_name: document.getElementById("full_name").value,
+                email: document.getElementById("email").value,
+                phone: document.getElementById("phone").value,
+                address_line1: document.getElementById("address_line1").value,
+                address_line2: document.getElementById("address_line2").value || "",
+                city: document.getElementById("city").value,
+                state: document.getElementById("state").value,
+                postal_code: document.getElementById("postal_code").value,
+                country: document.getElementById("country").value,
+                cart_items: cartItems,
+                total_quantity: totalQuantity,
+                total_amount: totalAmount,
+                payment_status: "Pending",
+            };
+
+            return fetch("/cart/process_order/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+                },
+                body: JSON.stringify(formData),
+            });
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                localStorage.removeItem("cart");
+                window.location.href = "/order-success/";
+            } else {
+                alert("Error placing order: " + data.error);
+            }
+        })
+        .catch(error => console.error("Error:", error));
+}
 
 </script>
 </body>

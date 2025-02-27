@@ -150,24 +150,20 @@
         {% if cart_items %}
             <ul>
                 {% for item in cart_items %}
-    <li>
-        <div class="item-details">
-            <h2>{{ item.seed.name }}</h2>
-            <p>Price: ₹{{ item.seed.price }}</p>
-            <p>Quantity: {{ item.quantity }}</p>
-            <p>Total: ₹{{ item.total_price }}</p>
-        </div>
+<li>
+    <img src="{{ item.seed.image_url }}" alt="{{ item.seed.name }}" width="80" height="80" style="border-radius: 5px;">
+    <div class="item-details">
+        <h2>{{ item.seed.name }}</h2>
+        <p>Price: ₹{{ item.seed.price }}</p>
+        <p>Quantity: {{ item.quantity }}</p>
+        <p>Total: ₹{{ item.total_price }}</p>
+    </div>
+    <form action="{% url 'remove_from_cart' item.seed.id %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="remove-btn">Remove</button>
+    </form>
+</li>
 
-        {% if item.seed and item.seed.id %}
-            <form action="{% url 'remove_from_cart' item.seed.id %}" method="post" class="remove-form">
-    {% csrf_token %}
-    <button type="submit" class="remove-btn">Remove</button>
-</form>
-
-        {% else %}
-            <p class="error">Error: Invalid cart item.</p>
-        {% endif %}
-    </li>
 {% endfor %}
 
             </ul>
@@ -185,46 +181,34 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".remove-btn").forEach((button) => {
-        button.addEventListener("click", function (e) {
+        button.addEventListener("click", async function (e) {
             e.preventDefault();
 
             const form = this.closest("form");
+            if (!form) return console.error("Error: No form found!");
 
-            if (!form) {
-                console.error("Error: No form found for this button!");
-                return;
-            }
-
-            const cartId = form.action.split("/").slice(-2, -1)[0]; // Correctly extract cart ID
-            const csrfToken = form.querySelector("[name='csrfmiddlewaretoken']").value;
-
-            fetch(form.action, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken,  // Ensure CSRF token is included
-                },
-                body: JSON.stringify({ cart_id: cartId }) // Ensure cart_id is properly sent
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message === "Item removed from cart!") {
-                    // Remove item from UI
-                    form.closest("li").remove();
-
-                    // Update cart count in navbar
-                    const cartCountElement = document.getElementById("cart-count");
-                    if (cartCountElement) {
-                        cartCountElement.innerText = data.cart_count;
+            try {
+                const response = await fetch(form.action, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": form.querySelector("[name='csrfmiddlewaretoken']").value
                     }
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    form.closest("li").remove(); // Remove item from UI
+
+                    // Update cart count
+                    const cartCountElement = document.getElementById("cart-count");
+                    if (cartCountElement) cartCountElement.innerText = data.cart_count;
 
                     // Update total amount
                     const totalAmountElement = document.querySelector(".total-amount");
-                    if (totalAmountElement) {
-                        totalAmountElement.innerText = `Total Amount: ₹${data.total_amount}`;
-                    }
+                    if (totalAmountElement) totalAmountElement.innerText = `Total Amount: ₹${data.total_amount}`;
 
-                    // If cart is empty, show empty message
+                    // Show empty cart message if needed
                     if (data.cart_count === 0) {
                         document.querySelector(".container").innerHTML =
                             "<p class='empty-cart'>Your cart is empty. Start shopping now!</p>";
@@ -232,11 +216,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 } else {
                     alert("Error: " + data.message);
                 }
-            })
-            .catch(error => {
-                alert("Error removing item!");
+            } catch (error) {
+                alert("Failed to remove item. Try again!");
                 console.error(error);
-            });
+            }
         });
     });
 });

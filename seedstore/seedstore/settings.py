@@ -57,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'accounts.middleware.AutoLogout',  # Add this line
 ]
 
 ROOT_URLCONF = 'seedstore.urls'
@@ -136,3 +137,22 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Session expires after 1 hour (3600 seconds)
+SESSION_COOKIE_AGE = 3600
+
+# Allow session persistence for the given duration
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# Use secure session storage
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Stores in the database
+SESSION_COOKIE_SECURE = True  # Ensures session is only sent over HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Prevents JavaScript access to session cookies
+SESSION_SAVE_EVERY_REQUEST = True  # Refresh session expiration on user activity
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-email-password'  # Use an App Password for security

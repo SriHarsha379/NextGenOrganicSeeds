@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -153,8 +154,12 @@
 
     <!-- Navbar -->
 <div class="navbar">
-<!--    <a href="{% url 'home' %}">Home</a> &lt;!&ndash; Add this &ndash;&gt;-->
-    <a href="{% url 'home' %}">Next Gen Organic Seeds</a>
+    <a href="{% url 'home' %}">Home</a> <!-- Add this -->
+    <a href="#" class="website-name" style="display: flex; align-items: center; gap: 12px;">
+    <img src="{% static 'images/next_gen_organic_seeds_logo.png' %}" alt="Next Gen Organic Seeds Logo" style="height: 85px;">
+    <span style="font-size: 24px; font-weight: bold;">Next Gen Organic Seeds</span>
+</a>
+
     <div class="dropdown">
         <a href="#">Vegetable Seeds</a>
         <div class="dropdown-content">

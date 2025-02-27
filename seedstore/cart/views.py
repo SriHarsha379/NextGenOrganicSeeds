@@ -5,6 +5,7 @@ from .models import Cart
 from products.models import Seed
 from django.http import JsonResponse
 from django.contrib.auth.models import User
+import logging
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Sum
@@ -51,57 +52,70 @@ def add_to_cart(request, seed_id):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+logger = logging.getLogger(__name__)
+
+@login_required
 def view_cart(request):
     cart = request.session.get('cart', {})  # Retrieve cart from session
+    seed_ids = [int(seed_id) for seed_id in cart.keys() if seed_id.isdigit()]
+
+    # ✅ Fetch all seeds in a single query to reduce DB hits
+    seeds = Seed.objects.filter(id__in=seed_ids)
+    seed_map = {seed.id: seed for seed in seeds}  # Dict for quick lookup
+
     cart_items = []
+    total_amount = 0
 
     for seed_id, item in cart.items():
         if not seed_id.isdigit():  # Skip invalid IDs
             continue
 
-        try:
-            seed = Seed.objects.get(id=int(seed_id))
-            cart_items.append({
-                'seed': seed,
-                'quantity': item['quantity'],
-                'total_price': seed.price * item['quantity'],
-            })
-        except Seed.DoesNotExist:
-            continue  # Ignore missing seeds
-    print("Current Cart Session:", cart)
-    # print("✅ Cart ID being used:", seed_id)
+        seed_id = int(seed_id)
+        seed = seed_map.get(seed_id)  # Get seed from pre-fetched dict
 
-    total_amount = sum(item['total_price'] for item in cart_items)
+        if not seed:
+            continue  # Skip missing seeds
 
-    return render(request, 'cart/cart.html', {'cart_items': cart_items, 'total_amount': total_amount})
+        quantity = item.get('quantity', 1)
+        total_price = seed.price * quantity
+        cart_items.append({
+            'seed': seed,
+            'quantity': quantity,
+            'total_price': total_price,
+        })
+        total_amount += total_price  # ✅ Calculate total efficiently
 
+    # Debugging (Optional)
+    logger.info(f"User {request.user} Cart: {cart}")  # Log session cart
+
+    return render(request, 'cart/cart.html', {
+        'cart_items': cart_items,
+        'total_amount': total_amount
+    })
 
 def remove_from_cart(request, cart_id):
     if request.method == "POST":
         cart = request.session.get('cart', {})
 
         if str(cart_id) in cart:
-            del cart[str(cart_id)]
+            cart.pop(str(cart_id))  # More efficient than `del`
             request.session['cart'] = cart
             request.session.modified = True
 
-        total_amount = sum(item['price'] * item['quantity'] for item in cart.values())
-        cart_count = sum(item['quantity'] for item in cart.values())
+            total_amount = sum(item['price'] * item['quantity'] for item in cart.values())
+            cart_count = sum(item['quantity'] for item in cart.values())
 
-        print(f"Cart after removal: {cart}")  # Debugging
-        print(f"Updated cart count: {cart_count}")  # Debugging
+            return JsonResponse({
+                "message": "Item removed from cart!",
+                "cart_count": cart_count,
+                "total_amount": total_amount
+            })
 
-        return JsonResponse({
-            "message": "Item removed from cart!",
-            "cart_count": cart_count,
-            "total_amount": total_amount
-        })
-
+        return JsonResponse({"message": "Item not found!"}, status=404)
 
 
-def checkout(request):
-    cart = request.session.get("cart", {})
 
+def get_cart_summary(cart):
     cart_items = []
     total_quantity = 0
     total_amount = 0
@@ -111,17 +125,23 @@ def checkout(request):
         cart_items.append({
             "id": seed_id,
             "name": item["name"],
-            "price": item["price"],
+            "price": f"{item['price']:.2f}",  # Ensuring proper price format
             "quantity": item["quantity"],
-            "total_price": item_total
+            "total_price": f"{item_total:.2f}"
         })
         total_quantity += item["quantity"]
-        total_amount += item_total  # ✅ Calculate total amount
+        total_amount += item_total
+
+    return cart_items, total_quantity, total_amount
+
+def checkout(request):
+    cart = request.session.get("cart", {})
+    cart_items, total_quantity, total_amount = get_cart_summary(cart)
 
     context = {
         "cart_items": cart_items,
         "total_quantity": total_quantity,
-        "total_amount": total_amount,  # ✅ Pass total amount to template
+        "total_amount": f"{total_amount:.2f}"  # Formatting amount
     }
     return render(request, "cart/checkout.html", context)
 
@@ -152,35 +172,41 @@ def process_order(request):
             data = json.loads(request.body.decode("utf-8"))
             print("Received Data:", data)
 
-            # Validate required fields
-            required_fields = ["full_name", "email", "phone", "address", "cart_items", "total_quantity", "total_amount"]
-            if not all(key in data for key in required_fields):
-                return JsonResponse({"error": "Missing required fields"}, status=400)
+            # ✅ Combine address fields into one string
+            address = f"{data.get('address_line1', '')}, {data.get('address_line2', '')}, {data.get('city', '')}, {data.get('state', '')}, {data.get('postal_code', '')}, {data.get('country', '')}"
 
-            # ✅ Create the order
+            # ✅ Validate required fields
+            required_fields = ["full_name", "email", "phone", "cart_items", "total_quantity", "total_amount"]
+            missing_fields = [field for field in required_fields if field not in data or not data[field]]
+
+            if missing_fields:
+                return JsonResponse({"error": f"Missing required fields: {', '.join(missing_fields)}"}, status=400)
+
+            # ✅ Create the order with the logged-in user
             order = Order.objects.create(
-                user=request.user,
+                user=request.user,  # ✅ Add the logged-in user
                 full_name=data["full_name"],
                 email=data["email"],
                 phone=data["phone"],
-                address=data["address"],
+                address=address,
                 cart_items=data["cart_items"],
                 total_quantity=data["total_quantity"],
                 total_amount=data["total_amount"],
-                payment_status="Pending",
+                payment_status=data.get("payment_status", "Pending"),
             )
 
             # ✅ Clear the session cart after order is placed
             request.session["cart"] = {}  # Clear session cart
             request.session.modified = True  # Ensure session updates
 
-            return JsonResponse({"message": "Order placed successfully!"})
+            return JsonResponse({"message": "Order placed successfully!", "order_id": order.id}, status=201)
 
         except json.JSONDecodeError as e:
             print("JSON Decode Error:", e)
             return JsonResponse({"error": "Invalid JSON format"}, status=400)
-    else:
-        return JsonResponse({"error": "Invalid request method"}, status=405)
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
 
 
 

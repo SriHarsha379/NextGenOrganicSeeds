@@ -20,12 +20,18 @@ class Order(models.Model):
     full_name = models.CharField(max_length=255)
     email = models.EmailField()
     phone = models.CharField(max_length=15)
-    address = models.TextField()
-    cart_items = models.JSONField(default=list)  # ✅ Store items with quantity
-    total_quantity = models.IntegerField(default=0)  # ✅ New field for total quantity
+    address_line1 = models.CharField(max_length=255)  # ✅ Street Address
+    address_line2 = models.CharField(max_length=255, blank=True, null=True)  # ✅ Optional (Apartment, Suite, etc.)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=10)
+    country = models.CharField(max_length=100, default="India")  # Default to India
+
+    cart_items = models.JSONField(default=list)
+    total_quantity = models.IntegerField(default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_status = models.CharField(max_length=20, choices=[('Pending', 'Pending'), ('Paid', 'Paid')], default='Pending')
-    payment_id = models.CharField(max_length=100, blank=True, null=True)  # Razorpay Payment ID
+    payment_id = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
