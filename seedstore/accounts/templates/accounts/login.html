@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Login</title>
+    <title>Login - NextGen Organic Seeds</title>
     <style>
         /* General Styles */
         body {
@@ -29,7 +29,23 @@
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
-            max-width: 90vw; /* Improves mobile responsiveness */
+            max-width: 90vw;
+        }
+
+        /* Logo */
+        .logo {
+            margin-bottom: 10px;
+        }
+        .logo img {
+            height: 80px;
+        }
+
+        /* Branding */
+        .brand-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e88e5;
+            margin-bottom: 15px;
         }
 
         /* Heading */
@@ -46,7 +62,7 @@
 
         input {
             width: 100%;
-            height: 45px; /* Slightly taller */
+            height: 45px;
             padding: 12px;
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -95,7 +111,7 @@
         .register-text a {
             color: #1e88e5;
             text-decoration: none;
-            font-weight: 600; /* Increased readability */
+            font-weight: 600;
         }
 
         .register-text a:hover {
@@ -107,7 +123,6 @@
             .auth-box {
                 padding: 20px;
             }
-
             h2 {
                 font-size: 20px;
             }
@@ -121,21 +136,18 @@
             margin-top: 10px;
         }
 
-        /* Align the Remember Me checkbox */
         .remember-me-container {
             display: flex;
             align-items: center;
             gap: 5px;
         }
 
-        /* Adjust the checkbox size */
         .remember-me-container input[type="checkbox"] {
             width: 16px;
             height: 16px;
-            vertical-align: middle; /* Better alignment */
+            vertical-align: middle;
         }
 
-        /* Style the Forgot Password link */
         .forgot-password {
             font-size: 14px;
         }
@@ -149,12 +161,15 @@
         .forgot-password a:hover {
             text-decoration: underline;
         }
-
     </style>
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-box">
+            <div class="logo">
+                <img src="{% static 'images/next_gen_organic_seeds_logo.png' %}" alt="Next Gen Organic Seeds Logo">
+            </div>
+            <div class="brand-name">NextGen Organic Seeds</div>
             <h2>Login</h2>
             {% if messages %}
                 <div class="messages">

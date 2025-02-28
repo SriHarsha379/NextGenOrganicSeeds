@@ -54,6 +54,14 @@
             <a href="{% url 'hybrid_vegetable_seeds' %}">Hybrid Vegetable Seeds</a>
         </div>
     </div>
+    <div class="dropdown">
+    <a class="elementor-item elementor-item-anchor has-submenu dropdown">Flower Seeds</a>
+    <div class="dropdown-content">
+        <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
+        <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
+        <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+    </div>
+</div>
 
     <!-- Show Login/Register if user is not logged in -->
     {% if not user.is_authenticated %}

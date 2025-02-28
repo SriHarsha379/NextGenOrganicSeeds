@@ -48,3 +48,18 @@ def search_seeds(request):
     results = Seed.objects.filter(name__icontains=query) if query else []  # Case-insensitive search
 
     return render(request, 'products/search_results.html', {'results': results, 'query': query})
+
+def winter_flower_seeds(request):
+    category = get_object_or_404(Category, name="Native")  # Ensure capitalization matches DB
+    seeds = Seed.objects.filter(category=category)
+    return render(request, 'products/winter_flower_seeds.html', {'seeds': seeds})
+
+def all_seasonal_flower_seeds(request):
+    category = get_object_or_404(Category, name="Native")  # Ensure capitalization matches DB
+    seeds = Seed.objects.filter(category=category)
+    return render(request, 'products/all_seasonal_flower_seeds.html', {'seeds': seeds})
+
+def summer_flower_seeds(request):
+    category = get_object_or_404(Category, name="Native")  # Ensure capitalization matches DB
+    seeds = Seed.objects.filter(category=category)
+    return render(request, 'products/summer_flower_seeds.html', {'seeds': seeds})

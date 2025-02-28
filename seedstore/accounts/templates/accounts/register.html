@@ -121,11 +121,31 @@
         .register-text a:hover {
             text-decoration: underline;
         }
+        /* Logo */
+        .logo {
+            margin-bottom: 10px;
+        }
+        .logo img {
+            height: 80px;
+        }
+
+        /* Branding */
+        .brand-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e88e5;
+            margin-bottom: 15px;
+        }
+
     </style>
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-box">
+            <div class="logo">
+                <img src="{% static 'images/next_gen_organic_seeds_logo.png' %}" alt="Next Gen Organic Seeds Logo">
+            </div>
+            <div class="brand-name">NextGen Organic Seeds</div>
             <h2>Register</h2>
 
             {% if messages %}

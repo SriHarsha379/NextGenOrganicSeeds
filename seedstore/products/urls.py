@@ -12,4 +12,7 @@ urlpatterns = [
     path('seeds/exotic-vegetable-seeds/', views.exotic_vegetable_seeds, name='exotic_vegetable_seeds'),
     path('seeds/hybrid-vegetable-seeds/', views.hybrid_vegetable_seeds, name='hybrid_vegetable_seeds'),
     path('search/', search_seeds, name='search_seeds'),
+    path('seeds/winter_flower_seeds/', views.winter_flower_seeds, name='winter_flower_seeds'),
+    path('seeds/all_seasonal_flower_seeds/', views.all_seasonal_flower_seeds, name='all_seasonal_flower_seeds'),
+    path('seeds/summer_flower_seeds/', views.summer_flower_seeds, name='summer_flower_seeds'),
 ]
