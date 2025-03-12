@@ -6,220 +6,160 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seed Store</title>
     <link rel="stylesheet" href="{% static 'css/seed_list.css' %}">
-    <style>
-        /* General Navbar Styling */
-.navbar {
-    background: linear-gradient(90deg, #2E7D32, #66BB6A); /* Green Gradient */
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 15px 30px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    position: sticky;
-    top: 0;
-    width: 100%;
-    z-index: 1000;
-}
-
-/* Website Name and Logo */
-.website-name {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: white;
-    font-size: 24px;
-    font-weight: bold;
-    gap: 12px;
-}
-
-.website-name img {
-    height: 64px;
-}
-
-/* Navbar Links */
-.navbar a {
-    color: white;
-    text-decoration: none;
-    padding: 12px 18px;
-    font-size: 18px;
-    font-weight: 500;
-    transition: background 0.3s, color 0.3s;
-}
-
-.navbar a:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 5px;
-}
-
-/* Dropdown Styling */
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-.dropdown > a {
-    cursor: pointer;
-    display: block;
-}
-
-/* Dropdown Menu */
-.dropdown-content {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background: white;
-    min-width: 200px;
-    border-radius: 5px;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-.dropdown-content a {
-    display: block;
-    padding: 12px;
-    color: #2E7D32;
-    font-size: 16px;
-    font-weight: 500;
-    transition: background 0.3s;
-}
-
-.dropdown-content a:hover {
-    background: #E8F5E9;
-}
-
-/* Show dropdown on hover */
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-/* Cart Icon */
-#cart-link {
-    display: flex;
-    align-items: center;
-    position: relative;
-}
-
-#cart-link img {
-    width: 40px;
-    height: 40px;
-}
-
-#cart-count {
-    background: red;
-    color: white;
-    border-radius: 50%;
-    padding: 4px 8px;
-    font-size: 14px;
-    position: absolute;
-    top: -5px;
-    right: -5px;
-}
-
-/* Authentication Links */
-.auth-link {
-    padding: 12px 18px;
-    color: white;
-    text-decoration: none;
-    font-size: 18px;
-    font-weight: 500;
-}
-
-.auth-link:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 5px;
-}
-
-/* Hamburger Menu (Mobile) */
-.hamburger {
-    display: none;
-    font-size: 28px;
-    color: white;
-    cursor: pointer;
-    padding: 10px;
-}
-
-@media (max-width: 768px) {
+<style>
+    /* General Navbar Styling */
     .navbar {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 10px 20px;
-    }
-
-    .hamburger {
-        display: block;
-        align-self: flex-end;
-    }
-
-    .nav-links {
-        display: none;
-        flex-direction: column;
-        align-items: flex-start;
         background: linear-gradient(90deg, #2E7D32, #66BB6A);
-        width: 100%;
-        position: absolute;
-        top: 60px;
-        left: 0;
-        padding: 10px 0;
-        box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .nav-links.active {
         display: flex;
-    }
-
-    .nav-links a {
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 30px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        position: sticky;
+        top: 0;
         width: 100%;
-        text-align: left;
-        padding: 12px 20px;
-        color: white;
-        background: none;
+        z-index: 1000;
     }
 
-    .dropdown-content {
-        position: static;
-        background: none;
-        box-shadow: none;
-        display: block;
+    /* Promo Section Styling */
+    .promo-section {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        background: #E8F5E9;
+        padding: 15px;
+        font-size: 16px;
+        font-weight: bold;
     }
 
-    .dropdown-content a {
-        padding: 10px 20px;
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
+    .promo-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
-    .auth-link,
-    #cart-link {
-        display: block;
-        width: 100%;
-        text-align: left;
-        padding: 12px 20px;
-    }
-
-    #cart-link img {
+    .promo-item img {
         width: 30px;
         height: 30px;
-        margin-left: 10px;
     }
-}
 
-/* Fade In Animation */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
+    /* Search Bar Styling */
+    .search-container {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 
-    </style>
-</head>
-<body>
+    .search-form {
+        display: flex;
+        align-items: center;
+        background: white;
+        border-radius: 25px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+        padding: 5px 15px;
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .search-form input {
+        border: none;
+        outline: none;
+        padding: 10px;
+        font-size: 16px;
+        flex: 1;
+    }
+
+    .search-form button {
+        background: #2E7D32;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    .search-form button img {
+        width: 20px;
+        height: 20px;
+    }
+            /* General Dropdown Styling */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown > a {
+            cursor: pointer;
+            display: block;
+            padding: 12px 18px;
+            font-size: 18px;
+            color: white;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        /* Dropdown Menu */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            min-width: 200px;
+            border-radius: 5px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+
+        .dropdown-content a {
+            display: block;
+            padding: 12px;
+            color: #2E7D32;
+            font-size: 16px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .dropdown-content a:hover {
+            background: #E8F5E9;
+        }
+
+        /* Show dropdown on hover (Desktop) */
+        @media (min-width: 769px) {
+            .dropdown:hover .dropdown-content {
+                display: block;
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Dropdown Styling */
+        @media (max-width: 768px) {
+            .dropdown-content {
+                position: static;
+                background: none;
+                box-shadow: none;
+                display: none;
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .dropdown-content a {
+                padding: 10px 20px;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+            }
+
+            .dropdown.active .dropdown-content {
+                display: block;
+            }
+        }
+</style>
 
 <!-- PROMOTIONAL SECTION -->
 <div class="promo-section">
@@ -237,15 +177,16 @@
     </div>
 </div>
 
-<!-- NAVBAR -->
+<!-- SEARCH BAR -->
 <div class="search-container">
     <form action="{% url 'search_seeds' %}" method="GET" class="search-form">
         <input type="text" name="q" placeholder="🔍 Search for seeds..." required>
         <button type="submit">
-            <img src="https://cdn-icons-png.flaticon.com/512/482/482631.png" alt="Search" class="search-icon">
+            <img src="https://cdn-icons-png.flaticon.com/512/482/482631.png" alt="Search">
         </button>
     </form>
 </div>
+
 
 <!-- NAVBAR -->
 <div class="navbar">
