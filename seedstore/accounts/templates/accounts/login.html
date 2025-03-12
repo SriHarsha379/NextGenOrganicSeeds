@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Login - NextGen Organic Seeds</title>
+    <title>Login - HASA Organic Seeds</title>
     <style>
         /* General Styles */
         body {
@@ -29,6 +29,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
+            width: 100%;
             max-width: 90vw;
         }
 
@@ -37,12 +38,12 @@
             margin-bottom: 10px;
         }
         .logo img {
-            height: 80px;
+            height: 70px;
         }
 
         /* Branding */
         .brand-name {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
             color: #1e88e5;
             margin-bottom: 15px;
@@ -57,7 +58,8 @@
 
         /* Input Fields */
         .input-group {
-            margin-bottom: 15px;
+            width: 100%;
+            position: relative;
         }
 
         input {
@@ -73,6 +75,29 @@
             border-color: #42a5f5;
             outline: none;
             box-shadow: 0 0 5px rgba(66, 165, 245, 0.5);
+        }
+
+        /* Show Password Button */
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper input {
+            flex-grow: 1;
+            padding-right: 40px; /* Ensure space for the button */
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            color: #42a5f5;
+            cursor: pointer;
+            outline: none;
         }
 
         /* Button */
@@ -102,6 +127,39 @@
             margin-bottom: 10px;
         }
 
+        /* Remember Me & Forgot Password */
+        .remember-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .remember-me-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .remember-me-container input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        .forgot-password {
+            font-size: 14px;
+        }
+
+        .forgot-password a {
+            color: #1e88e5;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
         /* Register Text */
         .register-text {
             margin-top: 15px;
@@ -127,40 +185,6 @@
                 font-size: 20px;
             }
         }
-
-        /* Align the Remember Me and Forgot Password in a single row */
-        .remember-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-        }
-
-        .remember-me-container {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .remember-me-container input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            vertical-align: middle;
-        }
-
-        .forgot-password {
-            font-size: 14px;
-        }
-
-        .forgot-password a {
-            color: #1e88e5;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .forgot-password a:hover {
-            text-decoration: underline;
-        }
     </style>
 </head>
 <body>
@@ -169,8 +193,9 @@
             <div class="logo">
                 <img src="{% static 'images/next_gen_organic_seeds_logo.png' %}" alt="Next Gen Organic Seeds Logo">
             </div>
-            <div class="brand-name">NextGen Organic Seeds</div>
+            <div class="brand-name">HASA Organic Seeds</div>
             <h2>Login</h2>
+
             {% if messages %}
                 <div class="messages">
                     {% for message in messages %}
@@ -184,8 +209,13 @@
                 <div class="input-group">
                     <input type="text" name="username" placeholder="Username" required>
                 </div>
+
+                <!-- Password Input with Show/Hide Button -->
                 <div class="input-group">
-                    <input type="password" name="password" placeholder="Password" required>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" placeholder="Password" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword()">Show</button>
+                    </div>
                 </div>
 
                 <div class="remember-container">
@@ -202,5 +232,21 @@
             <p class="register-text">Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
         </div>
     </div>
+
+    <script>
+        function togglePassword() {
+            let passwordField = document.getElementById("password");
+            let toggleButton = document.querySelector(".toggle-password");
+
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+                toggleButton.textContent = "Hide";
+            } else {
+                passwordField.type = "password";
+                toggleButton.textContent = "Show";
+            }
+        }
+    </script>
 </body>
 </html>
+

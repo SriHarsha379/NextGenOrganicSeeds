@@ -11,3 +11,4 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('order-success/', order_success, name='order_success'),
 ]
+

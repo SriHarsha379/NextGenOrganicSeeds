@@ -27,10 +27,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-+vofv8mk!los^y4r=^^bt86$nk3e(^a$*i4k-_q7ybwpzwg5%c'
 
+ALLOWED_HOSTS = ['hasaorganicseeds.com', 'www.hasaorganicseeds.com', '147.93.28.237']
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+
 
 
 # Application definition
@@ -89,8 +92,12 @@ WSGI_APPLICATION = 'seedstore.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'nextgenorganicseeds',  # Your database name
+        'USER': 'postgres',  # Default PostgreSQL user
+        'PASSWORD': '807496@Bb',  # Replace with your actual password
+        'HOST': 'localhost',  
+        'PORT': '5432',
     }
 }
 
@@ -129,8 +136,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_URL = "/static/"
+STATIC_ROOT = "/home/seedstore/static/"
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # The static directory at project level
+]
+
+
 
 
 # Default primary key field type
@@ -139,16 +151,18 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Session expires after 1 hour (3600 seconds)
-SESSION_COOKIE_AGE = 3600
+SESSION_COOKIE_AGE =86400  
 
 # Allow session persistence for the given duration
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # Use secure session storage
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Stores in the database
-SESSION_COOKIE_SECURE = True  # Ensures session is only sent over HTTPS
-SESSION_COOKIE_HTTPONLY = True  # Prevents JavaScript access to session cookies
-SESSION_SAVE_EVERY_REQUEST = True  # Refresh session expiration on user activity
+SESSION_ENGINE = "django.contrib.sessions.backends.db"  # Store sessions in DB
+SESSION_COOKIE_AGE = 1209600  # 2 weeks (in seconds)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keep sessions even after closing browser
+SESSION_SAVE_EVERY_REQUEST = True  # Extend session on activity
+
+
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -156,3 +170,10 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'your-email@gmail.com'
 EMAIL_HOST_PASSWORD = 'your-email-password'  # Use an App Password for security
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://hasaorganicseeds.com",
+    "http://hasaorganicseeds.com",
+    "http://147.93.28.237",
+    "https://147.93.28.237",
+]

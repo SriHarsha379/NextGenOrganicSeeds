@@ -1,0 +1,12 @@
+[0;1;31m×[0m gunicorn.service - gunicorn daemon for Django project
+     Loaded: loaded (/etc/systemd/system/gunicorn.service; enabled; vendor preset: enabled)
+     Active: [0;1;31mfailed[0m (Result: exit-code) since Mon 2025-03-10 09:20:42 UTC; 5s ago
+    Process: 12293 ExecStart=/home/seedstore/venv/bin/gunicorn --workers 3 --bind unix:/home/seedstore/seedstore/seedstore.sock seedstore.wsgi:application [0;1;31m(code=exited, status=200/CHDIR)[0m
+   Main PID: 12293 (code=exited, status=200/CHDIR)
+        CPU: 2ms
+
+Mar 10 09:20:42 srv748425 systemd[1]: Started gunicorn daemon for Django project.
+Mar 10 09:20:42 srv748425 systemd[12293]: [0;1;31m[0;1;39m[0;1;31mgunicorn.service: Changing to the requested working directory failed: Permission denied[0m
+Mar 10 09:20:42 srv748425 systemd[12293]: [0;1;31m[0;1;39m[0;1;31mgunicorn.service: Failed at step CHDIR spawning /home/seedstore/venv/bin/gunicorn: Permission denied[0m
+Mar 10 09:20:42 srv748425 systemd[1]: [0;1;39m[0;1;31m[0;1;39mgunicorn.service: Main process exited, code=exited, status=200/CHDIR[0m
+Mar 10 09:20:42 srv748425 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mgunicorn.service: Failed with result 'exit-code'.[0m
