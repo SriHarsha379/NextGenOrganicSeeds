@@ -7,281 +7,35 @@
     <title>Search Results</title>
     <link rel="stylesheet" href="{% static 'css/seed_list.css' %}">
     <style>
-        /* Global Styles */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f9;
-    color: #333;
-}
-
-/* Navbar Styles */
-.navbar {
-    background-color: #006400;
-    padding: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-}
-
-.website-name {
-    color: white;
-    font-size: 1.5em;
-    font-weight: bold;
-    text-decoration: none;
-}
-
-.dropdown {
-    position: relative;
+.back-button {
     display: inline-block;
-}
-
-.dropdown .dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #fff;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-    z-index: 1;
-}
-
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-.dropdown-content a {
-    color: #333;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-}
-
-.elementor-item {
+    padding: 12px 30px;
+    background: linear-gradient(45deg, #6a11cb, #2575fc); /* Gradient background */
     color: white;
-    font-size: 1.1em;
-}
-
-.elementor-item:hover {
-    background-color: #444;
-    color: white;
-}
-
-.auth-link {
-    color: white;
-    text-decoration: none;
-    padding: 10px;
-    margin-left: 10px;
-}
-
-.auth-link:hover {
-    background-color: #ddd;
-    border-radius: 5px;
-}
-
-#cart-link {
-    position: relative;
-}
-
-.cart-count {
-    background: red;
-    color: white;
-    border-radius: 50%;
-    padding: 4px 8px;
-    font-size: 14px;
-    position: absolute;
-    top: -5px;
-    right: -5px;
-}
-
-.search-container {
     text-align: center;
-    margin-top: 20px;
-    width: 100%;
-}
-
-.search-form {
-    display: inline-block;
-    position: relative;
-}
-
-.search-form input {
-    padding: 10px;
-    font-size: 16px;
-    width: 250px;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-}
-
-.search-icon {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
-}
-
-/* Page Title */
-.page-title {
-    text-align: center;
-    margin: 20px 0;
-}
-
-/* Results Section */
-.container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
-    margin: 20px;
-}
-
-.seed-card {
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 300px;
-    margin: 10px;
-    padding: 20px;
-    text-align: center;
-}
-
-.seed-image {
-    width: 100%;
-    border-radius: 5px;
-}
-
-.seed-name {
-    font-size: 18px;
+    border-radius: 50px; /* Rounded corners */
     font-weight: bold;
-    margin: 10px 0;
-}
-
-.seed-price {
-    color: green;
-    font-size: 16px;
-}
-
-.input-group {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 10px;
-}
-
-.quantity-input {
-    width: 60px;
-    padding: 5px;
-    margin-right: 10px;
-    text-align: center;
-}
-
-.add-to-cart-button {
-    background-color: #28a745;
-    color: white;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.add-to-cart-button:hover {
-    background-color: #218838;
-}
-
-/* Back to Home Link */
-.back-home-link {
-    display: block;
-    text-align: center;
-    margin-top: 20px;
-    font-weight: bold;
-    font-size: 18px;
-    color: #006400;
     text-decoration: none;
-}
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow effect */
+    transition: all 0.3s ease; /* Smooth transition for all properties */
+    font-size: 16px;
+    letter-spacing: 1px;
+  }
 
-.back-home-link:hover {
-    text-decoration: underline;
-}
+  .back-button:hover {
+    transform: translateY(-5px); /* Slight lift on hover */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
+    background: linear-gradient(45deg, #2575fc, #6a11cb); /* Reverse gradient on hover */
+  }
 
-/* No Results Message */
-.no-results {
-    text-align: center;
-    font-size: 18px;
-    color: #777;
-}
-
-/* Responsive Styles */
-@media (max-width: 768px) {
-    .navbar {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .search-container {
-        width: 80%;
-        margin: 0 auto;
-    }
-
-    .search-form input {
-        width: 100%;
-    }
-
-    .container {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .seed-card {
-        width: 90%;
-    }
-
-    .back-home-link {
-        font-size: 16px;
-    }
-
-    .page-title {
-        font-size: 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    .navbar {
-        padding: 10px;
-    }
-
-    .website-name {
-        font-size: 1.2em;
-    }
-
-    .dropdown .dropdown-content {
-        width: 200px;
-    }
-
-    .container {
-        margin: 10px;
-    }
-
-    .seed-card {
-        width: 100%;
-        margin-bottom: 15px;
-    }
-
-    .input-group {
-        flex-direction: column;
-    }
-
-    .quantity-input {
-        margin-bottom: 10px;
-    }
-}
-
+  .back-button:active {
+    transform: translateY(0); /* Button "pressed" effect */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Lighter shadow when pressed */
+  }
     </style>
 </head>
 <body>
 
-<!-- NAVBAR -->
 <!-- NAVBAR -->
 <div class="search-container">
     <form action="{% url 'search_seeds' %}" method="GET" class="search-form">
@@ -303,6 +57,14 @@ body {
             <a href="{% url 'hybrid_vegetable_seeds' %}">Hybrid Vegetable Seeds</a>
         </div>
     </div>
+    <div class="dropdown">
+        <a class="elementor-item elementor-item-anchor has-submenu dropdown">Flower Seeds</a>
+        <div class="dropdown-content">
+            <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
+            <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
+            <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+        </div>
+    </div>
     {% if not user.is_authenticated %}
         <a href="{% url 'login' %}" class="auth-link">Login</a>
         <a href="{% url 'register' %}" class="auth-link">Register</a>
@@ -311,40 +73,38 @@ body {
     {% endif %}
     <a href="{% url 'view_cart' %}" id="cart-link">
         <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png" alt="Cart" style="width: 40px; height: 40px; vertical-align: middle;">
-        <span id="cart-count" class="cart-count">
+        <span id="cart-count" style="background: red; color: white; border-radius: 50%; padding: 4px 8px; font-size: 14px; margin-left: -10px;">
             {{ cart_count }}
         </span>
     </a>
 </div>
 
 <!-- BACK TO HOME -->
-<a href="{% url 'seed_list' %}" class="back-home-link">⬅ Back to Home</a>
-
+<a href="{% url 'seed_list' %}" class="back-button">⬅ Back to Home</a>
 <!-- PAGE TITLE -->
-<h1 class="page-title">Search Results for "{{ query }}"</h1>
+<h1>Search Results for "{{ query }}"</h1>
 
 <!-- RESULTS CONTAINER -->
 <div class="container">
     {% if results %}
         {% for seed in results %}
             <div class="seed-card">
-                <img src="/media/{{ seed.image }}" alt="{{ seed.name }}" class="seed-image">
-                <h2 class="seed-name">{{ seed.name }}</h2>
-                <p class="seed-price">Price: ₹{{ seed.price }}</p>
+                <img src="/media/{{ seed.image }}" alt="{{ seed.name }}">
+                <h2>{{ seed.name }}</h2>
+                <p>Price: ₹{{ seed.price }}</p>
                 <form class="add-to-cart-form" data-seed-id="{{ seed.id }}">
                     {% csrf_token %}
                     <div class="input-group">
-                        <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}" class="quantity-input">
-                        <button type="submit" class="add-to-cart-button">Add to Cart</button>
+                        <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}">
+                        <button type="submit">Add to Cart</button>
                     </div>
                 </form>
             </div>
         {% endfor %}
     {% else %}
-        <p class="no-results">No seeds found matching your search.</p>
+        <p>No seeds found matching your search.</p>
     {% endif %}
 </div>
-
 <script>
     // AJAX Add to Cart
 document.querySelectorAll('.add-to-cart-form').forEach(form => {
@@ -375,6 +135,7 @@ document.querySelectorAll('.add-to-cart-form').forEach(form => {
         .catch(error => console.error('Error:', error));
     });
 });
+
 </script>
 </body>
 </html>

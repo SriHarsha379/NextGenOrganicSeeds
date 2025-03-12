@@ -98,6 +98,36 @@ input, select {
         }
 
         .payment-btn:hover { background: #004494; }
+        .payment-btn {
+    padding: 14px 40px;
+    background: linear-gradient(45deg, #ff7f50, #ff6347); /* Gradient background */
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50px; /* Rounded corners */
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Soft shadow effect */
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+    text-transform: uppercase; /* Uppercase text for emphasis */
+    text-align: center;
+  }
+
+  .payment-btn:hover {
+    transform: translateY(-5px); /* Button lifts slightly on hover */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); /* Enhanced shadow on hover */
+    background: linear-gradient(45deg, #ff6347, #ff7f50); /* Reverse gradient on hover */
+  }
+
+  .payment-btn:active {
+    transform: translateY(0); /* "Pressed" effect on click */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Lighter shadow when pressed */
+  }
+
+  .payment-btn:focus {
+    outline: none;
+  }
     </style>
 </head>
 <body>

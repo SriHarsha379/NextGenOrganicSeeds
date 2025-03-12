@@ -59,22 +59,32 @@
         }
 
         /* Button */
-        .btn {
-            width: 100%;
-            background: #42a5f5;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s ease-in-out;
-        }
+.btn-register {
+    display: inline-block;
+    padding: 12px 30px;
+    background: linear-gradient(45deg, #00bcd4, #2196f3); /* Cool gradient background */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50px; /* Rounded corners */
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Soft shadow */
+    transition: all 0.3s ease; /* Smooth transition for all properties */
+    letter-spacing: 1px;
+  }
 
-        .btn:hover {
-            background: #1e88e5;
-        }
+  .btn-register:hover {
+    transform: translateY(-5px); /* Button lift effect on hover */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
+    background: linear-gradient(45deg, #2196f3, #00bcd4); /* Reverse gradient on hover */
+  }
 
+  .btn-register:active {
+    transform: translateY(0); /* "Pressed" effect when clicked */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Lighter shadow when pressed */
+  }
         /* Messages */
         .messages {
             background: #ffeb3b;
@@ -182,7 +192,8 @@
                 <!-- Password Strength Indicator -->
                 <p class="password-strength" id="password-strength"></p>
 
-                <button type="submit" class="btn">Register</button>
+                <button type="submit" class="btn-register">Register</button>
+
             </form>
 
             <p class="register-text">Already have an account? <a href="{% url 'login' %}">Login here</a></p>

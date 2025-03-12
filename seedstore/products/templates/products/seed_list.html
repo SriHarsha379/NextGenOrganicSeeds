@@ -159,6 +159,273 @@
                 display: block;
             }
         }
+      /* General Navbar Styling */
+    .navbar {
+        background: linear-gradient(90deg, #2E7D32, #66BB6A); /* Green Gradient */
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 30px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        position: sticky;
+        top: 0;
+        width: 100%;
+        z-index: 1000;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    /* Website Name and Logo */
+    .website-name {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        color: white;
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        gap: 12px;
+        text-transform: uppercase;
+    }
+
+    .website-name img {
+        height: 64px;
+        border-radius: 50%;
+    }
+
+    /* Navbar Links */
+    .navbar a {
+        color: white;
+        text-decoration: none;
+        padding: 12px 18px;
+        font-size: 18px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        letter-spacing: 1px;
+        text-transform: capitalize;
+    }
+
+    .navbar a:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 5px;
+        transform: translateY(-3px); /* Hover lift effect */
+        color: #66BB6A;
+    }
+
+    /* Dropdown Styling */
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown > a {
+        cursor: pointer;
+        display: block;
+    }
+
+    /* Dropdown Menu */
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: white;
+        min-width: 200px;
+        border-radius: 5px;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .dropdown-content a {
+        display: block;
+        padding: 12px;
+        color: #2E7D32;
+        font-size: 16px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        letter-spacing: 1px;
+    }
+
+    .dropdown-content a:hover {
+        background: #E8F5E9;
+        color: #66BB6A;
+    }
+
+    /* Show dropdown on hover */
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    /* Cart Icon */
+    #cart-link {
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+
+    #cart-link img {
+        width: 40px;
+        height: 40px;
+    }
+
+    #cart-count {
+        background: red;
+        color: white;
+        border-radius: 50%;
+        padding: 4px 8px;
+        font-size: 14px;
+        position: absolute;
+        top: -5px;
+        right: -5px;
+    }
+
+    /* Authentication Links */
+    .auth-link {
+        padding: 12px 18px;
+        color: white;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: 500;
+        letter-spacing: 1px;
+        text-transform: capitalize;
+    }
+
+    .auth-link:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 5px;
+        transform: translateY(-3px);
+    }
+
+    /* Hamburger Menu (Mobile) */
+    .hamburger {
+        display: none;
+        font-size: 28px;
+        color: white;
+        cursor: pointer;
+        padding: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .navbar {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 10px 20px;
+        }
+
+        .hamburger {
+            display: block;
+            align-self: flex-end;
+        }
+
+        .nav-links {
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            background: linear-gradient(90deg, #2E7D32, #66BB6A);
+            width: 100%;
+            position: absolute;
+            top: 60px;
+            left: 0;
+            padding: 10px 0;
+            box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-links.active {
+            display: flex;
+        }
+
+        .nav-links a {
+            width: 100%;
+            text-align: left;
+            padding: 12px 20px;
+            color: white;
+            background: none;
+        }
+
+        .dropdown-content {
+            position: static;
+            background: none;
+            box-shadow: none;
+            display: block;
+        }
+
+        .dropdown-content a {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .auth-link,
+        #cart-link {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 12px 20px;
+        }
+
+        #cart-link img {
+            width: 30px;
+            height: 30px;
+            margin-left: 10px;
+        }
+    }
+
+    /* Fade In Animation */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .quantity-input {
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .quantity-input:focus {
+    border-color: #ff6f61; /* Border color when focused */
+    box-shadow: 0 0 5px rgba(255, 111, 97, 0.5); /* Soft glow effect on focus */
+  }
+
+  .add-to-cart-btn {
+    padding: 12px 30px;
+    background: linear-gradient(45deg, #ff6f61, #ff9a8b); /* Gradient background */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50px; /* Rounded corners */
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Shadow effect */
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+  }
+
+  .add-to-cart-btn:hover {
+    transform: translateY(-5px); /* Lift effect on hover */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Enhanced shadow */
+    background: linear-gradient(45deg, #ff9a8b, #ff6f61); /* Reversed gradient */
+  }
+
+  .add-to-cart-btn:active {
+    transform: translateY(0); /* "Pressed" effect */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Light shadow when pressed */
+  }
+
 </style>
 
 <!-- PROMOTIONAL SECTION -->
@@ -224,15 +491,14 @@
         <a href="{% url 'logout' %}" class="auth-link">Logout</a>
     {% endif %}
 
-    <a href="{% url 'view_cart' %}" id="cart-link">
-        <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png"
-             alt="Cart"
-             style="width: 40px; height: 40px; vertical-align: middle;">
-        <span id="cart-count"
-              style="background: red; color: white; border-radius: 50%; padding: 4px 8px; font-size: 14px; margin-left: -10px;">
-            {{ cart_count }}
-        </span>
-    </a>
+   <a href="{% url 'view_cart' %}" id="cart-link" class="cart-link">
+    <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png"
+         alt="Cart"
+         class="cart-icon">
+    <span id="cart-count" class="cart-count">
+        {{ cart_count }}
+    </span>
+</a>
 </div>
 
 
@@ -258,9 +524,9 @@
             <form class="add-to-cart-form" data-seed-id="{{ seed.id }}">
                 {% csrf_token %}
                 <div class="input-group">
-                    <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}">
-                    <button type="submit">Add to Cart</button>
-                </div>
+    <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}" class="quantity-input">
+    <button type="submit" class="add-to-cart-btn">Add to Cart</button>
+</div>
             </form>
         </div>
     {% endfor %}
