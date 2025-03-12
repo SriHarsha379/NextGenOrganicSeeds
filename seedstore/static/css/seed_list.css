@@ -1,3 +1,16 @@
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f7f7;
+    color: #333;
+}
+
 /* Search Bar Styling */
 .search-container {
     width: 100%;
@@ -11,12 +24,11 @@
     z-index: 1000;
 }
 
-/* Search Box */
 .search-form {
     display: flex;
     align-items: center;
-    width: 50%;
-    max-width: 600px;
+    width: 100%;
+    max-width: 500px;
     background: white;
     border-radius: 50px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -46,309 +58,258 @@
     background-color: #388E3C;
 }
 
-/* Search Icon */
-.search-icon {
-    width: 24px;
-    height: 24px;
-    filter: invert(100%); /* Makes the icon white */
-}
-
 /* Focus Effect */
 .search-form input:focus {
     background-color: #f0f0f0;
 }
 
-    /* ABOUT US / WHY CHOOSE US */
-    .about-us {
-        text-align: center;
-        padding: 30px;
-        background: #e8f5e9;
-        border-radius: 8px;
-        margin: 20px auto;
+/* Hero Section */
+.hero {
+    background: url('https://source.unsplash.com/1600x900/?seeds,gardening') no-repeat center center/cover;
+    height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    position: relative;
+    padding: 20px;
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Dark overlay for better text visibility */
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 600px;
+}
+
+.hero h1 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.hero p {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.cta-button {
+    background: #FFC107;
+    color: black;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.cta-button:hover {
+    background: #ff9800;
+}
+
+/* About Us / Why Choose Us */
+.about-us {
+    text-align: center;
+    padding: 30px;
+    background: #e8f5e9;
+    border-radius: 8px;
+    margin: 20px auto;
+}
+
+.about-us h2 {
+    font-size: 26px;
+    margin-bottom: 15px;
+}
+
+.about-items {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.about-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 250px;
+}
+
+.about-item img {
+    width: 40px;
+    height: 40px;
+}
+
+/* Customer Reviews */
+.reviews {
+    text-align: center;
+    padding: 30px;
+    background: #f7f7f7;
+    border-radius: 8px;
+    margin: 20px auto;
+}
+
+.reviews h2 {
+    font-size: 26px;
+    margin-bottom: 15px;
+}
+
+.review-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.review-card {
+    background: white;
+    padding: 15px;
+    max-width: 250px;
+    border-radius: 8px;
+    box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+}
+
+.review-card p {
+    font-size: 16px;
+    color: #555;
+}
+
+.stars {
+    font-size: 20px;
+    color: #FFC107;
+}
+
+/* Footer */
+.footer {
+    background: #333;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    padding-bottom: 10px;
+}
+
+.footer-section {
+    max-width: 200px;
+}
+
+.footer-section h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.footer-section a {
+    color: white;
+    text-decoration: none;
+    margin: 5px 0;
+    display: block;
+}
+
+.footer-section img {
+    width: 30px;
+    margin: 5px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .container {
+        grid-template-columns: repeat(3, 1fr);
     }
 
-    .about-us h2 {
-        font-size: 26px;
-        margin-bottom: 15px;
+    .hero h1 {
+        font-size: 24px;
+    }
+
+    .hero p {
+        font-size: 14px;
+    }
+
+    .cta-button {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .search-form {
+        width: 80%;
+    }
+
+    .hero {
+        height: 250px;
+    }
+
+    .hero h1 {
+        font-size: 22px;
+    }
+
+    .hero p {
+        font-size: 14px;
+    }
+
+    .cta-button {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        grid-template-columns: repeat(1, 1fr);
     }
 
     .about-items {
-        display: flex;
-        justify-content: center;
-        gap: 30px;
-        flex-wrap: wrap;
-    }
-
-    .about-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        max-width: 250px;
-    }
-
-    .about-item img {
-        width: 40px;
-        height: 40px;
-    }
-
-    /* CUSTOMER REVIEWS */
-    .reviews {
-        text-align: center;
-        padding: 30px;
-        background: #f7f7f7;
-        border-radius: 8px;
-        margin: 20px auto;
-    }
-
-    .reviews h2 {
-        font-size: 26px;
-        margin-bottom: 15px;
+        flex-direction: column;
+        gap: 20px;
     }
 
     .review-container {
-        display: flex;
-        justify-content: center;
+        flex-direction: column;
         gap: 20px;
-        flex-wrap: wrap;
-    }
-
-    .review-card {
-        background: white;
-        padding: 15px;
-        max-width: 250px;
-        border-radius: 8px;
-        box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .review-card p {
-        font-size: 16px;
-        color: #555;
-    }
-
-    .stars {
-        font-size: 20px;
-        color: #FFC107;
-    }
-
-    /* FOOTER */
-    .footer {
-        background: #333;
-        color: white;
-        padding: 20px;
-        text-align: center;
-        margin-top: 20px;
     }
 
     .footer-content {
-        display: flex;
-        justify-content: space-around;
-        flex-wrap: wrap;
-        padding-bottom: 10px;
+        flex-direction: column;
+        gap: 15px;
     }
 
-    .footer-section {
-        max-width: 200px;
+    .search-form {
+        width: 90%;
     }
 
-    .footer-section h3 {
+    .hero h1 {
         font-size: 18px;
-        margin-bottom: 8px;
     }
 
-    .footer-section a {
-        color: white;
-        text-decoration: none;
-        margin: 5px 0;
-        display: block;
+    .hero p {
+        font-size: 12px;
     }
 
-    .footer-section img {
-        width: 30px;
-        margin: 5px;
-    }
-    /* PROMOTIONAL SECTION */
-    .promo-section {
-        display: flex;
-        justify-content: center;
-        gap: 30px;
-        padding: 20px;
-        background: linear-gradient(90deg, #ffeb3b, #ffc107);
-        border-radius: 8px;
-        text-align: center;
-        margin: 20px auto;
-        flex-wrap: wrap;
-    }
-
-    .promo-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .promo-item img {
-        width: 40px;
-        height: 40px;
-    }
-
-    .promo-item p {
-        font-size: 18px;
-        font-weight: bold;
-        color: #333;
-    }
-
-    /* GLOBAL STYLES */
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f7f7f7;
-        color: #333;
-    }
-
-    /* PROMOTIONAL BANNER */
-    .promo-banner {
-        background-color: #f4c542; /* Yellow background to stand out */
-        color: black;
-        text-align: left;
-        padding: 10px 15px;
-        font-size: 16px;
-        font-weight: bold;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: relative; /* So it stays on top */
-        z-index: 10;        /* Above other elements */
-    }
-    .promo-text {
-        flex-grow: 1;
-    }
-    .promo-discount {
-        text-align: right;
-    }
-
-/* Navbar Styling */
-.navbar {
-    background: linear-gradient(90deg, #2E7D32, #66BB6A); /* Green Gradient */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 30px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-/* Website Name */
-.website-name {
-    font-size: 26px;
-    font-weight: bold;
-    color: white;
-    text-decoration: none;
-    transition: color 0.3s;
-}
-
-.website-name:hover {
-    color: #FFC107; /* Gold hover effect */
-}
-
-/* Navbar Links */
-.navbar a {
-    color: white;
-    text-decoration: none;
-    padding: 12px 18px;
-    font-size: 18px;
-    font-weight: 500;
-    transition: background 0.3s, color 0.3s;
-}
-
-.navbar a:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 5px;
-}
-
-/* Dropdown Styling */
-.dropdown {
-    position: relative;
-}
-
-.dropdown > a {
-    cursor: pointer;
-    display: block;
-}
-
-/* Dropdown Menu */
-.dropdown-content {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background: white;
-    min-width: 200px;
-    border-radius: 5px;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-.dropdown-content a {
-    display: block;
-    padding: 12px;
-    color: #2E7D32;
-    font-size: 16px;
-    font-weight: 500;
-    transition: background 0.3s;
-}
-
-.dropdown-content a:hover {
-    background: #E8F5E9;
-}
-
-/* Show dropdown on hover */
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-/* Cart Icon */
-#cart-link {
-    display: flex;
-    align-items: center;
-    position: relative;
-}
-
-#cart-link img {
-    width: 35px;
-    height: 35px;
-}
-
-#cart-count {
-    background: red;
-    color: white;
-    border-radius: 50%;
-    padding: 5px 9px;
-    font-size: 14px;
-    position: absolute;
-    top: -5px;
-    right: -5px;
-}
-
-/* Fade In Animation */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    .cta-button {
+        font-size: 12px;
     }
 }
 
-
-       /* SEEDS SECTION */
+/* Seed Cards */
 h1 {
     margin-top: 20px;
     text-align: center;
@@ -384,7 +345,6 @@ h1 {
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-/* IMAGE */
 .seed-card img {
     width: 100%;
     height: 150px;
@@ -392,25 +352,16 @@ h1 {
     border-radius: 6px;
 }
 
-/* TEXT */
 .seed-card h2 {
     font-size: 18px;
     margin: 10px 0;
     color: #2e3d58;
 }
+
 .seed-card p {
     font-size: 16px;
     color: #666;
     margin-bottom: 10px;
-}
-
-/* INPUT & BUTTON */
-.input-group {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-top: 8px;
 }
 
 .seed-card input {
@@ -438,25 +389,7 @@ h1 {
     transform: scale(1.05);
 }
 
-/* RESPONSIVE DESIGN */
-@media (max-width: 1024px) {
-    .container {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-@media (max-width: 768px) {
-    .container {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-@media (max-width: 480px) {
-    .container {
-        grid-template-columns: repeat(1, 1fr);
-    }
-}
-
-
-/* MODAL */
+/* Modal */
 .modal {
     display: none;
     position: fixed;
@@ -475,103 +408,21 @@ h1 {
     margin: auto;
     padding: 20px;
     border-radius: 8px;
-    width: 300px;
-    position: relative;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    width: 80%;
+    max-width: 500px;
 }
 .close {
     color: #aaa;
-    position: absolute;
-    right: 15px;
-    top: 10px;
-    font-size: 24px;
-    cursor: pointer;
-}
-    .close:hover {
-        color: #555;
-    }
-    .modal-content button {
-        background-color: #4CAF50;
-        border: none;
-        padding: 10px 16px;
-        color: #fff;
-        font-size: 14px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    .modal-content button:hover {
-        background-color: #45a049;
-    }
-
-    /* FOOTER */
-    .footer {
-        background-color: #333;
-        color: white;
-        padding: 20px;
-        text-align: center;
-        margin-top: 20px;
-    }
-    .footer a {
-        color: white;
-        text-decoration: none;
-        margin: 0 10px;
-    }
-    .footer a:hover {
-        text-decoration: underline;
-    }
-    /* HERO SECTION */
-.hero {
-    background: url('https://source.unsplash.com/1600x900/?seeds,gardening') no-repeat center center/cover;
-    height: 400px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: white;
-    position: relative;
-    padding: 20px;
-}
-
-.hero::before {
-    content: "";
+    font-size: 28px;
+    font-weight: bold;
     position: absolute;
     top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Dark overlay for better text visibility */
+    right: 25px;
 }
-
-.hero-content {
-    position: relative;
-    z-index: 2;
-    max-width: 600px;
-}
-
-.hero h1 {
-    font-size: 36px;
-    margin-bottom: 10px;
-    font-weight: bold;
-}
-
-.hero p {
-    font-size: 18px;
-    margin-bottom: 20px;
-}
-
-.cta-button {
-    background: #FFC107;
+.close:hover,
+.close:focus {
     color: black;
-    padding: 12px 20px;
-    font-size: 18px;
-    font-weight: bold;
-    border-radius: 5px;
     text-decoration: none;
-    transition: 0.3s;
+    cursor: pointer;
 }
 
-.cta-button:hover {
-    background: #ff9800;
-}

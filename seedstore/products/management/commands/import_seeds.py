@@ -6,7 +6,7 @@ class Command(BaseCommand):
     help = "Import seeds data from CSV file"
 
     def handle(self, *args, **kwargs):
-        file_path = "C:/Users/harsh/PycharmProjects/seedstore/seedstore/seeds_data.csv"
+        file_path = "/home/seedstore/seedstore/seeds_data.csv"
 
         try:
             with open(file_path, newline='', encoding='utf-8') as csvfile:

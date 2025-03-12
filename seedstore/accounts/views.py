@@ -1,3 +1,4 @@
+from django.utils.timezone import now
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
@@ -8,22 +9,26 @@ def user_login(request):
     if request.method == "POST":
         username = request.POST["username"]
         password = request.POST["password"]
-        remember_me = request.POST.get("remember_me")  # Check if 'Remember Me' is checked
+        remember_me = request.POST.get("remember_me")
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
 
             if remember_me:
-                request.session.set_expiry(1209600)  # 2 weeks (14 days)
+                request.session.set_expiry(1209600)  # 2 weeks
             else:
-                request.session.set_expiry(3600)  # 1 hour if 'Remember Me' is not checked
+                request.session.set_expiry(3600)  # 1 hour
 
-            return redirect("home")  # Redirect to home or dashboard
+            request.session.modified = True  # Ensure session updates
+            print(f"✅ Login successful: {user.username}, Session Key: {request.session.session_key}")
+            return redirect("home")
         else:
             messages.error(request, "Invalid username or password.")
+            print("❌ Login failed")
 
     return render(request, "accounts/login.html")
+
 
 
 
