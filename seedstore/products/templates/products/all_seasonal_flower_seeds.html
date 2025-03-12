@@ -4,150 +4,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Season Flower Seeds - Next Gen Organic Seeds</title>
+    <title>All Season Flower Seeds - HASA Organic Seeds</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
-            color: #333;
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 0;
-        }
+/* General Styling */
+body {
+    background: linear-gradient(to bottom, #e8f5e9, #fff); /* Light green to white */
+    color: #2e3d28; /* Dark greenish text */
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+}
 
-        /* Navbar Styling */
-        .navbar {
-            background: #fff;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
+/* Navbar Styling */
+.navbar {
+    background: #4CAF50;
+    padding: 12px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
 
-        .navbar a {
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            padding: 10px 15px;
-            transition: color 0.3s ease;
-        }
+.navbar a {
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    padding: 10px 15px;
+    transition: color 0.3s ease;
+}
 
-        .navbar a:hover {
-            color: #4CAF50;
-        }
+.navbar a:hover {
+    color: #ffeb3b;
+}
 
-        /* Dropdown Styling */
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
+/* Dropdown Styling */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
 
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: #fff;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            min-width: 200px;
-            z-index: 1;
-            border-radius: 5px;
-        }
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    z-index: 1;
+    border-radius: 5px;
+    overflow: hidden;
+}
 
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
+.dropdown:hover .dropdown-content {
+    display: block;
+}
 
-        .dropdown-content a {
-            display: block;
-            padding: 10px;
-            text-decoration: none;
-            color: #333;
-            transition: background 0.3s;
-        }
+.dropdown-content a {
+    display: block;
+    padding: 12px;
+    text-decoration: none;
+    color: #2e3d28;
+    transition: background 0.3s;
+}
 
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
+.dropdown-content a:hover {
+    background-color: #e8f5e9;
+}
 
-        /* Page Heading */
-        h1 {
-            text-align: center;
-            margin-top: 30px;
-            color: #2c3e50;
-        }
+/* Page Heading */
+h1 {
+    text-align: center;
+    margin-top: 30px;
+    color: #388E3C;
+}
 
-        /* Product List */
-        .container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            padding: 30px;
-            justify-content: center;
-            max-width: 1200px;
-            margin: auto;
-        }
+/* Product Grid */
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    padding: 30px;
+    justify-content: center;
+    max-width: 1200px;
+    margin: auto;
+}
 
-        /* Seed Card Styling */
-        .seed-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            padding: 15px;
-            transition: transform 0.3s ease;
-            overflow: hidden;
-        }
+/* Seed Card Styling */
+.seed-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    padding: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
-        .seed-card:hover {
-            transform: translateY(-5px);
-        }
+.seed-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+}
 
-        .seed-card img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
+.seed-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+}
 
-        .seed-card h2 {
-            font-size: 18px;
-            color: #333;
-            margin-top: 10px;
-        }
+.seed-card h2 {
+    font-size: 20px;
+    color: #2e3d28;
+    margin-top: 10px;
+}
 
-        .seed-card p {
-            font-size: 16px;
-            color: #555;
-            margin: 5px 0;
-        }
+.seed-card p {
+    font-size: 16px;
+    color: #555;
+    margin: 5px 0;
+}
 
-        /* Button Styling */
-        .seed-card button {
-            background: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
+/* Quantity Input */
+.quantity-input {
+    width: 60px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px;
+}
 
-        .seed-card button:hover {
-            background: #388E3C;
-        }
+/* Add to Cart Button */
+.seed-card button {
+    background: #388E3C;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+    margin-top: 10px;
+}
 
-        /* Footer Styling */
-        .footer {
-            background: #333;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            margin-top: 30px;
-        }
+.seed-card button:hover {
+    background: #2E7D32;
+}
+
+/* Footer Styling */
+.footer {
+    background: #2e3d28;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    margin-top: 30px;
+    font-size: 14px;
+}
+
     </style>
 </head>
 <body>
@@ -156,8 +170,8 @@
     <div class="navbar">
             <a href="{% url 'home' %}">Home</a> <!-- Add this -->
         <a href="#" class="website-name" style="display: flex; align-items: center; gap: 12px;">
-    <img src="{% static 'images/next_gen_organic_seeds_logo.png' %}" alt="Next Gen Organic Seeds Logo" style="height: 85px;">
-    <span style="font-size: 24px; font-weight: bold;">Next Gen Organic Seeds</span>
+    <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Next Gen Organic Seeds Logo" style="height: 85px;">
+    <span style="font-size: 24px; font-weight: bold;">HASA Organic Seeds</span>
 </a>
 
         <!-- Dropdown for Vegetable Seeds -->
@@ -180,7 +194,7 @@
 </div> <!-- ✅ This closing tag was missing in your code -->
 
 
-        <a href="#">Flower Seeds</a>
+<!--        <a href="#">Flower Seeds</a>-->
         <a href="#">Grow Bags</a>
         <a href="{% url 'view_cart' %}" class="cart-icon">
             <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png" alt="Cart" style="width: 25px;">
@@ -189,7 +203,7 @@
     </div>
 
     <!-- Page Heading -->
-    <h1>Native Vegetable Seeds</h1>
+    <h1>All Season Flower Seeds</h1>
 
     <!-- Product List -->
     <div class="container">

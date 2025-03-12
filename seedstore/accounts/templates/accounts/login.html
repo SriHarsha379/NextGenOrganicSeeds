@@ -3,90 +3,98 @@
 <html lang="en">
 <head>
     <title>Login - HASA Organic Seeds</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         /* General Styles */
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #42a5f5, #478ed1);
+            background: linear-gradient(135deg, #2C3E50, #4CA1AF);
+
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            padding: 10px;
         }
 
-        /* Container */
-        .auth-container {
+        /* Main Container */
+        .main-container {
+            display: flex;
             width: 100%;
-            max-width: 400px;
-            padding: 20px;
-        }
-
-        /* Login Box */
-        .auth-box {
+            max-width: 850px;
             background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        /* Left Section (Logo + Branding) */
+        .left-section {
+            width: 40%;
+            background: #1e88e5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            padding: 40px;
             text-align: center;
-            width: 100%;
-            max-width: 90vw;
         }
 
-        /* Logo */
-        .logo {
-            margin-bottom: 10px;
-        }
-        .logo img {
-            height: 70px;
-        }
-
-        /* Branding */
-        .brand-name {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1e88e5;
+        .left-section .logo img {
+            height: 80px;
             margin-bottom: 15px;
         }
 
-        /* Heading */
+        .left-section .brand-name {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .left-section .tagline {
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        /* Right Section (Login Form) */
+        .right-section {
+            width: 60%;
+            padding: 40px;
+            text-align: center;
+        }
+
         h2 {
             margin-bottom: 20px;
             font-size: 24px;
             color: #333;
         }
 
-        /* Input Fields */
         .input-group {
             width: 100%;
-            position: relative;
+            margin-bottom: 20px;
         }
 
-        input {
+        .input-group input {
             width: 100%;
             height: 45px;
             padding: 12px;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 16px;
+            box-sizing: border-box;
         }
 
-        input:focus {
-            border-color: #42a5f5;
-            outline: none;
-            box-shadow: 0 0 5px rgba(66, 165, 245, 0.5);
-        }
-
-        /* Show Password Button */
-        .input-wrapper {
-            position: relative;
+        .password-container {
             display: flex;
             align-items: center;
+            position: relative;
+            width: 100%;
         }
 
-        .input-wrapper input {
-            flex-grow: 1;
-            padding-right: 40px; /* Ensure space for the button */
+        .password-container input {
+            width: 100%;
+            padding-right: 45px;
         }
 
         .toggle-password {
@@ -100,7 +108,6 @@
             outline: none;
         }
 
-        /* Button */
         .btn {
             width: 100%;
             background: #42a5f5;
@@ -118,82 +125,110 @@
             transform: scale(1.05);
         }
 
-        /* Messages */
-        .messages {
-            background: #ffeb3b;
-            color: #333;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-
-        /* Remember Me & Forgot Password */
         .remember-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-top: 10px;
-        }
-
-        .remember-me-container {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .remember-me-container input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-        }
-
-        .forgot-password {
             font-size: 14px;
         }
 
+        .register-text {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .register-text a,
         .forgot-password a {
             color: #1e88e5;
             text-decoration: none;
             font-weight: 600;
         }
 
+        .register-text a:hover,
         .forgot-password a:hover {
             text-decoration: underline;
         }
 
-        /* Register Text */
-        .register-text {
-            margin-top: 15px;
-            font-size: 14px;
+        /* Responsive Styles */
+        @media (max-width: 850px) {
+            .main-container {
+                flex-direction: column;
+                max-width: 500px;
+                height: auto;
+            }
+
+            .left-section {
+                width: 100%;
+                padding: 30px;
+                height: auto;
+            }
+
+            .right-section {
+                width: 100%;
+                padding: 30px;
+            }
+
+            .left-section .brand-name {
+                font-size: 22px;
+            }
+
+            .left-section .tagline {
+                font-size: 14px;
+            }
         }
 
-        .register-text a {
-            color: #1e88e5;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .register-text a:hover {
-            text-decoration: underline;
-        }
-
-        /* Responsive */
         @media (max-width: 480px) {
-            .auth-box {
+            .main-container {
+                flex-direction: column;
+                max-width: 90%;
+                height: auto;
+            }
+
+            .left-section {
                 padding: 20px;
             }
+
+            .right-section {
+                padding: 20px;
+            }
+
+            .left-section .brand-name {
+                font-size: 20px;
+            }
+
+            .left-section .tagline {
+                font-size: 13px;
+            }
+
             h2 {
                 font-size: 20px;
+            }
+
+            .btn {
+                font-size: 14px;
+            }
+
+            .input-group input {
+                height: 40px;
+                font-size: 14px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <div class="auth-box">
+    <div class="main-container">
+        <!-- Left Section -->
+        <div class="left-section">
             <div class="logo">
-                <img src="{% static 'images/next_gen_organic_seeds_logo.png' %}" alt="Next Gen Organic Seeds Logo">
+                <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="HASA Organic Seeds Logo">
             </div>
             <div class="brand-name">HASA Organic Seeds</div>
+            <p class="tagline">"Grow Naturally, Live Healthily!"</p>
+        </div>
+
+        <!-- Right Section -->
+        <div class="right-section">
             <h2>Login</h2>
 
             {% if messages %}
@@ -206,14 +241,14 @@
 
             <form method="POST">
                 {% csrf_token %}
+
                 <div class="input-group">
                     <input type="text" name="username" placeholder="Username" required>
                 </div>
 
-                <!-- Password Input with Show/Hide Button -->
                 <div class="input-group">
-                    <div class="input-wrapper">
-                        <input type="password" id="password" name="password" placeholder="Password" required>
+                    <div class="password-container">
+                        <input type="password" id="password" name="password" placeholder="Enter password" required>
                         <button type="button" class="toggle-password" onclick="togglePassword()">Show</button>
                     </div>
                 </div>
@@ -249,4 +284,3 @@
     </script>
 </body>
 </html>
-
