@@ -9,11 +9,10 @@
         body {
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #2C3E50, #4CA1AF);
-
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             padding: 10px;
         }
@@ -21,8 +20,9 @@
         /* Main Container */
         .main-container {
             display: flex;
+            flex-wrap: wrap;
             width: 100%;
-            max-width: 850px;
+            max-width: 900px;
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
@@ -31,7 +31,8 @@
 
         /* Left Section (Logo + Branding) */
         .left-section {
-            width: 40%;
+            flex: 1;
+            min-width: 300px;
             background: #1e88e5;
             display: flex;
             flex-direction: column;
@@ -59,7 +60,8 @@
 
         /* Right Section (Login Form) */
         .right-section {
-            width: 60%;
+            flex: 2;
+            min-width: 300px;
             padding: 40px;
             text-align: center;
         }
@@ -108,32 +110,32 @@
             outline: none;
         }
 
-  .btn {
-    display: inline-block;
-    padding: 12px 30px;
-    background: linear-gradient(45deg, #ff6f61, #ff9a8b); /* Gradient background */
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 50px; /* Rounded corners */
-    text-align: center;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Soft shadow */
-    transition: all 0.3s ease; /* Smooth transition for all properties */
-    letter-spacing: 1px;
-  }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #ff6f61, #ff9a8b);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
 
-  .btn:hover {
-    transform: translateY(-5px); /* Button lift effect on hover */
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
-    background: linear-gradient(45deg, #ff9a8b, #ff6f61); /* Reverse gradient on hover */
-  }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #ff9a8b, #ff6f61);
+        }
 
-  .btn:active {
-    transform: translateY(0); /* "Pressed" effect when clicked */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Lighter shadow when pressed */
-  }
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
 
         .remember-container {
             display: flex;
@@ -165,34 +167,20 @@
             .main-container {
                 flex-direction: column;
                 max-width: 500px;
-                height: auto;
             }
 
             .left-section {
-                width: 100%;
                 padding: 30px;
-                height: auto;
             }
 
             .right-section {
-                width: 100%;
                 padding: 30px;
-            }
-
-            .left-section .brand-name {
-                font-size: 22px;
-            }
-
-            .left-section .tagline {
-                font-size: 14px;
             }
         }
 
         @media (max-width: 480px) {
             .main-container {
-                flex-direction: column;
                 max-width: 90%;
-                height: auto;
             }
 
             .left-section {
@@ -201,14 +189,6 @@
 
             .right-section {
                 padding: 20px;
-            }
-
-            .left-section .brand-name {
-                font-size: 20px;
-            }
-
-            .left-section .tagline {
-                font-size: 13px;
             }
 
             h2 {
