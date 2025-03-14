@@ -4,6 +4,8 @@
 <head>
     <title>Login - HASA Organic Seeds</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <!-- Font Awesome -->
     <style>
         /* General Styles */
         body {
@@ -29,7 +31,7 @@
             overflow: hidden;
         }
 
-        /* Left Section (Logo + Branding) */
+        /* Left Section */
         .left-section {
             flex: 1;
             min-width: 300px;
@@ -58,7 +60,7 @@
             margin-top: 10px;
         }
 
-        /* Right Section (Login Form) */
+        /* Right Section */
         .right-section {
             flex: 2;
             min-width: 300px;
@@ -104,7 +106,7 @@
             right: 10px;
             background: none;
             border: none;
-            font-size: 14px;
+            font-size: 18px;
             color: #42a5f5;
             cursor: pointer;
             outline: none;
@@ -162,7 +164,6 @@
             text-decoration: underline;
         }
 
-        /* Responsive Styles */
         @media (max-width: 850px) {
             .main-container {
                 flex-direction: column;
@@ -204,19 +205,6 @@
                 font-size: 14px;
             }
         }
-        @media (max-width: 480px) {
-    .remember-container {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .forgot-password {
-        margin-top: 10px;
-        width: 100%;
-        text-align: right;
-    }
-}
-
     </style>
 </head>
 <body>
@@ -252,7 +240,9 @@
                 <div class="input-group">
                     <div class="password-container">
                         <input type="password" id="password" name="password" placeholder="Enter password" required>
-                        <button type="button" class="toggle-password" onclick="togglePassword()">Show</button>
+                        <button type="button" class="toggle-password" onclick="togglePassword()">
+                            <i id="eye-icon" class="fas fa-eye"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -274,14 +264,14 @@
     <script>
         function togglePassword() {
             let passwordField = document.getElementById("password");
-            let toggleButton = document.querySelector(".toggle-password");
+            let eyeIcon = document.getElementById("eye-icon");
 
             if (passwordField.type === "password") {
                 passwordField.type = "text";
-                toggleButton.textContent = "Hide";
+                eyeIcon.classList.replace("fa-eye", "fa-eye-slash");
             } else {
                 passwordField.type = "password";
-                toggleButton.textContent = "Show";
+                eyeIcon.classList.replace("fa-eye-slash", "fa-eye");
             }
         }
     </script>
