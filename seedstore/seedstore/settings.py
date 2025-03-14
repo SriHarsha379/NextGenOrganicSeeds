@@ -29,6 +29,10 @@ SECRET_KEY = 'django-insecure-+vofv8mk!los^y4r=^^bt86$nk3e(^a$*i4k-_q7ybwpzwg5%c
 
 ALLOWED_HOSTS = ['hasaorganicseeds.com', 'www.hasaorganicseeds.com', '147.93.28.237']
 
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
