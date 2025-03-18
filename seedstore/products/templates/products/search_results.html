@@ -32,6 +32,227 @@
     transform: translateY(0); /* Button "pressed" effect */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Lighter shadow when pressed */
   }
+        /* General Styling */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f3f6f1; /* Light greenish background for an organic feel */
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* Navbar */
+.navbar {
+    background: linear-gradient(45deg, #4CAF50, #2E7D32); /* Fresh green gradient */
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 15px;
+    transition: all 0.3s ease;
+}
+
+.navbar a:hover {
+    color: #ffeb3b; /* Soft yellow hover effect */
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background: white;
+    min-width: 200px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    border-radius: 5px;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a {
+    color: #333;
+    padding: 10px 20px;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background: #f4f4f4;
+}
+
+/* 🌱 Search Bar - Now Limited to 50% */
+.search-container {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.search-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    padding: 10px;
+    border-radius: 30px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 50%;
+    margin: auto;
+}
+
+.search-form input {
+    border: none;
+    padding: 12px;
+    width: 100%;  /* Adjusted for responsiveness */
+    font-size: 16px;
+    border-radius: 30px;
+    outline: none;
+}
+
+.search-form button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.search-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Back Button */
+.back-button {
+    display: inline-block;
+    padding: 12px 30px;
+    background: linear-gradient(45deg, #8BC34A, #558B2F); /* Earthy green gradient */
+    color: white;
+    text-align: center;
+    border-radius: 30px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin: 20px;
+    display: block;
+    width: fit-content;
+}
+
+.back-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Search Results Title */
+h1 {
+    text-align: center;
+    color: #2E7D32;
+    font-size: 28px;
+    margin-top: 20px;
+    text-shadow: 1px 1px 10px rgba(46, 125, 50, 0.2);
+}
+
+/* 🌿 Seed Cards - More Nature Inspired */
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
+}
+
+.seed-card {
+    background: white;
+    width: 280px;
+    margin: 15px;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-top: 4px solid #4CAF50; /* Small green line on top */
+}
+
+.seed-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.seed-card h2 {
+    font-size: 20px;
+    margin: 10px 0;
+    color: #388E3C;
+}
+
+.seed-card p {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2E7D32;
+}
+
+/* Add to Cart Button */
+.add-to-cart-form {
+    margin-top: 10px;
+}
+
+.input-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.input-group input {
+    width: 50px;
+    padding: 5px;
+    text-align: center;
+    font-size: 16px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+}
+
+.input-group button {
+    background: linear-gradient(45deg, #4CAF50, #2E7D32);
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.input-group button:hover {
+    background: linear-gradient(45deg, #2E7D32, #4CAF50);
+    transform: scale(1.05);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .search-form {
+        width: 90%; /* Adjusted for small screens */
+    }
+
+    .container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .seed-card {
+        width: 90%;
+    }
+}
+
     </style>
 </head>
 <body>

@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from .models import Cart, Order
+from django.core.mail import send_mail
+from django.utils.crypto import get_random_string
 from .utils import generate_upi_payment_link  # Implement this function
 
 @login_required
@@ -10,27 +12,46 @@ def checkout(request):
     total_amount = sum(item.total_price() for item in cart_items)
 
     if request.method == "POST":
-        with transaction.atomic():  # Ensure atomicity
-            orders = []
-            for item in cart_items:
-                order = Order.objects.create(
-                    user=request.user,
-                    seed=item.seed,
-                    quantity=item.quantity,
-                    total_amount=item.total_price(),
-                    status="Pending",
-                )
-                orders.append(order)
+        full_name = request.POST["full_name"]
+        email = request.POST["email"]
+        phone = request.POST["phone"]
+        address = request.POST["address"]
 
-            cart_items.delete()  # Only delete after orders are created
+        with transaction.atomic():
+            # Store all cart items inside `cart_items` JSONField
+            order_data = [
+                {"seed": item.seed.name, "quantity": item.quantity, "price": item.total_price()}
+                for item in cart_items
+            ]
+            order_id = get_random_string(10).upper()  # Generate a unique order ID
 
-        # Generate UPI payment link (implement this in utils.py)
-        upi_link = generate_upi_payment_link(request.user, total_amount)
+            order = Order.objects.create(
+                user=request.user,
+                full_name=full_name,
+                email=email,
+                phone=phone,
+                address=address,
+                cart_items=order_data,  # Store cart as JSON
+                total_quantity=sum(item.quantity for item in cart_items),
+                total_amount=total_amount,
+                payment_status="Pending",
+                payment_id=order_id,  # Temporary order ID
+            )
 
-        # Redirect to UPI payment page with payment link
-        return redirect(f'/upi-payment/?upi_link={upi_link}')
+            cart_items.delete()  # Clear cart after placing the order
 
-    return render(request, 'orders/checkout.html', {'cart_items': cart_items, 'total_amount': total_amount})
+        # Send order confirmation email
+        send_mail(
+            "Order Confirmation - Next Gen Organic Seeds",
+            f"Hello {full_name},\n\nYour order has been placed successfully!\n\nOrder ID: {order_id}\nTotal: ₹{total_amount}\n\nThank you for shopping with us!",
+            "yourstore@example.com",
+            [email],
+            fail_silently=False,
+        )
+
+        return redirect("order_success", order_id=order_id)  # Redirect to success page
+
+    return render(request, "orders/checkout.html", {"cart_items": cart_items, "total_amount": total_amount})
 
 
 @login_required
