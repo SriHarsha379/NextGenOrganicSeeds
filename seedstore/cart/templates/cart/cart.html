@@ -193,52 +193,87 @@
     transform: translateY(0); /* "Pressed" effect on click */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Lighter shadow when pressed */
   }
+        /* Continue Shopping Button */
+.btn {
+    display: inline-block;
+    padding: 12px 30px;
+    background: linear-gradient(45deg, #f0ad4e, #f39c12); /* Gradient background */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50px; /* Rounded corners */
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Shadow effect */
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+    text-transform: uppercase; /* Uppercase text for emphasis */
+}
+
+.btn:hover {
+    transform: translateY(-5px); /* Button lifts on hover */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
+    background: linear-gradient(45deg, #f39c12, #f0ad4e); /* Reverse gradient on hover */
+}
+
+.btn:active {
+    transform: translateY(0); /* "Pressed" effect on click */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Lighter shadow when pressed */
+}
+
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Your Cart</h1>
+<div class="container">
+    <h1>Your Cart</h1>
 
-        {% if cart_items %}
-            <ul>
-                {% for item in cart_items %}
-<li>
-    <img src="{{ item.seed.image_url }}" alt="{{ item.seed.name }}" width="80" height="80" style="border-radius: 5px;">
-    <div class="item-details">
-        <h2>{{ item.seed.name }}</h2>
-        <p>Price: ₹{{ item.seed.price }}</p>
-        <p>Quantity: {{ item.quantity }}</p>
-        <p>Total: ₹{{ item.total_price }}</p>
-    </div>
-    <form action="{% url 'remove_from_cart' item.seed.id %}" method="post">
-        {% csrf_token %}
-        <button type="submit" class="remove-btn">Remove</button>
-    </form>
-</li>
+    {% if cart_items %}
+        <ul id="cart-items">
+            {% for item in cart_items %}
+                <li id="item-{{ item.seed.id }}">
+                    <img src="{{ item.seed.image_url }}" alt="{{ item.seed.name }}" width="80" height="80" style="border-radius: 5px;">
+                    <div class="item-details">
+                        <h2>{{ item.seed.name }}</h2>
+                        <p>Price: ₹{{ item.seed.price }}</p>
+                        <p>Quantity: {{ item.quantity }}</p>
+                        <p>Total: ₹{{ item.total_price }}</p>
+                    </div>
+                    <form action="{% url 'remove_from_cart' item.seed.id %}" method="post" class="remove-form">
+                        {% csrf_token %}
+                        <button type="submit" class="remove-btn">Remove</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
 
-{% endfor %}
+        <div class="total-amount" id="total-amount" style="display: block;">
+            Total Amount: ₹{{ total_amount }}
+        </div>
 
-            </ul>
+        <a href="{% url 'checkout' %}" class="checkout-btn" id="checkout-btn" style="display: block;">Proceed to Checkout</a>
 
-            <div class="total-amount">
-                Total Amount: ₹{{ total_amount }}
-            </div>
+    {% else %}
+        <p class="empty-cart">Your cart is empty. Start shopping now!</p>
+    {% endif %}
 
-            <a href="{% url 'checkout' %}" class="checkout-btn">Proceed to Checkout</a>
-        {% else %}
-            <p class="empty-cart">Your cart is empty. Start shopping now!</p>
-        {% endif %}
-    </div>
+    <!-- Continue Shopping Button (only shown when cart is empty) -->
+    <a href="/" class="btn" id="continue-shopping-btn" style="display: {% if cart_items %} none {% else %} block {% endif %};">Continue Shopping</a>
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".remove-btn").forEach((button) => {
-        button.addEventListener("click", async function (e) {
+    const checkoutButton = document.getElementById("checkout-btn");
+    const totalAmountElement = document.getElementById("total-amount");
+
+    document.querySelectorAll(".remove-form").forEach((form) => {
+        form.addEventListener("submit", async function (e) {
             e.preventDefault();
 
-            const form = this.closest("form");
-            if (!form) return console.error("Error: No form found!");
+            const form = this;
+            const itemId = form.closest("li").id.split("-")[1];  // Get the item ID
 
             try {
                 const response = await fetch(form.action, {
@@ -251,21 +286,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const data = await response.json();
                 if (response.ok) {
-                    form.closest("li").remove(); // Remove item from UI
-
-                    // Update cart count
-                    const cartCountElement = document.getElementById("cart-count");
-                    if (cartCountElement) cartCountElement.innerText = data.cart_count;
-
-                    // Update total amount
-                    const totalAmountElement = document.querySelector(".total-amount");
-                    if (totalAmountElement) totalAmountElement.innerText = `Total Amount: ₹${data.total_amount}`;
-
-                    // Show empty cart message if needed
-                    if (data.cart_count === 0) {
-                        document.querySelector(".container").innerHTML =
-                            "<p class='empty-cart'>Your cart is empty. Start shopping now!</p>";
-                    }
+                    // Reload the page to reflect the updated cart
+                    location.reload();
                 } else {
                     alert("Error: " + data.message);
                 }
@@ -277,8 +299,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-
 </script>
+
 
 </body>
 </html>

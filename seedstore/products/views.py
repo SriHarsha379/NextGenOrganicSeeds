@@ -25,23 +25,64 @@ def wishlist(request):
 def native_vegetable_seeds(request):
     category = get_object_or_404(Category, name="Native")  # Ensure capitalization matches DB
     seeds = Seed.objects.filter(category=category)
-    return render(request, 'products/native_vegetable_seeds.html', {'seeds': seeds})
+
+    # Get the cart from the session
+    cart = request.session.get('cart', {})
+
+    # Calculate the total unique items in the cart
+    unique_item_count = len(cart)
+
+    return render(request, 'products/native_vegetable_seeds.html', {
+        'seeds': seeds,
+        'cart_count': unique_item_count,  # Pass cart count to template
+    })
 
 
 def leafy_vegetable_seeds(request):
     category = get_object_or_404(Category, name="Leafy")
     seeds = Seed.objects.filter(category=category)
-    return render(request, 'products/leafy-vegetable-seeds.html', {'seeds': seeds})
+
+    # Get the cart from the session
+    cart = request.session.get('cart', {})
+
+    # Calculate the total unique items in the cart
+    unique_item_count = len(cart)
+
+    return render(request, 'products/leafy-vegetable-seeds.html', {
+        'seeds': seeds,
+        'cart_count': unique_item_count,  # Pass cart count to template
+    })
 
 def exotic_vegetable_seeds(request):
     category = get_object_or_404(Category, name="Exotic")
     seeds = Seed.objects.filter(category=category)
-    return render(request, 'products/exotic-vegetable-seeds.html', {'seeds': seeds})
+
+    # Get the cart from the session
+    cart = request.session.get('cart', {})
+
+    # Calculate the total unique items in the cart
+    unique_item_count = len(cart)
+
+    return render(request, 'products/exotic-vegetable-seeds.html', {
+        'seeds': seeds,
+        'cart_count': unique_item_count,  # Pass cart count to template
+    })
 
 def hybrid_vegetable_seeds(request):
     category = get_object_or_404(Category, name="Hybrid")
     seeds = Seed.objects.filter(category=category)
-    return render(request, 'products/hybrid-vegetable-seeds.html', {'seeds': seeds})
+
+    # Get the cart from the session
+    cart = request.session.get('cart', {})
+
+    # Calculate the total unique items in the cart
+    unique_item_count = len(cart)
+
+    return render(request, 'products/hybrid-vegetable-seeds.html', {
+        'seeds': seeds,
+        'cart_count': unique_item_count,  # Pass cart count to template
+    })
+
 
 def search_seeds(request):
     query = request.GET.get('q', '')  # Get the search query
@@ -52,14 +93,44 @@ def search_seeds(request):
 def winter_flower_seeds(request):
     category = get_object_or_404(Category, name="Native")  # Ensure capitalization matches DB
     seeds = Seed.objects.filter(category=category)
-    return render(request, 'products/winter_flower_seeds.html', {'seeds': seeds})
+
+    # Get the cart from the session
+    cart = request.session.get('cart', {})
+
+    # Calculate the total unique items in the cart
+    unique_item_count = len(cart)
+
+    return render(request, 'products/winter_flower_seeds.html', {
+        'seeds': seeds,
+        'cart_count': unique_item_count,  # Pass cart count to template
+    })
 
 def all_seasonal_flower_seeds(request):
     category = get_object_or_404(Category, name="Native")  # Ensure capitalization matches DB
     seeds = Seed.objects.filter(category=category)
-    return render(request, 'products/all_seasonal_flower_seeds.html', {'seeds': seeds})
+
+    # Get the cart from the session
+    cart = request.session.get('cart', {})
+
+    # Calculate the total unique items in the cart
+    unique_item_count = len(cart)
+
+    return render(request, 'products/all_seasonal_flower_seeds.html', {
+        'seeds': seeds,
+        'cart_count': unique_item_count,  # Pass cart count to template
+    })
 
 def summer_flower_seeds(request):
     category = get_object_or_404(Category, name="Native")  # Ensure capitalization matches DB
     seeds = Seed.objects.filter(category=category)
-    return render(request, 'products/summer_flower_seeds.html', {'seeds': seeds})
+
+    # Get the cart from the session
+    cart = request.session.get('cart', {})
+
+    # Calculate the total unique items in the cart
+    unique_item_count = len(cart)
+
+    return render(request, 'products/summer_flower_seeds.html', {
+        'seeds': seeds,
+        'cart_count': unique_item_count,  # Pass cart count to template
+    })
