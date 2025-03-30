@@ -97,7 +97,7 @@ WSGI_APPLICATION = 'seedstore.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'nextgenorganicseeds',  # Your database name
+        'NAME': 'hasaorganicseeds',  # Your database name
         'USER': 'postgres',  # Default PostgreSQL user
         'PASSWORD': '807496@Bb',  # Replace with your actual password
         'HOST': 'localhost',
