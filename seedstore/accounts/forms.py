@@ -23,3 +23,15 @@ class RegisterForm(forms.ModelForm):
         if password != confirm_password:
             raise forms.ValidationError("Passwords do not match.")
         return cleaned_data
+
+class ForgotPasswordForm(forms.Form):
+    email = forms.EmailField(label="Email", widget=forms.EmailInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Enter your registered email'
+    }))
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if not User.objects.filter(email=email).exists():
+            raise forms.ValidationError("No account found with this email.")
+        return email

@@ -134,3 +134,9 @@ def summer_flower_seeds(request):
         'seeds': seeds,
         'cart_count': unique_item_count,  # Pass cart count to template
     })
+
+def privacy_policy(request):
+    return render(request, 'products/privacy_policy.html')
+
+def terms_conditions(request):
+    return render(request, 'products/terms_conditions.html')

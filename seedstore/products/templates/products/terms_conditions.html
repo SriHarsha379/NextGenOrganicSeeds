@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Link to external CSS -->
+<link rel="stylesheet" type="text/css" href="{% static 'css/terms_conditions.css' %}">
+<style>
+    /* General Styling */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f8f8;
+    margin: 0;
+    padding: 0;
+}
+
+/* Terms Container */
+.terms-container {
+    max-width: 850px;
+    margin: 40px auto;
+    padding: 25px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.terms-container h1 {
+    color: #2E7D32;
+    text-align: center;
+    font-size: 28px;
+}
+
+.terms-container h2 {
+    color: #333;
+    margin-top: 20px;
+    border-bottom: 2px solid #2E7D32;
+    padding-bottom: 5px;
+}
+
+.terms-container p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #555;
+}
+
+.terms-container ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #444;
+}
+
+.terms-container a {
+    color: #2E7D32;
+    text-decoration: none;
+}
+
+.terms-container a:hover {
+    text-decoration: underline;
+}
+
+.last-updated {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #888;
+    text-align: right;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .terms-container {
+        width: 90%;
+        padding: 20px;
+    }
+
+    .terms-container h1 {
+        font-size: 24px;
+    }
+
+    .terms-container h2 {
+        font-size: 20px;
+    }
+
+    .terms-container p,
+    .terms-container ul {
+        font-size: 15px;
+    }
+}
+
+</style>
+
+<div class="terms-container">
+    <h1>Terms & Conditions</h1>
+    <p>Welcome to Hasa Organic Seeds. By accessing or purchasing from our website, you agree to comply with the following Terms & Conditions. Please read them carefully.</p>
+
+    <h2>1. Acceptance of Terms</h2>
+    <p>By using our website, you confirm that you are at least <strong>18 years old</strong> and legally able to enter into a binding contract.</p>
+
+    <h2>2. Use of Website</h2>
+    <ul>
+        <li>You may not use this website for fraudulent or illegal purposes.</li>
+        <li>Unauthorized use of this website may result in legal action.</li>
+    </ul>
+
+    <h2>3. Orders & Payments</h2>
+    <ul>
+        <li>All orders are subject to availability and confirmation of payment.</li>
+        <li>We reserve the right to refuse or cancel any order at our discretion.</li>
+        <li>Payments are processed securely via third-party gateways; we **do not store** payment details.</li>
+        <li>Once an order is placed, cancellations are **not permitted**.</li>
+    </ul>
+
+    <h2>4. Returns & Refunds</h2>
+    <ul>
+        <li>We accept returns within **7 days** of delivery if the product is defective or incorrect.</li>
+        <li>To request a return, contact our support team at <a href="mailto:support@hasaorganicseeds.com">support@hasaorganicseeds.com</a>.</li>
+        <li>Refunds will be processed within **7-10 business days** upon approval.</li>
+    </ul>
+
+    <h2>5. Shipping Policy</h2>
+    <ul>
+        <li>Orders are processed within **1-2 business days** and delivered within **3-7 business days**.</li>
+        <li>We are not responsible for delays caused by couriers or unforeseen circumstances.</li>
+    </ul>
+
+    <h2>6. Limitation of Liability</h2>
+    <p>Hasa Organic Seeds is not liable for:</p>
+    <ul>
+        <li>Any damages or losses resulting from the use of our website.</li>
+        <li>Misuse of our products after delivery.</li>
+        <li>Service interruptions beyond our control.</li>
+    </ul>
+
+    <h2>7. Changes to Terms</h2>
+    <p>We reserve the right to modify these terms at any time. Continued use of our website constitutes acceptance of the updated terms.</p>
+
+    <h2>8. Contact Us</h2>
+    <p>If you have any concerns, please contact us:</p>
+    <p><strong>Email:</strong> <a href="mailto:support@hasaorganicseeds.com">support@hasaorganicseeds.com</a></p>
+    <p><strong>Phone:</strong> +91 98765 43210</p>
+
+    <p class="last-updated"><em>Last Updated: March 30, 2025</em></p>
+</div>
+{% endblock %}

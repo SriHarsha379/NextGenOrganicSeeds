@@ -338,6 +338,192 @@ body {
         transform: translateY(0);
     }
 }
+/* General Styling */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Navbar Styling */
+.navbar {
+    background: linear-gradient(90deg, #2E7D32, #66BB6A);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 30px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    flex-wrap: wrap; /* Allow wrapping for smaller screens */
+}
+
+.website-name {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    gap: 12px;
+}
+
+.website-name img {
+    height: 64px;
+    border-radius: 50%;
+}
+
+/* Navigation Links */
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* Dropdown Menu */
+.dropdown {
+    position: relative;
+}
+
+.dropdown .dropbtn {
+    padding: 10px 15px;
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Hover dropdown for desktop */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Click-to-open dropdown for mobile */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    min-width: 200px;
+    border-radius: 5px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-content a {
+    display: block;
+    padding: 12px;
+    color: #2E7D32;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+}
+
+.dropdown-content a:hover {
+    background: #E8F5E9;
+    color: #66BB6A;
+}
+
+/* Cart Icon */
+.cart-link {
+    display: flex;
+    align-items: center;
+    position: relative;
+    text-decoration: none;
+    color: white;
+}
+
+.cart-link img {
+    width: 40px;
+    height: 40px;
+}
+
+.cart-count {
+    background: red;
+    color: white;
+    border-radius: 50%;
+    padding: 4px 8px;
+    font-size: 14px;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+}
+
+/* Authentication Links */
+.auth-link {
+    padding: 12px 18px;
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) { /* Tablet & smaller */
+    .nav-links {
+        justify-content: center;
+        width: 100%;
+        flex-wrap: wrap;
+        text-align: center;
+    }
+
+    .dropdown-content {
+        position: static;
+        width: 100%;
+        display: none;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .auth-link {
+        display: block;
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) { /* Mobile */
+    .navbar {
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+    }
+
+    .nav-links {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .dropdown .dropbtn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 10px 0;
+    }
+
+    .dropdown-content {
+        position: static;
+        width: 100%;
+        text-align: center;
+        display: none;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .cart-link {
+        margin-top: 10px;
+    }
+}
 
 </style>
 
@@ -369,50 +555,49 @@ body {
 
 
 <!-- NAVBAR -->
-<div class="navbar">
-<a href="#" class="website-name" style="display: flex; align-items: center; gap: 12px;">
-    <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Hasa Organic Seeds Logo" style="height: 64.6px;">
-    <span style="font-size: 24px; font-weight: bold;">Hasa Organic Seeds</span>
-</a>
+<!-- NAVBAR -->
+<nav class="navbar">
+    <a href="#" class="website-name">
+        <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Hasa Organic Seeds Logo">
+        <span>Hasa Organic Seeds</span>
+    </a>
 
-
-
-    <!-- Seeds Dropdown -->
-    <div class="dropdown">
-        <a class="elementor-item elementor-item-anchor has-submenu dropdown">Vegetable Seeds</a>
-        <div class="dropdown-content">
-            <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
-            <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
-            <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
-            <a href="{% url 'hybrid_vegetable_seeds' %}">Hybrid Vegetable Seeds</a>
+    <!-- Navigation Links -->
+    <div class="nav-links">
+        <div class="dropdown">
+            <a class="dropbtn">Vegetable Seeds ▼</a>
+            <div class="dropdown-content">
+                <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
+                <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
+                <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
+                <a href="{% url 'hybrid_vegetable_seeds' %}">Hybrid Vegetable Seeds</a>
+            </div>
         </div>
-    </div>
-    <div class="dropdown">
-    <a class="elementor-item elementor-item-anchor has-submenu dropdown">Flower Seeds</a>
-    <div class="dropdown-content">
-        <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
-        <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
-        <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
-    </div>
-</div>
 
-    <!-- Show Login/Register if user is not logged in -->
-    {% if not user.is_authenticated %}
-        <a href="{% url 'login' %}" class="auth-link">Login</a>
-        <a href="{% url 'register' %}" class="auth-link">Register</a>
-    {% else %}
-        <a href="{% url 'logout' %}" class="auth-link">Logout</a>
-    {% endif %}
+        <div class="dropdown">
+            <a class="dropbtn">Flower Seeds ▼</a>
+            <div class="dropdown-content">
+                <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
+                <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
+                <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+            </div>
+        </div>
 
-   <a href="{% url 'view_cart' %}" id="cart-link" class="cart-link">
-    <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png"
-         alt="Cart"
-         class="cart-icon">
-    <span id="cart-count" class="cart-count">
-        {{ cart_count }}
-    </span>
-</a>
-</div>
+        <!-- Authentication Links -->
+        {% if not user.is_authenticated %}
+            <a href="{% url 'login' %}" class="auth-link">Login</a>
+            <a href="{% url 'register' %}" class="auth-link">Register</a>
+        {% else %}
+            <a href="{% url 'logout' %}" class="auth-link">Logout</a>
+        {% endif %}
+
+        <!-- Cart -->
+        <a href="{% url 'view_cart' %}" class="cart-link">
+            <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png" alt="Cart">
+            <span class="cart-count">{{ cart_count }}</span>
+        </a>
+    </div>
+</nav>
 
 
 <!-- HERO SECTION -->
@@ -502,8 +687,9 @@ body {
         </div>
         <div class="footer-section">
             <h3>Quick Links</h3>
-            <a href="#">Privacy Policy</a> |
-            <a href="#">Terms & Conditions</a>
+<a href="{% url 'privacy_policy' %}">Privacy Policy</a> &
+<a href="{% url 'terms_conditions' %}">Terms & Conditions</a>
+
         </div>
     </div>
     <p>&copy; 2025 Hasa Organic Seeds. All Rights Reserved.</p>
@@ -570,5 +756,5 @@ document.querySelectorAll('.add-to-cart-form').forEach(form => {
 </script>
 
 
-</body>
+</head>
 </html>

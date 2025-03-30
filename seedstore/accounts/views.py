@@ -3,6 +3,13 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
+from .forms import ForgotPasswordForm
 
 
 def user_login(request):
@@ -68,3 +75,62 @@ class AutoLogout:
             request.session['last_activity'] = now()
 
         return self.get_response(request)
+
+
+def forgot_password(request):
+    if request.method == "POST":
+        form = ForgotPasswordForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            user = User.objects.filter(email=email).first()  # Avoid error if email does not exist
+
+            if user:
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+
+                # Generate reset link
+                reset_link = f"{settings.SITE_URL}/accounts/reset-password/{uid}/{token}/"
+
+                # Send Email
+                subject = "Password Reset Request - HASA Organic Seeds"
+                message = render_to_string("accounts/password_reset_email.html", {
+                    'user': user,
+                    'reset_link': reset_link
+                })
+
+                send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+
+                messages.success(request, "A password reset link has been sent to your email.")
+                return redirect("password_reset_done")  # Redirect to a success page
+            else:
+                messages.error(request, "No account found with this email.")
+
+    else:
+        form = ForgotPasswordForm()
+
+    return render(request, "accounts/forgot_password.html", {"form": form})
+
+
+def reset_password(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (User.DoesNotExist, ValueError, TypeError):
+        user = None
+
+    if user and default_token_generator.check_token(user, token):
+        if request.method == "POST":
+            new_password = request.POST["password"]
+            confirm_password = request.POST["confirm_password"]
+
+            if new_password == confirm_password:
+                user.set_password(new_password)
+                user.save()
+                messages.success(request, "Your password has been reset successfully. You can now log in.")
+                return redirect("login")
+            else:
+                messages.error(request, "Passwords do not match. Try again.")
+
+        return render(request, "accounts/reset_password.html", {"valid": True})
+    else:
+        return render(request, "accounts/reset_password.html", {"valid": False})

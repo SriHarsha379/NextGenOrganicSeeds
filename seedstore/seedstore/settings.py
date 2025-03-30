@@ -100,7 +100,7 @@ DATABASES = {
         'NAME': 'nextgenorganicseeds',  # Your database name
         'USER': 'postgres',  # Default PostgreSQL user
         'PASSWORD': '807496@Bb',  # Replace with your actual password
-        'HOST': 'localhost',  
+        'HOST': 'localhost',
         'PORT': '5432',
     }
 }
@@ -155,7 +155,7 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Session expires after 1 hour (3600 seconds)
-SESSION_COOKIE_AGE =86400  
+SESSION_COOKIE_AGE =86400
 
 # Allow session persistence for the given duration
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
@@ -174,6 +174,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'your-email@gmail.com'
 EMAIL_HOST_PASSWORD = 'your-email-password'  # Use an App Password for security
+SITE_URL = 'https://hasaorganicseeds.com'  # Change to your site URL
 
 CSRF_TRUSTED_ORIGINS = [
     "https://hasaorganicseeds.com",
