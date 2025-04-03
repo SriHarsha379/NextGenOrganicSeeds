@@ -28,6 +28,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 SECRET_KEY = 'django-insecure-+vofv8mk!los^y4r=^^bt86$nk3e(^a$*i4k-_q7ybwpzwg5%c'
 
 ALLOWED_HOSTS = ['hasaorganicseeds.com', 'www.hasaorganicseeds.com', '147.93.28.237']
+# ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -99,7 +100,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'hasaorganicseeds',  # Your database name
         'USER': 'postgres',  # Default PostgreSQL user
-        'PASSWORD': '807496@Bb',  # Replace with your actual password
+        'PASSWORD': 'NewStrongPassword',  # Replace with your actual password
         'HOST': 'localhost',
         'PORT': '5432',
     }

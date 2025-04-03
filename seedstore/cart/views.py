@@ -22,16 +22,28 @@ def add_to_cart(request, seed_id):
 
         # Get quantity from request
         data = json.loads(request.body)
-        quantity = int(data.get("quantity", 1))  # Default to 1 if no quantity provided
+        requested_quantity = int(data.get("quantity", 1))  # Default to 1 if not provided
 
-        # Check if the item is already in the cart
+        # Get current quantity in cart (default to 0 if not in cart)
+        current_quantity = cart[str(seed_id)]["quantity"] if str(seed_id) in cart else 0
+
+        # New total quantity after adding
+        new_quantity = current_quantity + requested_quantity
+
+        # ✅ Validate against available stock
+        if new_quantity > seed.stock:
+            return JsonResponse({
+                "error": f"Only {seed.stock} items available in stock! You already have {current_quantity} in your cart."
+            }, status=400)
+
+        # Update cart quantity
         if str(seed_id) in cart:
-            cart[str(seed_id)]["quantity"] += quantity  # Increase quantity
+            cart[str(seed_id)]["quantity"] = new_quantity  # Update existing quantity
         else:
             cart[str(seed_id)] = {
                 "name": seed.name,
                 "price": float(seed.price),  # Convert Decimal to float
-                "quantity": quantity
+                "quantity": requested_quantity
             }
 
         # Save back to session
@@ -43,7 +55,7 @@ def add_to_cart(request, seed_id):
 
         return JsonResponse({
             "message": "Item added successfully",
-            "cart_count": unique_item_count,  # Unique items count
+            "cart_count": unique_item_count,
             "cart": cart
         })
 

@@ -227,6 +227,7 @@ h1 {
 
     <!-- Page Heading -->
     <h1>Leafy Vegetable Seeds</h1>
+    <p id="stock-warning" style="color: red; text-align: center; font-size: 16px;"></p>
 
     <!-- Product List -->
     <div class="container">
@@ -239,7 +240,8 @@ h1 {
     <p><strong>Price: ₹{{ seed.price }}</strong></p>
 
     <!-- Quantity Input -->
-    <input type="number" class="quantity-input" data-seed-id="{{ seed.id }}" value="1" min="1" style="width: 50px; text-align: center;">
+    <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}"
+    class="quantity-input" id="quantity-{{ seed.id }}" data-stock="{{ seed.stock }}">
 
     <!-- Add to Cart Button -->
     <button class="add-to-cart-btn" data-seed-id="{{ seed.id }}">Add to Cart</button>
@@ -253,27 +255,48 @@ h1 {
         <p>&copy; 2025 HASA Organic Seeds. All Rights Reserved.</p>
     </div>
 <script>
-    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const seedId = this.getAttribute('data-seed-id'); // Get the product ID
+document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const seedId = this.getAttribute('data-seed-id');
+        const quantityInput = document.getElementById(`quantity-${seedId}`);
+        const quantity = parseInt(quantityInput.value, 10); // Get user-entered quantity
 
-            fetch(`/cart/add/${seedId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}', // CSRF token for security
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ quantity: 1 }) // Always send quantity as 1
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.error) {
-                    document.getElementById('cart-count').textContent = data.cart_count; // Update cart count with unique item count
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        });
+        fetch(`/cart/add/${seedId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ quantity: quantity }) // Send the correct quantity
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error) {
+                document.getElementById('cart-count').textContent = data.cart_count;
+            }
+        })
+        .catch(error => console.error('Error:', error));
     });
+});
+
+
+        document.querySelectorAll('.quantity-input').forEach(input => {
+    input.addEventListener('input', function () {
+        let maxStock = parseInt(this.getAttribute("max"), 10);
+        let quantity = parseInt(this.value, 10);
+        let warningText = document.getElementById("stock-warning");
+
+        if (isNaN(quantity) || quantity < 1) {
+            this.value = 1; // Prevent negative or non-numeric input
+            warningText.textContent = "Quantity must be at least 1.";
+        } else if (quantity > maxStock) {
+            this.value = maxStock; // Restrict to max stock
+            warningText.textContent = `Only ${maxStock} items available in stock!`;
+        } else {
+            warningText.textContent = ""; // Clear the warning if valid input
+        }
+    });
+});
 </script>
 </body>
 </html>
