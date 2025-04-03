@@ -7,205 +7,132 @@
     <title>Seed Store</title>
     <link rel="stylesheet" href="{% static 'css/seed_list.css' %}">
 <style>
-    /* General Styling */
-body {
-    font-family: 'Roboto', sans-serif;
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/* Navbar Styling */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+}
+
+/* Header (Navbar) */
 .navbar {
-    background: linear-gradient(90deg, #2E7D32, #66BB6A); /* Green Gradient */
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 15px 30px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    align-items: center;
+    padding: 1rem;
+    background-color: #3c763d;
+    color: white;
     position: sticky;
     top: 0;
-    width: 100%;
     z-index: 1000;
-    flex-wrap: wrap; /* Allow wrapping for smaller screens */
-}
-
-.website-name {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: white;
-    font-size: 28px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    gap: 12px;
-    text-transform: uppercase;
-}
-
-.website-name img {
-    height: 64px;
-    border-radius: 50%;
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .navbar a {
     color: white;
     text-decoration: none;
-    padding: 12px 18px;
-    font-size: 18px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    letter-spacing: 1px;
-    text-transform: capitalize;
+    margin-left: 20px;
 }
 
-.navbar a:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 5px;
-    transform: translateY(-3px);
-    color: #66BB6A;
+.website-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-/* Dropdown Menu */
+#cart-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+}
+
+.cart-icon {
+    height: 45px;
+    width: 45px;
+    object-fit: contain;
+}
+
+.cart-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #f44336; /* Red background */
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Shadow for depth */
+}
+
+/* Dropdown */
 .dropdown {
     position: relative;
     display: inline-block;
 }
 
-.dropdown > a {
-    cursor: pointer;
-    display: block;
-}
-
 .dropdown-content {
     display: none;
     position: absolute;
-    top: 100%;
-    left: 0;
-    background: white;
-    min-width: 200px;
-    border-radius: 5px;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-.dropdown-content a {
-    display: block;
-    padding: 12px;
-    color: #2E7D32;
-    font-size: 16px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    letter-spacing: 1px;
-}
-
-.dropdown-content a:hover {
-    background: #E8F5E9;
-    color: #66BB6A;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
 }
 
 .dropdown:hover .dropdown-content {
     display: block;
 }
 
-/* Cart Icon */
-#cart-link {
-    display: flex;
-    align-items: center;
-    position: relative;
-}
-
-#cart-link img {
-    width: 40px;
-    height: 40px;
-}
-
-#cart-count {
-    background: red;
-    color: white;
-    border-radius: 50%;
-    padding: 4px 8px;
-    font-size: 14px;
-    position: absolute;
-    top: -5px;
-    right: -5px;
-}
-
-/* Authentication Links */
-.auth-link {
-    padding: 12px 18px;
-    color: white;
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
     text-decoration: none;
-    font-size: 18px;
-    font-weight: 500;
-    letter-spacing: 1px;
-    text-transform: capitalize;
+    display: block;
 }
 
-.auth-link:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 5px;
-    transform: translateY(-3px);
+.dropdown-content a:hover {
+    background-color: #ddd;
 }
 
-/* Hamburger Menu (Mobile) */
-.hamburger {
-    display: none;
-    font-size: 28px;
-    color: white;
-    cursor: pointer;
-    padding: 10px;
-}
-
-/* Promo Section */
-.promo-section {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    background: #E8F5E9;
-    padding: 15px;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.promo-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.promo-item img {
-    width: 30px;
-    height: 30px;
-}
-
-/* Search Bar Styling */
+/* Search Bar */
 .search-container {
-    display: flex;
-    justify-content: center;
     margin: 20px 0;
+    text-align: center;
 }
 
 .search-form {
     display: flex;
-    align-items: center;
-    background: white;
-    border-radius: 25px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-    padding: 5px 15px;
-    max-width: 400px;
-    width: 100%;
+    justify-content: center;
+    gap: 10px;
 }
 
 .search-form input {
-    border: none;
-    outline: none;
     padding: 10px;
     font-size: 16px;
-    flex: 1;
+    border: 2px solid #ddd;
+    border-radius: 5px;
 }
 
 .search-form button {
-    background: #2E7D32;
+    background-color: #3c763d;
     border: none;
-    padding: 8px 12px;
-    border-radius: 50%;
+    padding: 10px 15px;
+    border-radius: 5px;
     cursor: pointer;
 }
 
@@ -214,314 +141,294 @@ body {
     height: 20px;
 }
 
-/* Input Group for Quantity */
-.input-group {
+/* Hero Section */
+.hero {
+    background-image: url('your-hero-image.jpg'); /* Replace with your image URL */
+    background-size: cover;
+    background-position: center;
+    height: 400px;
     display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 10px;
-}
-
-.quantity-input {
-    padding: 10px;
-    font-size: 16px;
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    outline: none;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.quantity-input:focus {
-    border-color: #ff6f61; /* Border color when focused */
-    box-shadow: 0 0 5px rgba(255, 111, 97, 0.5); /* Soft glow effect on focus */
-}
-
-/* Add to Cart Button */
-.add-to-cart-btn {
-    padding: 12px 30px;
-    background: linear-gradient(45deg, #2E7D32, #66BB6A) !important; /* Green gradient */
-    color: white !important;
-    font-size: 16px !important;
-    font-weight: bold !important;
-    border: none !important;
-    border-radius: 0px !important; /* No rounded corners */
-    cursor: pointer !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-    transition: all 0.3s ease !important;
-    letter-spacing: 1px !important;
-}
-
-.add-to-cart-btn:hover {
-    transform: translateY(-5px) !important;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3) !important;
-    background: linear-gradient(45deg, #1B5E20, #43A047) !important;
-}
-
-.add-to-cart-btn:active {
-    transform: translateY(0) !important;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
-}
-
-/* Media Queries */
-@media (max-width: 768px) {
-    .navbar {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 10px 20px;
-    }
-
-    .hamburger {
-        display: block;
-        align-self: flex-end;
-    }
-
-    .nav-links {
-        display: none;
-        flex-direction: column;
-        align-items: flex-start;
-        background: linear-gradient(90deg, #2E7D32, #66BB6A);
-        width: 100%;
-        position: absolute;
-        top: 60px;
-        left: 0;
-        padding: 10px 0;
-        box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .nav-links.active {
-        display: flex;
-    }
-
-    .nav-links a {
-        width: 100%;
-        text-align: left;
-        padding: 12px 20px;
-        color: white;
-        background: none;
-    }
-
-    .dropdown-content {
-        position: static;
-        background: none;
-        box-shadow: none;
-        display: block;
-    }
-
-    .dropdown-content a {
-        padding: 10px 20px;
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-    }
-
-    .auth-link,
-    #cart-link {
-        display: block;
-        width: 100%;
-        text-align: left;
-        padding: 12px 20px;
-    }
-
-    #cart-link img {
-        width: 30px;
-        height: 30px;
-        margin-left: 10px;
-    }
-}
-
-/* Fade In Animation */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-/* General Styling */
-body {
-    font-family: 'Roboto', sans-serif;
-    margin: 0;
-    padding: 0;
-}
-
-/* Navbar Styling */
-.navbar {
-    background: linear-gradient(90deg, #2E7D32, #66BB6A);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 15px 30px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    position: sticky;
-    top: 0;
-    width: 100%;
-    z-index: 1000;
-    flex-wrap: wrap; /* Allow wrapping for smaller screens */
-}
-
-.website-name {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
     color: white;
-    font-size: 24px;
-    font-weight: bold;
-    gap: 12px;
+    text-align: center;
 }
 
-.website-name img {
-    height: 64px;
-    border-radius: 50%;
+.hero-content {
+    max-width: 600px;
+    padding: 20px;
 }
 
-/* Navigation Links */
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-/* Dropdown Menu */
-.dropdown {
-    position: relative;
-}
-
-.dropdown .dropbtn {
-    padding: 10px 15px;
+.cta-button {
+    display: inline-block;
+    background-color: #3c763d;
     color: white;
+    padding: 10px 20px;
     text-decoration: none;
-    font-size: 18px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-/* Hover dropdown for desktop */
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-/* Click-to-open dropdown for mobile */
-.dropdown-content {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background: white;
-    min-width: 200px;
     border-radius: 5px;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+    margin-top: 20px;
 }
 
-.dropdown-content a {
-    display: block;
-    padding: 12px;
-    color: #2E7D32;
-    font-size: 16px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    letter-spacing: 1px;
-}
-
-.dropdown-content a:hover {
-    background: #E8F5E9;
-    color: #66BB6A;
-}
-
-/* Cart Icon */
-.cart-link {
+/* Promo Section */
+.promo-section {
     display: flex;
-    align-items: center;
-    position: relative;
-    text-decoration: none;
-    color: white;
+    justify-content: space-around;
+    background-color: #f4f4f4;
+    padding: 20px 0;
 }
 
-.cart-link img {
+.promo-item {
+    text-align: center;
+    padding: 10px;
+}
+
+.promo-item img {
     width: 40px;
     height: 40px;
 }
 
-.cart-count {
-    background: red;
-    color: white;
-    border-radius: 50%;
-    padding: 4px 8px;
+.promo-item p {
     font-size: 14px;
-    position: absolute;
-    top: -5px;
-    right: -5px;
+    color: #333;
 }
 
-/* Authentication Links */
-.auth-link {
-    padding: 12px 18px;
+/* Seeds Container */
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+/* SEED CARD */
+.seed-card {
+    width: 250px; /* Set a fixed width for seed cards */
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fff;
+    text-align: center;
+}
+
+/* IMAGE STYLING */
+.seed-card img {
+    width: 150px; /* Set a fixed width for all images */
+    height: 150px; /* Set a fixed height to maintain a square aspect ratio */
+    object-fit: cover; /* Ensure images maintain aspect ratio without distortion */
+    border-radius: 10px;
+    margin-bottom: 10px; /* Space between image and text */
+}
+
+/* SEED NAME */
+.seed-card h2 {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+/* SEED PRICE */
+.seed-card p {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* ADD TO CART FORM */
+.add-to-cart-form {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* QUANTITY INPUT */
+.quantity-input {
+    width: 50px;
+    padding: 5px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+/* ADD TO CART BUTTON */
+.add-to-cart-btn {
+    padding: 10px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.add-to-cart-btn:hover {
+    background-color: #45a049;
+}
+
+/* Force the Add to Cart button to be green */
+.container .seed-card .add-to-cart-btn {
+    background-color: #3c763d !important; /* Green background */
+    color: white !important;              /* White text */
+    padding: 12px 20px !important;        /* Slightly larger padding for better UX */
+    border: none !important;              /* No border */
+    border-radius: 8px !important;        /* Rounded corners */
+    cursor: pointer !important;          /* Pointer cursor to indicate clickable */
+    font-size: 16px !important;           /* Slightly larger text */
+    font-weight: bold !important;         /* Make text bold */
+    transition: background-color 0.3s ease, transform 0.2s ease !important; /* Smooth transition effects */
+}
+
+/* Hover effect */
+.container .seed-card .add-to-cart-btn:hover {
+    background-color: #4cae4c !important; /* Darker green on hover */
+    transform: scale(1.05) !important;     /* Slightly enlarge the button */
+}
+
+/* Focus effect (optional) */
+.container .seed-card .add-to-cart-btn:focus {
+    outline: none !important;             /* Remove outline on focus */
+    box-shadow: 0 0 5px #4cae4c !important; /* Green glow effect on focus */
+}
+
+/* About Us Section */
+.about-us {
+    text-align: center;
+    padding: 40px 0;
+    background-color: #f9f9f9;
+}
+
+.about-us h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.about-items {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.about-item {
+    text-align: center;
+    width: 200px;
+}
+
+.about-item img {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 10px;
+}
+
+/* Reviews Section */
+.reviews {
+    background-color: #f4f4f4;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.reviews h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.review-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.review-card {
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 20px;
+    width: 250px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.stars {
+    color: gold;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+/* Footer */
+.footer {
+    background-color: #3c763d;
+    color: white;
+    padding: 40px 0;
+    text-align: center;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.footer-section {
+    width: 200px;
+}
+
+.footer-section h3 {
+    margin-bottom: 10px;
+}
+
+.footer-section a {
     color: white;
     text-decoration: none;
-    font-size: 18px;
-    font-weight: 500;
+    display: block;
+    margin-bottom: 10px;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) { /* Tablet & smaller */
-    .nav-links {
-        justify-content: center;
-        width: 100%;
-        flex-wrap: wrap;
-        text-align: center;
-    }
-
-    .dropdown-content {
-        position: static;
-        width: 100%;
-        display: none;
-    }
-
-    .dropdown:hover .dropdown-content {
-        display: block;
-    }
-
-    .auth-link {
-        display: block;
-        text-align: center;
-    }
+.footer-section a:hover {
+    text-decoration: underline;
 }
 
-@media (max-width: 768px) { /* Mobile */
+.footer p {
+    font-size: 14px;
+    margin-top: 20px;
+}
+
+/* Mobile Styles */
+@media screen and (max-width: 768px) {
     .navbar {
         flex-direction: column;
-        align-items: center;
-        padding: 10px;
+        align-items: flex-start;
     }
 
-    .nav-links {
+    .hero {
+        height: 300px;
+    }
+
+    .container {
         flex-direction: column;
         align-items: center;
-        width: 100%;
     }
 
-    .dropdown .dropbtn {
-        display: block;
-        width: 100%;
-        text-align: center;
-        padding: 10px 0;
+    .seed-card {
+        width: 80%;
+        margin-bottom: 20px;
     }
 
-    .dropdown-content {
-        position: static;
-        width: 100%;
-        text-align: center;
-        display: none;
+    .about-items {
+        flex-direction: column;
+        align-items: center;
     }
 
-    .dropdown:hover .dropdown-content {
-        display: block;
+    .review-container {
+        flex-direction: column;
+        align-items: center;
     }
 
-    .cart-link {
-        margin-top: 10px;
+    .footer-content {
+        flex-direction: column;
+        align-items: center;
     }
 }
 
@@ -555,49 +462,50 @@ body {
 
 
 <!-- NAVBAR -->
-<!-- NAVBAR -->
-<nav class="navbar">
-    <a href="#" class="website-name">
-        <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Hasa Organic Seeds Logo">
-        <span>Hasa Organic Seeds</span>
-    </a>
+<div class="navbar">
+<a href="#" class="website-name" style="display: flex; align-items: center; gap: 12px;">
+    <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Hasa Organic Seeds Logo" style="height: 64.6px;">
+    <span style="font-size: 24px; font-weight: bold;">Hasa Organic Seeds</span>
+</a>
 
-    <!-- Navigation Links -->
-    <div class="nav-links">
-        <div class="dropdown">
-            <a class="dropbtn">Vegetable Seeds ▼</a>
-            <div class="dropdown-content">
-                <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
-                <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
-                <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
-                <a href="{% url 'hybrid_vegetable_seeds' %}">Hybrid Vegetable Seeds</a>
-            </div>
+
+
+    <!-- Seeds Dropdown -->
+    <div class="dropdown">
+        <a class="elementor-item elementor-item-anchor has-submenu dropdown">Vegetable Seeds</a>
+        <div class="dropdown-content">
+            <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
+            <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
+            <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
+            <a href="{% url 'hybrid_vegetable_seeds' %}">Hybrid Vegetable Seeds</a>
         </div>
-
-        <div class="dropdown">
-            <a class="dropbtn">Flower Seeds ▼</a>
-            <div class="dropdown-content">
-                <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
-                <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
-                <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
-            </div>
-        </div>
-
-        <!-- Authentication Links -->
-        {% if not user.is_authenticated %}
-            <a href="{% url 'login' %}" class="auth-link">Login</a>
-            <a href="{% url 'register' %}" class="auth-link">Register</a>
-        {% else %}
-            <a href="{% url 'logout' %}" class="auth-link">Logout</a>
-        {% endif %}
-
-        <!-- Cart -->
-        <a href="{% url 'view_cart' %}" class="cart-link">
-            <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png" alt="Cart">
-            <span class="cart-count">{{ cart_count }}</span>
-        </a>
     </div>
-</nav>
+    <div class="dropdown">
+    <a class="elementor-item elementor-item-anchor has-submenu dropdown">Flower Seeds</a>
+    <div class="dropdown-content">
+        <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
+        <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
+        <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+    </div>
+</div>
+
+    <!-- Show Login/Register if user is not logged in -->
+    {% if not user.is_authenticated %}
+        <a href="{% url 'login' %}" class="auth-link">Login</a>
+        <a href="{% url 'register' %}" class="auth-link">Register</a>
+    {% else %}
+        <a href="{% url 'logout' %}" class="auth-link">Logout</a>
+    {% endif %}
+
+   <a href="{% url 'view_cart' %}" id="cart-link" class="cart-link">
+    <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png"
+         alt="Cart"
+         class="cart-icon">
+    <span id="cart-count" class="cart-count">
+        {{ cart_count }}
+    </span>
+</a>
+</div>
 
 
 <!-- HERO SECTION -->
@@ -622,7 +530,9 @@ body {
             <form class="add-to-cart-form" data-seed-id="{{ seed.id }}">
                 {% csrf_token %}
                 <div class="input-group">
-    <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}" class="quantity-input">
+    <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}"
+    class="quantity-input" id="quantity-{{ seed.id }}">
+
     <button type="submit" class="add-to-cart-btn">Add to Cart</button>
 </div>
             </form>
@@ -753,8 +663,23 @@ document.querySelectorAll('.add-to-cart-form').forEach(form => {
     window.onload = function() {
         document.querySelector('.search-form input').value = "";
     };
+    document.addEventListener("DOMContentLoaded", function () {
+    // Load stored quantities
+    document.querySelectorAll(".quantity-input").forEach(input => {
+        let seedId = input.id.split("-")[1];
+        let savedQuantity = localStorage.getItem("quantity-" + seedId);
+        if (savedQuantity) {
+            input.value = savedQuantity; // Restore the saved quantity
+        }
+
+        // Update local storage when input changes
+        input.addEventListener("input", function () {
+            localStorage.setItem("quantity-" + seedId, input.value);
+        });
+    });
+});
 </script>
 
 
-</head>
+</body>
 </html>
