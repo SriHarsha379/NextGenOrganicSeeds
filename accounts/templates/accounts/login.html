@@ -275,6 +275,11 @@
                 eyeIcon.classList.replace("fa-eye-slash", "fa-eye");
             }
         }
+
+        document.querySelector('form').addEventListener('submit', function(event) {
+    document.querySelector('button[type="submit"]').disabled = true;
+});
+
     </script>
 </body>
 </html>

@@ -27,8 +27,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-+vofv8mk!los^y4r=^^bt86$nk3e(^a$*i4k-_q7ybwpzwg5%c'
 
-ALLOWED_HOSTS = ['hasaorganicseeds.com', 'www.hasaorganicseeds.com', '147.93.28.237']
-# ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+# ALLOWED_HOSTS = ['hasaorganicseeds.com', 'www.hasaorganicseeds.com', '147.93.28.237']
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -170,12 +170,13 @@ SESSION_SAVE_EVERY_REQUEST = True  # Extend session on activity
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your-email@gmail.com'
-EMAIL_HOST_PASSWORD = 'your-email-password'  # Use an App Password for security
-SITE_URL = 'https://hasaorganicseeds.com'  # Change to your site URL
+EMAIL_HOST = 'smtp.hostinger.com'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'info@hasaorganicseeds.com'
+EMAIL_HOST_PASSWORD = '8Hasa@seeds'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
 
 CSRF_TRUSTED_ORIGINS = [
     "https://hasaorganicseeds.com",

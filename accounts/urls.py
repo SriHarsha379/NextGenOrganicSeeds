@@ -2,6 +2,7 @@ from django.contrib.auth.views import LogoutView
 from django.contrib.auth import views as auth_views
 from django.urls import path
 from .views import user_login, user_register, user_logout, forgot_password, reset_password
+from . import views
 
 urlpatterns = [
     path("login/", user_login, name="login"),
@@ -14,4 +15,5 @@ urlpatterns = [
     # path('password-reset-complete/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('forgot-password/', forgot_password, name='forgot_password'),
     path('reset-password/<uidb64>/<token>/', reset_password, name='reset_password'),
+    path('password_reset_done/', views.password_reset_done, name='password_reset_done'),
 ]
