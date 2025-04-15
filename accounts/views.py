@@ -105,44 +105,52 @@ def forgot_password(request):
                 'user': user,
                 'reset_link': reset_link,
             })
-            send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+
+            # Send email with HTML content
+            send_mail(
+                subject,
+                message,  # plain-text message (not needed for HTML, but you can leave it empty)
+                settings.EMAIL_HOST_USER,
+                [email],
+                html_message=message  # Add the HTML version of the message here
+            )
 
             messages.success(request, "A password reset link has been sent to your email.")
             return redirect("/accounts/password_reset_done/")
 
-
         except get_user_model().DoesNotExist:
             messages.error(request, "No account found with this email.")
             return redirect("forgot_password")
+
     return render(request, "accounts/forgot_password.html")
 
 
 
-# Reset Password View (Step 2)
-def reset_password(request, uidb64, token):
-    try:
-        uid = urlsafe_base64_decode(uidb64).decode()
-        user = get_user_model().objects.get(pk=uid)
-    except (User.DoesNotExist, ValueError, TypeError):
-        user = None
-
-    if user and default_token_generator.check_token(user, token):
-        if request.method == "POST":
-            new_password = request.POST["password"]
-            confirm_password = request.POST["confirm_password"]
-            if new_password == confirm_password:
-                user.set_password(new_password)
-                user.save()
-                messages.success(request, "Your password has been reset successfully. You can now log in.")
-                return redirect("login")
-            else:
-                messages.error(request, "Passwords do not match. Please try again.")
-
-        return render(request, "accounts/reset_password.html", {"valid": True})
-
-    else:
-        messages.error(request, "The password reset link is invalid or has expired.")
-        return render(request, "accounts/reset_password.html", {"valid": False})
+# # Reset Password View (Step 2)
+# def reset_password(request, uidb64, token):
+#     try:
+#         uid = urlsafe_base64_decode(uidb64).decode()
+#         user = get_user_model().objects.get(pk=uid)
+#     except (User.DoesNotExist, ValueError, TypeError):
+#         user = None
+#
+#     if user and default_token_generator.check_token(user, token):
+#         if request.method == "POST":
+#             new_password = request.POST["password"]
+#             confirm_password = request.POST["confirm_password"]
+#             if new_password == confirm_password:
+#                 user.set_password(new_password)
+#                 user.save()
+#                 messages.success(request, "Your password has been reset successfully. You can now log in.")
+#                 return redirect("login")
+#             else:
+#                 messages.error(request, "Passwords do not match. Please try again.")
+#
+#         return render(request, "accounts/reset_password.html", {"valid": True})
+#
+#     else:
+#         messages.error(request, "The password reset link is invalid or has expired.")
+#         return render(request, "accounts/reset_password.html", {"valid": False})
 
 
 def reset_password(request, uidb64, token):
