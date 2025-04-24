@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Season Flower Seeds - HASA Organic Seeds</title>
+    <title>All Season Flower Seeds - HASA Farms</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
 /* General Styling */
@@ -216,10 +216,11 @@ h1 {
         <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
     </div>
 </div> <!-- ✅ This closing tag was missing in your code -->
+        <a href="{% url 'farm_crops' %}" class="elementor-item elementor-item-anchor">Farm Crops</a>
 
 
 <!--        <a href="#">Flower Seeds</a>-->
-        <a href="#">Grow Bags</a>
+<!--        <a href="#">Grow Bags</a>-->
         <a href="{% url 'view_cart' %}" class="cart-icon">
             <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png" alt="Cart" style="width: 25px;">
             <span id="cart-count">{{ cart_count }}</span>
@@ -253,7 +254,7 @@ h1 {
 
     <!-- Footer -->
     <div class="footer">
-        <p>&copy; 2025 HASA Organic Seeds. All Rights Reserved.</p>
+        <p>&copy; 2025 HASA Farms. All Rights Reserved.</p>
     </div>
 <script>
     // Function to get CSRF token from cookies

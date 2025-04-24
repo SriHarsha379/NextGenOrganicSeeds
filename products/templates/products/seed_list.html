@@ -435,20 +435,20 @@ body {
 </style>
 
 <!-- PROMOTIONAL SECTION -->
-<div class="promo-section">
-    <div class="promo-item">
-        <img src="https://cdn-icons-png.flaticon.com/512/1239/1239183.png" alt="Discount">
-        <p><strong>10% OFF</strong> on your first order! Use Code: <strong>WELCOME10</strong></p>
-    </div>
-    <div class="promo-item">
-        <img src="https://cdn-icons-png.flaticon.com/512/1157/1157109.png" alt="Free Delivery">
-        <p><strong>Free Delivery</strong> on orders above ₹499</p>
-    </div>
-    <div class="promo-item">
-        <img src="https://cdn-icons-png.flaticon.com/512/1040/1040255.png" alt="Fast Shipping">
-        <p><strong>Fast Shipping</strong> across India</p>
-    </div>
-</div>
+<!--<div class="promo-section">-->
+<!--    <div class="promo-item">-->
+<!--        <img src="https://cdn-icons-png.flaticon.com/512/1239/1239183.png" alt="Discount">-->
+<!--        <p><strong>10% OFF</strong> on your first order! Use Code: <strong>WELCOME10</strong></p>-->
+<!--    </div>-->
+<!--    <div class="promo-item">-->
+<!--        <img src="https://cdn-icons-png.flaticon.com/512/1157/1157109.png" alt="Free Delivery">-->
+<!--        <p><strong>Free Delivery</strong> on orders above ₹499</p>-->
+<!--    </div>-->
+<!--    <div class="promo-item">-->
+<!--        <img src="https://cdn-icons-png.flaticon.com/512/1040/1040255.png" alt="Fast Shipping">-->
+<!--        <p><strong>Fast Shipping</strong> across India</p>-->
+<!--    </div>-->
+<!--</div>-->
 
 <!-- SEARCH BAR -->
 <div class="search-container">
@@ -464,23 +464,24 @@ body {
 <!-- NAVBAR -->
 <div class="navbar">
 <a href="#" class="website-name" style="display: flex; align-items: center; gap: 12px;">
-    <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Hasa Organic Seeds Logo" style="height: 64.6px;">
-    <span style="font-size: 24px; font-weight: bold;">Hasa Organic Seeds</span>
+    <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Hasa farms Logo" style="height: 64.6px;">
+    <span style="font-size: 24px; font-weight: bold;">HASA Farms</span>
 </a>
 
 
 
-    <!-- Seeds Dropdown -->
-    <div class="dropdown">
-        <a class="elementor-item elementor-item-anchor has-submenu dropdown">Vegetable Seeds</a>
-        <div class="dropdown-content">
-            <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
-            <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
-            <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
-            <a href="{% url 'hybrid_vegetable_seeds' %}">Hybrid Vegetable Seeds</a>
-        </div>
+<!-- Seeds Section -->
+<div class="dropdown">
+    <a class="elementor-item elementor-item-anchor has-submenu dropdown">Vegetable Seeds</a>
+    <div class="dropdown-content">
+        <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
+        <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
+        <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
+        <a href="{% url 'hybrid_vegetable_seeds' %}">Hybrid Vegetable Seeds</a>
     </div>
-    <div class="dropdown">
+</div>
+
+<div class="dropdown">
     <a class="elementor-item elementor-item-anchor has-submenu dropdown">Flower Seeds</a>
     <div class="dropdown-content">
         <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
@@ -488,6 +489,10 @@ body {
         <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
     </div>
 </div>
+
+<!-- Farm Crops Link -->
+<a href="{% url 'farm_crops' %}" class="elementor-item elementor-item-anchor">Farm Crops</a>
+
 
     <!-- Show Login/Register if user is not logged in -->
     {% if not user.is_authenticated %}
@@ -586,8 +591,8 @@ body {
     <div class="footer-content">
         <div class="footer-section">
             <h3>Contact Us</h3>
-            <p>Email: support@nextgenseeds.com</p>
-            <p>Phone: +91 98765 43210</p>
+            <p>Email: info@hasafarms.com</p>
+<!--            <p>Phone: +91 98765 43210</p>-->
         </div>
         <div class="footer-section">
             <h3>Follow Us</h3>
@@ -597,12 +602,15 @@ body {
         </div>
         <div class="footer-section">
             <h3>Quick Links</h3>
-<a href="{% url 'privacy_policy' %}">Privacy Policy</a> &
-<a href="{% url 'terms_conditions' %}">Terms & Conditions</a>
+            <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+            <a href="{% url 'terms_conditions' %}">Terms & Conditions</a>
+            <a href="{% url 'disclaimer' %}">Disclaimer</a>
+            <a href="{% url 'refund' %}">Refund</a>
+            <a href="{% url 'shipping' %}">Shipping</a>
 
         </div>
     </div>
-    <p>&copy; 2025 Hasa Organic Seeds. All Rights Reserved.</p>
+    <p>&copy; 2025 HASA Farms. All Rights Reserved.</p>
 </div>
 
 <!-- SCRIPTS -->

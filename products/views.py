@@ -135,8 +135,20 @@ def summer_flower_seeds(request):
         'cart_count': unique_item_count,  # Pass cart count to template
     })
 
+def farm_crops(request):
+    return render(request, 'products/farm_crops.html')
+
 def privacy_policy(request):
     return render(request, 'products/privacy_policy.html')
 
 def terms_conditions(request):
     return render(request, 'products/terms_conditions.html')
+
+def disclaimer(request):
+    return render(request, 'products/disclaimer.html')
+
+def refund(request):
+    return render(request, 'products/refund.html')
+
+def shipping(request):
+    return render(request, 'products/shipping.html')

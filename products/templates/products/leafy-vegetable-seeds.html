@@ -195,7 +195,7 @@ h1 {
                     <a href="{% url 'home' %}">Home</a> <!-- Add this -->
     <a href="#" class="website-name" style="display: flex; align-items: center; gap: 12px;">
     <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="HASA Organic Seeds Logo" style="height: 85px;">
-    <span style="font-size: 24px; font-weight: bold;">HASA Organic Seeds</span>
+    <span style="font-size: 24px; font-weight: bold;">HASA Farms</span>
 </a>
 
 
@@ -218,7 +218,8 @@ h1 {
         <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
     </div>
 </div>
-        <a href="#">Grow Bags</a>
+        <a href="{% url 'farm_crops' %}" class="elementor-item elementor-item-anchor">Farm Crops</a>
+<!--        <a href="#">Grow Bags</a>-->
         <a href="{% url 'view_cart' %}" class="cart-icon">
             <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png" alt="Cart" style="width: 25px;">
             <span id="cart-count">{{ cart_count }}</span>
@@ -252,7 +253,7 @@ h1 {
 
     <!-- Footer -->
     <div class="footer">
-        <p>&copy; 2025 HASA Organic Seeds. All Rights Reserved.</p>
+        <p>&copy; 2025 HASA Farms. All Rights Reserved.</p>
     </div>
 <script>
 document.querySelectorAll('.add-to-cart-btn').forEach(button => {
