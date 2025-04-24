@@ -175,7 +175,6 @@ def update_cart_quantity(request, item_id):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
-
 @csrf_exempt
 @login_required
 def process_order(request):
@@ -184,19 +183,17 @@ def process_order(request):
             data = json.loads(request.body.decode("utf-8"))
             print("Received Data:", data)
 
-            # ✅ Combine address fields into one string
             address = f"{data.get('address_line1', '')}, {data.get('address_line2', '')}, {data.get('city', '')}, {data.get('state', '')}, {data.get('postal_code', '')}, {data.get('country', '')}"
 
-            # ✅ Validate required fields
             required_fields = ["full_name", "email", "phone", "cart_items", "total_quantity", "total_amount"]
             missing_fields = [field for field in required_fields if field not in data or not data[field]]
 
             if missing_fields:
                 return JsonResponse({"error": f"Missing required fields: {', '.join(missing_fields)}"}, status=400)
 
-            # ✅ Create the order with the logged-in user
+            # ✅ Create order
             order = Order.objects.create(
-                user=request.user,  # ✅ Add the logged-in user
+                user=request.user,
                 full_name=data["full_name"],
                 email=data["email"],
                 phone=data["phone"],
@@ -207,9 +204,24 @@ def process_order(request):
                 payment_status=data.get("payment_status", "Pending"),
             )
 
-            # ✅ Clear the session cart after order is placed
-            request.session["cart"] = {}  # Clear session cart
-            request.session.modified = True  # Ensure session updates
+            # ✅ Update stock
+            for item in data["cart_items"]:
+                seed_id = item["id"]
+                quantity_ordered = int(item["quantity"])
+
+                try:
+                    seed = Seed.objects.get(id=seed_id)
+                    if seed.stock >= quantity_ordered:
+                        seed.stock -= quantity_ordered
+                        seed.save()
+                    else:
+                        return JsonResponse({"error": f"Not enough stock for {seed.name}"}, status=400)
+                except Seed.DoesNotExist:
+                    return JsonResponse({"error": f"Seed with ID {seed_id} not found"}, status=404)
+
+            # ✅ Clear cart
+            request.session["cart"] = {}
+            request.session.modified = True
 
             return JsonResponse({"message": "Order placed successfully!", "order_id": order.id}, status=201)
 
