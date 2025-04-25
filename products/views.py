@@ -91,7 +91,7 @@ def search_seeds(request):
     return render(request, 'products/search_results.html', {'results': results, 'query': query})
 
 def winter_flower_seeds(request):
-    category = get_object_or_404(Category, name="Native")  # Ensure capitalization matches DB
+    category = get_object_or_404(Category, name="Winter")  # Ensure capitalization matches DB
     seeds = Seed.objects.filter(category=category)
 
     # Get the cart from the session
@@ -106,7 +106,7 @@ def winter_flower_seeds(request):
     })
 
 def all_seasonal_flower_seeds(request):
-    category = get_object_or_404(Category, name="Native")  # Ensure capitalization matches DB
+    category = get_object_or_404(Category, name="All Seasonal")  # Ensure capitalization matches DB
     seeds = Seed.objects.filter(category=category)
 
     # Get the cart from the session
@@ -121,7 +121,7 @@ def all_seasonal_flower_seeds(request):
     })
 
 def summer_flower_seeds(request):
-    category = get_object_or_404(Category, name="Native")  # Ensure capitalization matches DB
+    category = get_object_or_404(Category, name="Summer")  # Ensure capitalization matches DB
     seeds = Seed.objects.filter(category=category)
 
     # Get the cart from the session
@@ -136,7 +136,22 @@ def summer_flower_seeds(request):
     })
 
 def farm_crops(request):
-    return render(request, 'products/farm_crops.html')
+    category = get_object_or_404(Category, name="Farmcrops")  # Ensure capitalization matches DB
+    seeds = Seed.objects.filter(category=category)
+
+    # Get the cart from the session
+    cart = request.session.get('cart', {})
+
+    # Calculate the total unique items in the cart
+    unique_item_count = len(cart)
+
+    return render(request, 'products/farm_crops.html', {
+        'seeds': seeds,
+        'cart_count': unique_item_count,  # Pass cart count to template
+    })
+
+# def farm_crops(request):
+#     return render(request, 'products/farm_crops.html')
 
 def privacy_policy(request):
     return render(request, 'products/privacy_policy.html')

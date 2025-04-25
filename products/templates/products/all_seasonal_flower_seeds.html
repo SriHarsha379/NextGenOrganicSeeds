@@ -298,7 +298,7 @@ h1 {
 });
 
 
-        document.querySelectorAll('.quantity-input').forEach(input => {
+document.querySelectorAll('.quantity-input').forEach(input => {
     input.addEventListener('input', function () {
         let maxStock = parseInt(this.getAttribute("max"), 10);
         let quantity = parseInt(this.value, 10);
@@ -307,6 +307,11 @@ h1 {
         if (isNaN(quantity) || quantity < 1) {
             this.value = 1; // Prevent negative or non-numeric input
             warningText.textContent = "Quantity must be at least 1.";
+
+            // Hide the warning after 2 seconds (or any duration you prefer)
+            setTimeout(() => {
+                warningText.textContent = "";
+            }, 2000); // 2000 milliseconds = 2 seconds
         } else if (quantity > maxStock) {
             this.value = maxStock; // Restrict to max stock
             warningText.textContent = `Only ${maxStock} items available in stock!`;
@@ -315,6 +320,7 @@ h1 {
         }
     });
 });
+
 </script>
 
 
