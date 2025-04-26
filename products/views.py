@@ -7,7 +7,8 @@ from django.contrib.auth.decorators import login_required
 
 @login_required(login_url="/accounts/login/")
 def seed_list(request):
-    seeds = Seed.objects.all()
+    seeds = Seed.objects.all().order_by('id')
+
     cart = request.session.get("cart", {})  # Retrieve cart from session
     cart_count = len(cart)  # Count unique items in the cart
 

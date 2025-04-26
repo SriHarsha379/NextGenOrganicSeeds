@@ -186,6 +186,13 @@ h1 {
     transform: translateY(0); /* "Pressed" effect */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Light shadow when pressed */
   }
+        .out-of-stock-msg {
+    color: #d32f2f; /* Red */
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
 
     </style>
 </head>
@@ -242,12 +249,16 @@ h1 {
     <p>{{ seed.description }}</p>
     <p><strong>Price: ₹{{ seed.price }}</strong></p>
 
+<!-- Show Out of Stock message and hide quantity input for out-of-stock seeds -->
+{% if seed.stock > 0 %}
     <!-- Quantity Input -->
-<input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}"
-    class="quantity-input" id="quantity-{{ seed.id }}" data-stock="{{ seed.stock }}">
+    <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}" class="quantity-input" id="quantity-{{ seed.id }}" data-stock="{{ seed.stock }}">
 
     <!-- Add to Cart Button -->
     <button class="add-to-cart-btn" data-seed-id="{{ seed.id }}">Add to Cart</button>
+{% else %}
+    <p class="out-of-stock-msg">Out of Stock</p>
+{% endif %}
 </div>
 
         {% endfor %}

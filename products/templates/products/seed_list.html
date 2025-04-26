@@ -489,6 +489,27 @@ body {
 <!--        align-items: center;-->
 <!--    }-->
 }
+/* Add this for visual feedback */
+.out-of-stock-msg p {
+    color: red;
+    font-weight: bold;
+}
+
+.add-to-cart-btn[disabled] {
+    background-color: gray;
+    cursor: not-allowed;
+}
+
+.low-stock-msg {
+    color: orange;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.out-of-stock-style {
+    opacity: 0.6;
+    filter: grayscale(100%);
+}
 
 </style>
 
@@ -585,23 +606,38 @@ body {
 
 <!-- SEEDS CONTAINER -->
 <div class="container">
-    {% for seed in seeds|slice:":8" %}  <!-- Display up to 8 seeds -->
+    {% for seed in seeds|slice:":8" %}
         <div class="seed-card">
             <img src="/media/{{ seed.image }}" alt="{{ seed.name }}">
             <h2>{{ seed.name }}</h2>
             <p>Price: ₹{{ seed.price }}</p>
+
             <form class="add-to-cart-form" data-seed-id="{{ seed.id }}">
                 {% csrf_token %}
-                <div class="input-group">
-    <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}"
-    class="quantity-input" id="quantity-{{ seed.id }}">
 
-    <button type="submit" class="add-to-cart-btn">Add to Cart</button>
-</div>
+                {% if seed.stock == 0 %}
+                    <div class="out-of-stock-msg">
+                        <p style="color: red; font-weight: bold;">Out of Stock</p>
+<!--                        <button type="button" class="add-to-cart-btn" disabled>Out of Stock</button>-->
+                    </div>
+                {% else %}
+                    <div class="input-group">
+                        <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}"
+                               class="quantity-input" id="quantity-{{ seed.id }}">
+                        <button type="submit" class="add-to-cart-btn">Add to Cart</button>
+                    </div>
+
+                    {% if seed.stock <= 5 %}
+                        <p class="low-stock-msg" style="color: orange; font-weight: bold; margin-top: 5px;">
+                            Only few left in stock!
+                        </p>
+                    {% endif %}
+                {% endif %}
             </form>
         </div>
     {% endfor %}
 </div>
+
 
 <!-- ABOUT US / WHY CHOOSE US SECTION -->
 <div class="about-us">
@@ -680,7 +716,7 @@ document.querySelectorAll('.add-to-cart-form').forEach(form => {
         event.preventDefault();
 
         const seedId = this.getAttribute('data-seed-id');
-        const quantity = this.querySelector('input[name="quantity"]').value;
+        const quantity = parseInt(this.querySelector('input[name="quantity"]').value);
 
         fetch(`/cart/add/${seedId}/`, {
             method: 'POST',
@@ -695,14 +731,46 @@ document.querySelectorAll('.add-to-cart-form').forEach(form => {
             if (data.error) {
                 document.getElementById('login-modal').style.display = 'flex';
             } else {
-                // Update the cart count in the navbar dynamically with unique items
+                // Update cart count
                 const cartCountElement = document.getElementById('cart-count');
-                cartCountElement.textContent = data.cart_count; // Unique item count from backend
+                cartCountElement.textContent = data.cart_count;
+
+                const seedCard = this.closest('.seed-card');
+                const quantityInput = this.querySelector('input[name="quantity"]');
+                let currentStock = parseInt(quantityInput.getAttribute('max'));
+                let updatedStock = currentStock - quantity;
+
+                if (updatedStock <= 0) {
+                    // Replace form inner HTML to show Out of Stock (without removing the card)
+                    this.innerHTML = `
+                        <div class="out-of-stock-msg">
+                            <p style="color: red; font-weight: bold;">Out of Stock</p>
+                            <button type="button" class="add-to-cart-btn" disabled>Out of Stock</button>
+                        </div>
+                    `;
+                } else {
+                    // Just update max stock
+                    quantityInput.setAttribute('max', updatedStock);
+
+                    // Show/hide "Only few left" message
+                    let lowStockMsg = this.querySelector('.low-stock-msg');
+                    if (updatedStock <= 5 && !lowStockMsg) {
+                        lowStockMsg = document.createElement('p');
+                        lowStockMsg.classList.add('low-stock-msg');
+                        lowStockMsg.style.color = 'orange';
+                        lowStockMsg.style.fontWeight = 'bold';
+                        lowStockMsg.style.marginTop = '5px';
+                        lowStockMsg.textContent = 'Only few left in stock!';
+                        this.appendChild(lowStockMsg);
+                    }
+                }
             }
         })
         .catch(error => console.error('Error:', error));
     });
 });
+
+
 
 
 <!--        // Close popup modal-->
