@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leafy Vegetable Seeds - HASA Organic Seeds</title>
+    <title>Native Vegetable Seeds - HASA Organic Seeds</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
 /* General Styling */
@@ -193,12 +193,6 @@ h1 {
     font-size: 16px;
     margin-top: 10px;
 }
-.out-of-stock-msg {
-    color: #d32f2f; /* Red */
-    font-weight: bold;
-    font-size: 16px;
-    margin-top: 10px;
-}
 
     </style>
 </head>
@@ -206,12 +200,11 @@ h1 {
 
     <!-- Navbar -->
     <div class="navbar">
-                    <a href="{% url 'home' %}">Home</a> <!-- Add this -->
-    <a href="#" class="website-name" style="display: flex; align-items: center; gap: 12px;">
+            <a href="{% url 'home' %}">Home</a> <!-- Add this -->
+        <a href="#" class="website-name" style="display: flex; align-items: center; gap: 12px;">
     <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="HASA Organic Seeds Logo" style="height: 85px;">
     <span style="font-size: 24px; font-weight: bold;">HASA Farms</span>
 </a>
-
 
         <!-- Dropdown for Vegetable Seeds -->
         <div class="dropdown">
@@ -242,7 +235,8 @@ h1 {
 
     <!-- Page Heading -->
     <h1>Leafy Vegetable Seeds</h1>
-    <p id="stock-warning" style="color: red; text-align: center; font-size: 16px;"></p>
+<p id="stock-warning" style="color: red; text-align: center; font-size: 16px;"></p>
+
 
     <!-- Product List -->
     <div class="container">
@@ -265,6 +259,8 @@ h1 {
     <p class="out-of-stock-msg">Out of Stock</p>
 {% endif %}
 
+</div>
+
         {% endfor %}
     </div>
 
@@ -273,30 +269,64 @@ h1 {
         <p>&copy; 2025 HASA Farms. All Rights Reserved.</p>
     </div>
 <script>
-document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+    // Function to get CSRF token from cookies
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith('csrftoken=')) {
+                    cookieValue = cookie.substring('csrftoken='.length, cookie.length);
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
     button.addEventListener('click', function() {
         const seedId = this.getAttribute('data-seed-id');
         const quantityInput = document.getElementById(`quantity-${seedId}`);
-        const quantity = parseInt(quantityInput.value, 10); // Get user-entered quantity
+        const maxStock = parseInt(quantityInput.getAttribute("data-stock"), 10);
+        let quantity = quantityInput ? parseInt(quantityInput.value, 10) : 1;
+        let warningText = document.getElementById("stock-warning");
+
+        if (quantity < 1) {
+            quantity = 1;
+            warningText.textContent = "Minimum quantity is 1.";
+        } else if (quantity > maxStock) {
+            quantity = maxStock;
+            warningText.textContent = `Only ${maxStock} items available in stock!`;
+        } else {
+            warningText.textContent = ""; // Clear warning for valid input
+        }
+
+        quantityInput.value = quantity; // Ensure input reflects corrected quantity
 
         fetch(`/cart/add/${seedId}/`, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
+                'X-CSRFToken': getCSRFToken(),
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ quantity: quantity }) // Send the correct quantity
+            body: JSON.stringify({ quantity: quantity })
         })
         .then(response => response.json())
         .then(data => {
             if (!data.error) {
-                document.getElementById('cart-count').textContent = data.cart_count;
+                const cartCountElement = document.getElementById('cart-count');
+                if (cartCountElement) {
+                    cartCountElement.textContent = data.cart_count;
+                }
+            } else {
+                console.error("Error adding to cart:", data.error);
             }
         })
         .catch(error => console.error('Error:', error));
     });
 });
-
 
 document.querySelectorAll('.quantity-input').forEach(input => {
     input.addEventListener('input', function () {
@@ -321,6 +351,9 @@ document.querySelectorAll('.quantity-input').forEach(input => {
     });
 });
 
+
 </script>
+
+
 </body>
 </html>
