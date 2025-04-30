@@ -20,20 +20,39 @@ class Command(BaseCommand):
             with open(file_path, newline='', encoding='utf-8') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
-                    category_name = row["category"].strip().capitalize()  # Normalize category name
+                    name = row["name"].strip()
+                    description = row["description"].strip()
+                    price = float(row["price"].strip())
+                    stock = int(row["stock"].strip())
+                    image = row["image"].strip()
+                    category_name = row["category"].strip().capitalize()
+
+                    # Get or create category
                     category, _ = Category.objects.get_or_create(name=category_name)
 
-                    Seed.objects.update_or_create(
-                        name=row["name"].strip(),
-                        defaults={
-                            "description": row["description"].strip(),
-                            "price": float(row["price"].strip()),  # Ensure numeric type
-                            "stock": int(row["stock"].strip()),  # Ensure numeric type
-                            "image": row["image"].strip(),
-                            "category": category,  # Assign Category instance
-                        }
-                    )
+                    # Check if seed exists
+                    existing_seed = Seed.objects.filter(name=name).first()
+                    if existing_seed:
+                        # Increment stock and update other details
+                        existing_seed.stock += stock
+                        existing_seed.description = description
+                        existing_seed.price = price
+                        existing_seed.image = image
+                        existing_seed.category = category
+                        existing_seed.save()
+                        self.stdout.write(self.style.SUCCESS(f"🔄 Updated and incremented stock for: {name}"))
+                    else:
+                        # Create new seed
+                        Seed.objects.create(
+                            name=name,
+                            description=description,
+                            price=price,
+                            stock=stock,
+                            image=image,
+                            category=category
+                        )
+                        self.stdout.write(self.style.SUCCESS(f"➕ Created new seed: {name}"))
 
-            self.stdout.write(self.style.SUCCESS("✅ Seeds imported successfully!"))
+            self.stdout.write(self.style.SUCCESS("✅ All seeds processed successfully!"))
         except Exception as e:
             self.stderr.write(self.style.ERROR(f"❌ Error: {e}"))
