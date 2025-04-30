@@ -184,7 +184,8 @@ def reset_password(request, uidb64, token):
 
 def send_welcome_email(user):
     subject = 'Welcome to Hasa Organic Seeds!'
-    html_message = render_to_string('emails/welcome_email.html', {'user': user})
+    html_message = render_to_string('accounts/emails/welcome_email.html', {'user': user})
+
     plain_message = f"Hi {user.username},\n\nThank you for registering at Hasa Organic Seeds!"
     from_email = settings.DEFAULT_FROM_EMAIL
     to = user.email
