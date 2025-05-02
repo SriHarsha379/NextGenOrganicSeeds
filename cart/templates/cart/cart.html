@@ -286,7 +286,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const data = await response.json();
                 if (response.ok) {
-                    // Reload the page to reflect the updated cart
+                    // Reload the page to reflect the updated cart count
                     location.reload();
                 } else {
                     alert("Error: " + data.message);
@@ -298,8 +298,8 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
-
 </script>
+
 
 
 </body>

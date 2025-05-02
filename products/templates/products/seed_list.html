@@ -100,10 +100,13 @@ body {
 
 .dropdown-content a {
     color: black;
-    padding: 12px 16px;
+    padding: 10px 16px; /* slightly adjusted */
+    margin: 0;
     text-decoration: none;
     display: block;
+    white-space: nowrap; /* This prevents line breaks */
 }
+
 
 .dropdown-content a:hover {
     background-color: #ddd;
@@ -581,7 +584,7 @@ body {
         <a href="{% url 'logout' %}" class="auth-link">Logout</a>
     {% endif %}
 
-   <a href="{% url 'view_cart' %}" id="cart-link" class="cart-link">
+<a href="{% url 'view_cart' %}" id="cart-link" class="cart-link">
     <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png"
          alt="Cart"
          class="cart-icon">
@@ -589,6 +592,7 @@ body {
         {{ cart_count }}
     </span>
 </a>
+
 </div>
 
 
@@ -820,7 +824,25 @@ document.querySelectorAll('.add-to-cart-form').forEach(form => {
         input.value = 1;
     });
 };
-
+document.addEventListener("DOMContentLoaded", function () {
+    // Check if the page is loaded from the browser history
+    if (performance.navigation.type === 2) {
+        // Force a page reload if coming from browser history (back button)
+        window.location.reload(true);
+    }
+});
+    document.addEventListener("DOMContentLoaded", function () {
+    // Make an AJAX request to get the latest cart data
+    fetch('/get-cart-count/')
+        .then(response => response.json())
+        .then(data => {
+            // Update the cart count on the page
+            document.getElementById("cart-count").textContent = data.cart_count;
+        })
+        .catch(error => {
+            console.error('Error fetching cart count:', error);
+        });
+});
 </script>
 
 

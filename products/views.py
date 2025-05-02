@@ -12,8 +12,13 @@ def seed_list(request):
     cart = request.session.get("cart", {})  # Retrieve cart from session
     cart_count = len(cart)  # Count unique items in the cart
 
-    context = {"seeds": seeds, "cart_count": cart_count}
-    return render(request, "products/seed_list.html", context)
+    # Disable cache for this page
+    response = render(request, "products/seed_list.html", {"seeds": seeds, "cart_count": cart_count})
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, proxy-revalidate"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+
+    return response
 
 
 def homepage(request):

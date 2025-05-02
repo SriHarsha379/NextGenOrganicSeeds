@@ -105,6 +105,7 @@ def view_cart(request):
         'total_amount': total_amount
     })
 
+@login_required
 def remove_from_cart(request, cart_id):
     if request.method == "POST":
         cart = request.session.get('cart', {})
@@ -114,9 +115,11 @@ def remove_from_cart(request, cart_id):
             request.session['cart'] = cart
             request.session.modified = True
 
+            # Calculate the updated total and cart count
             total_amount = sum(item['price'] * item['quantity'] for item in cart.values())
             cart_count = sum(item['quantity'] for item in cart.values())
 
+            # Return updated cart count and total amount to the client
             return JsonResponse({
                 "message": "Item removed from cart!",
                 "cart_count": cart_count,
@@ -234,9 +237,11 @@ def process_order(request):
 
 
 
-def get_cart(request):
-    cart = request.session.get("cart", {})  # ✅ Get cart from session
-    return JsonResponse(cart)  # ✅ Return JSON response
+@login_required
+def get_cart_count(request):
+    cart = request.session.get("cart", {})
+    cart_count = len(cart)
+    return JsonResponse({"cart_count": cart_count})
 
 
 def clear_cart(request):
