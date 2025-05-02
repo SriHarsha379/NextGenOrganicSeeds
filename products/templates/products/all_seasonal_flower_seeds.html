@@ -416,6 +416,12 @@ document.querySelectorAll('.quantity-input').forEach(input => {
         }
     });
 });
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        // This condition checks if the page was loaded from cache (back button).
+        location.reload();
+    }
+});
 
 </script>
 
