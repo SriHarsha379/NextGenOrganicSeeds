@@ -233,46 +233,24 @@ input, select {
 
 <script>
 function confirmOrder() {
-    const fullName = document.getElementById("full_name").value;
-    const phone = document.getElementById("phone").value;
-
-    if (!fullName || !phone) {
-        displayErrorMessage("Please fill in all details!");
+    if (!document.getElementById("full_name").value || !document.getElementById("phone").value) {
+        alert("Please fill in all details!");
         return;
     }
-
     submitOrder();
 }
 
-function displayErrorMessage(message) {
-    // Create or update an error message div
-    let errorMessageDiv = document.getElementById("error-message");
+<!--    document.addEventListener("DOMContentLoaded", function () {-->
+<!--    document.getElementById("placeOrderBtn").addEventListener("click", submitOrder);-->
+<!--});-->
 
-    if (!errorMessageDiv) {
-        errorMessageDiv = document.createElement("div");
-        errorMessageDiv.id = "error-message";
-        errorMessageDiv.style.backgroundColor = "#f8d7da";
-        errorMessageDiv.style.color = "#721c24";
-        errorMessageDiv.style.padding = "15px";
-        errorMessageDiv.style.borderRadius = "5px";
-        errorMessageDiv.style.marginBottom = "20px";
-        errorMessageDiv.style.textAlign = "center";
-        document.querySelector(".container").insertBefore(errorMessageDiv, document.querySelector("form"));
+    function confirmOrder() {
+    if (!document.getElementById("full_name").value || !document.getElementById("phone").value) {
+        alert("Please fill in all details!");
+        return;
     }
-
-    errorMessageDiv.textContent = message;
-
-    // Hide the error message after 5 seconds
-    setTimeout(() => {
-        errorMessageDiv.style.display = 'none';
-    }, 5000);
+    submitOrder();
 }
-
-
-
-document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("placeOrderBtn").addEventListener("click", submitOrder);
-});
 
 function submitOrder() {
     fetch("/cart/get_cart/")

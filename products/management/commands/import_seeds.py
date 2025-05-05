@@ -34,7 +34,7 @@ class Command(BaseCommand):
                     existing_seed = Seed.objects.filter(name=name).first()
                     if existing_seed:
                         # Increment stock and update other details
-                        existing_seed.stock += stock
+                        existing_seed.stock = stock
                         existing_seed.description = description
                         existing_seed.price = price
                         existing_seed.image = image

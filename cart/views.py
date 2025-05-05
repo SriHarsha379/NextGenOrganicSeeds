@@ -238,10 +238,10 @@ def process_order(request):
 
 
 @login_required
-def get_cart_count(request):
+def get_cart(request):
     cart = request.session.get("cart", {})
-    cart_count = len(cart)
-    return JsonResponse({"cart_count": cart_count})
+    return JsonResponse(cart)
+
 
 
 def clear_cart(request):
