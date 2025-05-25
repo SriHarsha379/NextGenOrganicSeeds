@@ -37,15 +37,6 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-
-# settings.py
-
-CASHFREE_CLIENT_ID  = '9795081b7f0f43691da68d756c805979'
-CASHFREE_CLIENT_SECRET  = 'cfsk_ma_prod_c2c037e1c0cf80bb7163f08c39d0bfda_ab8b4152'
-CASHFREE_BASE_URL = 'https://sandbox.cashfree.com/pg'  # Change to live when ready
-
-
-
 # Application definition
 
 INSTALLED_APPS = [
