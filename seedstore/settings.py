@@ -27,8 +27,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-+vofv8mk!los^y4r=^^bt86$nk3e(^a$*i4k-_q7ybwpzwg5%c'
 
-ALLOWED_HOSTS = ['hasafarm.com', 'www.hasafarm.com', '147.93.28.237']
-# ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+# ALLOWED_HOSTS = ['hasafarm.com', 'www.hasafarm.com', '147.93.28.237']
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -38,6 +38,11 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 DEBUG = True
 
 
+# settings.py
+
+CASHFREE_CLIENT_ID  = '9795081b7f0f43691da68d756c805979'
+CASHFREE_CLIENT_SECRET  = 'cfsk_ma_prod_c2c037e1c0cf80bb7163f08c39d0bfda_ab8b4152'
+CASHFREE_BASE_URL = 'https://sandbox.cashfree.com/pg'  # Change to live when ready
 
 
 
