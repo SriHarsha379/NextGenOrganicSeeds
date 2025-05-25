@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+    {% if status == "success" %}
+        <h2 class="text-success">✅ Payment Successful</h2>
+    {% elif status == "cancelled" %}
+        <h2 class="text-warning">⚠️ Payment Cancelled</h2>
+    {% elif status == "failed" %}
+        <h2 class="text-danger">❌ Payment Failed</h2>
+    {% else %}
+        <h2 class="text-info">⏳ Payment Processing</h2>
+    {% endif %}
+
+    <p>{{ message }}</p>
+
+    {% if order %}
+        <p><strong>Order ID:</strong> {{ order.id }}</p>
+        <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+    {% endif %}
+
+    <a href="/" class="btn btn-primary mt-4">Return to Home</a>
+</div>
+{% endblock %}

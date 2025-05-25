@@ -61,10 +61,30 @@
     </style>
 </head>
 <body>
-    <div class="container">
+  <div class="container">
+    {% if error %}
+      <h1 style="color: red;">❌ Error</h1>
+      <p>{{ error }}</p>
+      <a href="/" class="btn">Go Back</a>
+    {% else %}
+      {% if payment_status == "Paid" %}
         <h1>🎉 Order Placed Successfully! 🎉</h1>
-        <p>Thank you for your order. We will process it soon.</p>
-        <a href="/" class="btn">Continue Shopping</a>
-    </div>
+        <p>Thank you for your order. We have received your payment.</p>
+      {% elif payment_status == "Pending" %}
+        <h1 style="color: orange;">⚠️ Payment Pending</h1>
+        <p>Your order has been created, but we haven't received your payment yet.</p>
+        <a href="{{ order.payment_link }}" class="btn">Complete Payment</a>
+      {% elif payment_status == "Failed" %}
+        <h1 style="color: red;">❌ Payment Failed</h1>
+        <p>Your order was created, but the payment failed. Please try again.</p>
+        <a href="{{ order.payment_link }}" class="btn">Retry Payment</a>
+      {% else %}
+        <h1>❓ Unknown Status</h1>
+        <p>We couldn't determine the payment status. Please contact support.</p>
+      {% endif %}
+      <a href="/" class="btn">Continue Shopping</a>
+    {% endif %}
+  </div>
 </body>
+
 </html>

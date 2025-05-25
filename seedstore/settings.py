@@ -175,8 +175,15 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://hasaorganicseeds.com",
-    "http://hasaorganicseeds.com",
-    "http://147.93.28.237",
+    "https://hasafarm.com",
+    "http://hasafarm.com",
+    "https://www.hasafarm.com",
+    "http://www.hasafarm.com",
     "https://147.93.28.237",
+    "http://147.93.28.237",
 ]
+
+
+CASHFREE_APP_ID = '9795081b7f0f43691da68d756c805979'
+CASHFREE_SECRET_KEY = 'cfsk_ma_prod_91757a8c50fe123563f89b3fef14c405_b16caf02'
+CASHFREE_ORDER_API_URL = "https://test.cashfree.com/api/v2/cftoken/order"  # or live URL when live

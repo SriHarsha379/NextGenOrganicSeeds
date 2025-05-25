@@ -298,14 +298,16 @@ function submitOrder() {
             });
         })
         .then(response => response.json())
-        .then(data => {
-            if (data.message) {
-                localStorage.removeItem("cart");
-                window.location.href = "/order-success/";
-            } else {
-                alert("Error placing order: " + data.error);
-            }
-        })
+.then(data => {
+    if (data.message) {
+        localStorage.removeItem("cart");
+        window.location.href = data.payment_link;
+    } else {
+        alert("Error placing order: " + data.error);
+    }
+})
+
+
         .catch(error => console.error("Error:", error));
 }
 
