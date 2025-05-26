@@ -251,9 +251,12 @@
         </ul>
 <p>{{ item.seed.image_url }}</p>
 
-        <div class="total-amount" id="total-amount" style="display: block;">
-            Total Amount: ₹{{ total_amount }}
-        </div>
+<div class="total-amount" id="total-amount" style="display: block;">
+    <p>Items Total: ₹{{ total_amount }}</p>
+    <p>Shipping Charges: ₹{{ postage_charge }}</p>
+    <hr>
+    <strong>Total Amount Payable: ₹{{ grand_total }}</strong>
+</div>
 
         <a href="{% url 'checkout' %}" class="checkout-btn" id="checkout-btn" style="display: block;">Proceed to Checkout</a>
 

@@ -1,90 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Successful</title>
+    <meta charset="UTF-8" />
+    <title>Order Status</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-        }
         .container {
             max-width: 600px;
-            margin: auto;
-            border: 1px solid #ddd;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            color: #28a745;
+            margin: 3rem auto;
+            text-align: center;
+            font-family: Arial, sans-serif;
         }
         .btn {
             display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
+            background-color: #28a745;
             color: white;
-            background-color: #007bff;
+            padding: 10px 25px;
+            margin-top: 20px;
             text-decoration: none;
             border-radius: 5px;
         }
-         .btn {
-    display: inline-block;
-    padding: 12px 30px;
-    background: linear-gradient(45deg, #4caf50, #81c784); /* Gradient background */
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 50px; /* Rounded corners */
-    text-decoration: none;
-    text-align: center;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Soft shadow effect */
-    transition: all 0.3s ease;
-    letter-spacing: 1px;
-    text-transform: uppercase; /* Uppercase text for emphasis */
-  }
-
-  .btn:hover {
-    transform: translateY(-5px); /* Button lifts slightly on hover */
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
-    background: linear-gradient(45deg, #81c784, #4caf50); /* Reverse gradient on hover */
-  }
-
-  .btn:active {
-    transform: translateY(0); /* "Pressed" effect on click */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Lighter shadow when pressed */
-  }
+        .btn:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
-  <div class="container">
-    {% if error %}
-      <h1 style="color: red;">❌ Error</h1>
-      <p>{{ error }}</p>
-      <a href="/" class="btn">Go Back</a>
-    {% else %}
-      {% if payment_status == "Paid" %}
-        <h1>🎉 Order Placed Successfully! 🎉</h1>
-        <p>Thank you for your order. We have received your payment.</p>
-      {% elif payment_status == "Pending" %}
-        <h1 style="color: orange;">⚠️ Payment Pending</h1>
-        <p>Your order has been created, but we haven't received your payment yet.</p>
-        <a href="{{ order.payment_link }}" class="btn">Complete Payment</a>
-      {% elif payment_status == "Failed" %}
-        <h1 style="color: red;">❌ Payment Failed</h1>
-        <p>Your order was created, but the payment failed. Please try again.</p>
-        <a href="{{ order.payment_link }}" class="btn">Retry Payment</a>
-      {% else %}
-        <h1>❓ Unknown Status</h1>
-        <p>We couldn't determine the payment status. Please contact support.</p>
-      {% endif %}
-      <a href="/" class="btn">Continue Shopping</a>
-    {% endif %}
-  </div>
+    <div class="container">
+        {% if error %}
+            <h1>Error</h1>
+            <p>{{ error }}</p>
+            <a href="/" class="btn">Go Home</a>
+        {% else %}
+            <h1>{{ message_title }}</h1>
+            <p>{{ message_body }}</p>
+            <a href="{{ btn_link }}" class="btn">{{ btn_text }}</a>
+        {% endif %}
+    </div>
 </body>
-
 </html>

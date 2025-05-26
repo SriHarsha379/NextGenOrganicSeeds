@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Sum
 from django.contrib import messages
 from orders.models import Order
+from django.core.mail import send_mail
 
 
 def add_to_cart(request, seed_id):
@@ -75,8 +76,6 @@ logger = logging.getLogger(__name__)
 def view_cart(request):
     cart = request.session.get('cart', {})  # Retrieve cart from session
     seed_ids = [int(seed_id) for seed_id in cart.keys() if seed_id.isdigit()]
-
-    # ✅ Fetch all seeds in a single query to reduce DB hits
     seeds = Seed.objects.filter(id__in=seed_ids)
     seed_map = {seed.id: seed for seed in seeds}  # Dict for quick lookup
 
@@ -84,14 +83,12 @@ def view_cart(request):
     total_amount = 0
 
     for seed_id, item in cart.items():
-        if not seed_id.isdigit():  # Skip invalid IDs
+        if not seed_id.isdigit():
             continue
-
         seed_id = int(seed_id)
-        seed = seed_map.get(seed_id)  # Get seed from pre-fetched dict
-
+        seed = seed_map.get(seed_id)
         if not seed:
-            continue  # Skip missing seeds
+            continue
 
         quantity = item.get('quantity', 1)
         total_price = seed.price * quantity
@@ -100,15 +97,19 @@ def view_cart(request):
             'quantity': quantity,
             'total_price': total_price,
         })
-        total_amount += total_price  # ✅ Calculate total efficiently
+        total_amount += total_price
 
-    # Debugging (Optional)
-    logger.info(f"User {request.user} Cart: {cart}")  # Log session cart
+    # ✅ Add a fixed postage charge (you can make this dynamic if needed)
+    POSTAGE_CHARGE = 80  # ₹49 shipping cost
+    grand_total = total_amount + POSTAGE_CHARGE
 
     return render(request, 'cart/cart.html', {
         'cart_items': cart_items,
-        'total_amount': total_amount
+        'total_amount': total_amount,
+        'postage_charge': POSTAGE_CHARGE,
+        'grand_total': grand_total,
     })
+
 
 @login_required
 def remove_from_cart(request, cart_id):
@@ -158,12 +159,19 @@ def checkout(request):
     cart = request.session.get("cart", {})
     cart_items, total_quantity, total_amount = get_cart_summary(cart)
 
+    # ✅ Shipping logic (free if above ₹499)
+    postage_charge = 0 if total_amount >= 499 else 49
+    grand_total = total_amount + postage_charge
+
     context = {
         "cart_items": cart_items,
         "total_quantity": total_quantity,
-        "total_amount": f"{total_amount:.2f}"  # Formatting amount
+        "total_amount": f"{total_amount:.2f}",
+        "postage_charge": f"{postage_charge:.2f}",
+        "grand_total": f"{grand_total:.2f}",
     }
     return render(request, "cart/checkout.html", context)
+
 
 
 
@@ -215,7 +223,6 @@ def process_order(request):
                     payment_status="Pending",
                 )
 
-                # Stock check and update
                 for item in data["cart_items"]:
                     seed_id = item["id"]
                     quantity_ordered = int(item["quantity"])
@@ -229,7 +236,6 @@ def process_order(request):
                     except Seed.DoesNotExist:
                         return JsonResponse({"error": f"Seed with ID {seed_id} not found"}, status=404)
 
-                # Create Cashfree Order
                 cashfree_order_id = f"HASA-{order.id}"
                 order_payload = {
                     "order_id": cashfree_order_id,
@@ -241,7 +247,7 @@ def process_order(request):
                         "customer_phone": order.phone
                     },
                     "order_meta": {
-                        "return_url": f"https://hasafarm.com/payment/confirmation?order_id={order.id}",
+                        # "return_url": f"https://hasafarm.com/cart/payment/confirmation?order_id={cashfree_order_id}",
                         "notify_url": "https://hasafarm.com/payment/webhook/"
                     }
                 }
@@ -260,18 +266,15 @@ def process_order(request):
                 if order_response.status_code != 200 or order_resp_json.get("order_status") not in ["CREATED", "ACTIVE"]:
                     raise Exception("Cashfree Order creation failed")
 
-                # === FIXED PART: No separate session API call ===
                 payment_link = order_resp_json.get("payment_link")
                 if not payment_link:
                     raise Exception("Payment link missing in order response")
 
-                # Save payment info on order
                 order.cf_order_id = cashfree_order_id
                 order.order_token = order_resp_json.get("order_token")
                 order.payment_link = payment_link
                 order.save()
 
-                # Clear cart
                 request.session["cart"] = {}
                 request.session.modified = True
 
@@ -305,11 +308,12 @@ def clear_cart(request):
     return JsonResponse({"message": "Cart cleared"})
 
 def order_success(request):
-    order_id = request.GET.get("order_id")
+    order_id = request.GET.get('order_id')
     if not order_id:
         return render(request, "cart/order_success.html", {"error": "Order ID missing."})
 
-    order = get_object_or_404(Order, id=order_id)
+    order = get_object_or_404(Order, cf_order_id=order_id)
+
 
     context = {
         "order": order,
@@ -317,18 +321,24 @@ def order_success(request):
     }
     return render(request, "cart/order_success.html", context)
 
+
 @csrf_exempt
 def cashfree_webhook_view(request):
+    print("Webhook received")
     if request.method != "POST":
+        print("Invalid method:", request.method)
         return JsonResponse({"error": "Invalid method"}, status=405)
 
     try:
         payload = request.body.decode("utf-8")
+        print("Raw payload:", payload)
         data = json.loads(payload)
-        print("Webhook Data Received:", data)
+        print("Parsed JSON data:", data)
 
         received_signature = request.headers.get("X-Cf-Signature")
+        print("Received signature:", received_signature)
         if not received_signature:
+            print("Missing signature in headers")
             return JsonResponse({"error": "Missing signature"}, status=400)
 
         expected_signature = hmac.new(
@@ -336,28 +346,77 @@ def cashfree_webhook_view(request):
             msg=bytes(payload, 'utf-8'),
             digestmod=hashlib.sha256
         ).hexdigest()
+        print("Expected signature:", expected_signature)
 
         if received_signature != expected_signature:
+            print("Invalid signature. Received does not match expected.")
             return JsonResponse({"error": "Invalid signature"}, status=403)
 
         cf_order_id = data.get("order", {}).get("order_id")
         order_status = data.get("order", {}).get("order_status")
+        print(f"Order ID: {cf_order_id}, Status: {order_status}")
 
         if not cf_order_id or not order_status:
+            print("Invalid payload: Missing order_id or order_status")
             return JsonResponse({"error": "Invalid payload"}, status=400)
 
         try:
             order = Order.objects.get(cf_order_id=cf_order_id)
+            print(f"Order fetched from DB: ID {order.id}, current payment_status: {order.payment_status}")
         except Order.DoesNotExist:
+            print(f"Order not found for cf_order_id: {cf_order_id}")
             return JsonResponse({"error": "Order not found"}, status=404)
 
         if order.payment_status == "Paid":
+            print(f"Order {order.id} already marked as Paid. Skipping update.")
             return HttpResponse("Already processed", status=200)
 
         if order_status.upper() == "PAID":
             order.payment_status = "Paid"
             order.save()
-            print(f"Payment successful for order {cf_order_id}")
+            print(f"Order {order.id} payment status updated to {order.payment_status}")
+
+            # Prepare ordered items string safely
+            ordered_items = ""
+            try:
+                cart_items = json.loads(order.cart_items) if isinstance(order.cart_items, str) else order.cart_items
+                for item in cart_items:
+                    ordered_items += f"{item['name']} - Qty: {item['quantity']} - ₹{item.get('total_price', 'N/A')}\n"
+            except Exception as e:
+                print(f"Error loading cart items: {e}")
+                ordered_items = "Unable to fetch ordered items."
+
+            # Compose and send email confirmation
+            email_subject = f"🛒 Payment Confirmed - Order #{order.id}"
+            email_message = f"""
+Order Details:
+
+Customer: {order.full_name}
+Email: {order.email}
+Phone: {order.phone}
+Address: {order.address}
+
+Ordered Items:
+{ordered_items}
+
+Total Quantity: {order.total_quantity}
+Total Amount: ₹{order.total_amount}
+
+Payment Status: {order.payment_status}
+            """.strip()
+
+            try:
+                send_mail(
+                    subject=email_subject,
+                    message=email_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[order.email, "contact@hasafarm.com"],
+                    fail_silently=False
+                )
+                print(f"Payment successful email sent for order {cf_order_id}")
+            except Exception as e:
+                print(f"Error sending email: {e}")
+
             return HttpResponse("Payment successful", status=200)
 
         elif order_status.upper() == "FAILED":
@@ -367,44 +426,25 @@ def cashfree_webhook_view(request):
             return HttpResponse("Payment failed", status=200)
 
         else:
+            print(f"Unhandled payment status received: {order_status}")
             return JsonResponse({"error": "Unhandled status"}, status=400)
 
     except json.JSONDecodeError:
+        print("JSON decode error")
         return JsonResponse({"error": "Invalid JSON"}, status=400)
     except Exception as e:
         print("Webhook Error:", e)
         return JsonResponse({"error": "Internal server error"}, status=500)
 
+
 def payment_confirmation(request):
     order_id = request.GET.get("order_id")
-
     if not order_id:
-        return HttpResponse("Invalid order ID.", status=400)
+        return render(request, "cart/payment_confirmation.html", {"error": "Order ID missing."})
 
-    try:
-        order = Order.objects.get(id=order_id)
-    except Order.DoesNotExist:
-        return render(request, "cart/payment_confirmation.html", {
-            "message": "Order not found.",
-            "status": "error"
-        })
-
-    # You can fetch payment status from webhook updates or fallback to default
-    if order.payment_status == "Success":
-        message = "Your payment was successful. Thank you for your order!"
-        status = "success"
-    elif order.payment_status == "Cancelled":
-        message = "Payment was cancelled. You can try again."
-        status = "cancelled"
-    elif order.payment_status == "Failed":
-        message = "Payment failed. Please try again or use a different method."
-        status = "failed"
-    else:
-        message = "Your payment is still being processed. Please wait a moment."
-        status = "pending"
-
-    return render(request, "cart/payment_confirmation.html", {
+    order = get_object_or_404(Order, id=order_id)
+    context = {
         "order": order,
-        "message": message,
-        "status": status
-    })
+        "payment_status": order.payment_status,
+    }
+    return render(request, "cart/payment_confirmation.html", context)

@@ -13,7 +13,7 @@ class Order(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_status = models.CharField(max_length=20, choices=[('Pending', 'Pending'), ('Paid', 'Paid')], default='Pending')
     payment_id = models.CharField(max_length=100, blank=True, null=True)
-
+    postal_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     # ✅ Add these new fields:
     cf_order_id = models.CharField(max_length=100, blank=True, null=True)
     order_token = models.CharField(max_length=255, blank=True, null=True)
