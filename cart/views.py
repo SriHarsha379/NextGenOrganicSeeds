@@ -6,6 +6,8 @@ import requests
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+
 from .models import Cart
 from products.models import Seed
 from django.http import JsonResponse, HttpResponse
@@ -16,7 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Sum
 from django.contrib import messages
 from orders.models import Order
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 
 
 def add_to_cart(request, seed_id):
@@ -334,129 +336,63 @@ def order_success(request):
 
 
 @csrf_exempt
-def cashfree_webhook_view(request):
-
-    if request.method != "POST":
-        print("Invalid method:", request.method)
-        return JsonResponse({"error": "Invalid method"}, status=405)
-
-    try:
-        payload = request.body.decode("utf-8")
-        print("Raw payload:", payload)
-        data = json.loads(payload)
-        print("Parsed JSON data:", data)
-
-        received_signature = request.headers.get("X-Cf-Signature")
-        print("Received signature:", received_signature)
-        if not received_signature:
-            print("Missing signature in headers")
-            return JsonResponse({"error": "Missing signature"}, status=400)
-
-        expected_signature = hmac.new(
-            key=bytes(settings.CASHFREE_SECRET_KEY, 'utf-8'),
-            msg=bytes(payload, 'utf-8'),
-            digestmod=hashlib.sha256
-        ).hexdigest()
-        print("Expected signature:", expected_signature)
-
-        if received_signature != expected_signature:
-            print("Invalid signature. Received does not match expected.")
-            return JsonResponse({"error": "Invalid signature"}, status=403)
-
-        cf_order_id = data.get("order", {}).get("order_id")
-        order_status = data.get("order", {}).get("order_status")
-        print(f"Order ID: {cf_order_id}, Status: {order_status}")
-
-        if not cf_order_id or not order_status:
-            print("Invalid payload: Missing order_id or order_status")
-            return JsonResponse({"error": "Invalid payload"}, status=400)
-
+def cashfree_webhook(request):
+    if request.method == "POST":
         try:
-            order = Order.objects.get(cf_order_id=cf_order_id)
-            print(f"Order fetched from DB: ID {order.id}, current payment_status: {order.payment_status}")
-        except Order.DoesNotExist:
-            print(f"Order not found for cf_order_id: {cf_order_id}")
-            return JsonResponse({"error": "Order not found"}, status=404)
+            data = json.loads(request.body)
+            print("Cashfree webhook payload:", data)
 
-        if order.payment_status == "Paid":
-            print(f"Order {order.id} already marked as Paid. Skipping update.")
-            return HttpResponse("Already processed", status=200)
+            order_id = data.get("orderId")        # e.g. "HASA-116"
+            txn_id = data.get("referenceId")     # transaction ID
+            payment_status = data.get("txStatus") # e.g. "SUCCESS"
+            payment_mode = data.get("paymentMode")
+            payment_time = data.get("txTime")
 
-        if order_status.upper() == "PAID":
-            order.payment_status = "Paid"
-            order.save()
-            print(f"Order {order.id} payment status updated to {order.payment_status}")
+            if payment_status == "SUCCESS" and order_id:
+                try:
+                    order_pk = int(order_id.split("-")[1])
+                except (IndexError, ValueError):
+                    return JsonResponse({"error": "Invalid order ID format"}, status=400)
 
-            # Prepare ordered items string safely
-            ordered_items = ""
-            try:
-                cart_items = json.loads(order.cart_items) if isinstance(order.cart_items, str) else order.cart_items
-                for item in cart_items:
-                    ordered_items += f"{item['name']} - Qty: {item['quantity']} - ₹{item.get('total_price', 'N/A')}\n"
-            except Exception as e:
-                print(f"Error loading cart items: {e}")
-                ordered_items = "Unable to fetch ordered items."
+                try:
+                    order = Order.objects.get(id=order_pk)
+                except Order.DoesNotExist:
+                    return JsonResponse({"error": "Order not found"}, status=404)
 
-            # Compose and send email confirmation
-            email_subject = f"🛒 Payment Confirmed - Order #{order.id}"
-            email_message = f"""
-Order Details:
+                order.payment_status = "Paid"
+                order.payment_id = txn_id
+                order.payment_method = payment_mode  # You can add this field if desired (currently missing in your model)
+                order.payment_date = payment_time    # You can add this field if desired (currently missing in your model)
+                order.save()
 
-Customer: {order.full_name}
-Email: {order.email}
-Phone: {order.phone}
-Address: {order.address}
+                # Send confirmation email to admin with order details
+                send_order_confirmation_email(order)
 
-Ordered Items:
-{ordered_items}
+                return JsonResponse({"status": "success"}, status=200)
 
-Total Quantity: {order.total_quantity}
-Total Amount: ₹{order.total_amount}
+            else:
+                # Handle failure cases if needed
+                return JsonResponse({"status": "payment not successful or missing order ID"}, status=200)
 
-Payment Status: {order.payment_status}
-            """.strip()
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        except Exception as e:
+            print("Webhook error:", e)
+            return JsonResponse({"error": "Internal server error"}, status=500)
 
-            try:
-                send_mail(
-                    subject=email_subject,
-                    message=email_message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[order.email, "contact@hasafarm.com"],
-                    fail_silently=False
-                )
-                print(f"Payment successful email sent for order {cf_order_id}")
-            except Exception as e:
-                print(f"Error sending email: {e}")
-
-            return HttpResponse("Payment successful", status=200)
-
-        elif order_status.upper() == "FAILED":
-            order.payment_status = "Failed"
-            order.save()
-            print(f"Payment failed for order {cf_order_id}")
-            return HttpResponse("Payment failed", status=200)
-
-        else:
-            print(f"Unhandled payment status received: {order_status}")
-            print("Webhook received")
-            return JsonResponse({"error": "Unhandled status"}, status=400)
-
-    except json.JSONDecodeError:
-        print("JSON decode error")
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
-    except Exception as e:
-        print("Webhook Error:", e)
-        return JsonResponse({"error": "Internal server error"}, status=500)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
-def payment_confirmation(request):
-    order_id = request.GET.get("order_id")
-    if not order_id:
-        return render(request, "cart/payment_confirmation.html", {"error": "Order ID missing."})
+def send_order_confirmation_email(order):
+    subject = f"Payment Received for Order {order.cf_order_id or order.id}"
+    admin_email = "your_admin_email@example.com"  # Replace with your packing email
+    cart_items = order.cart_items
 
-    order = get_object_or_404(Order, id=order_id)
-    context = {
+    message = render_to_string("order_email_template.html", {
         "order": order,
-        "payment_status": order.payment_status,
-    }
-    return render(request, "cart/payment_confirmation.html", context)
+        "cart_items": cart_items,
+    })
+
+    email = EmailMessage(subject, message, to=[admin_email])
+    email.content_subtype = "html"
+    email.send()

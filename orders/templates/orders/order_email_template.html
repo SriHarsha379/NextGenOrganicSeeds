@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Payment Received</title>
+</head>
+<body>
+    <h2>Payment Successful - Order {{ order.cf_order_id }}</h2>
+    <p><strong>Customer:</strong> {{ order.full_name }}<br>
+       <strong>Email:</strong> {{ order.email }}<br>
+       <strong>Phone:</strong> {{ order.phone }}</p>
+
+    <p><strong>Address:</strong><br>
+       {{ order.address }}</p>
+
+    <h3>Items Purchased:</h3>
+    <ul>
+    {% for item in cart_items %}
+        <li>{{ item.name }} - Quantity: {{ item.quantity }}</li>
+    {% endfor %}
+    </ul>
+
+    <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+    <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
+    <p><strong>Payment Date:</strong> {{ order.payment_date }}</p>
+    <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+</body>
+</html>
