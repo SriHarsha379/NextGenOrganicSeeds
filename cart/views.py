@@ -210,6 +210,13 @@ def process_order(request):
             if missing_fields:
                 return JsonResponse({"error": f"Missing required fields: {', '.join(missing_fields)}"}, status=400)
 
+            # Fixed postal charges = ₹80
+            postal_charge = 80
+
+            # Calculate final amount including postal charges
+            base_total = float(data["total_amount"])
+            final_amount = base_total + postal_charge
+
             with transaction.atomic():
                 order = Order.objects.create(
                     user=request.user,
@@ -219,7 +226,8 @@ def process_order(request):
                     address=address,
                     cart_items=data["cart_items"],
                     total_quantity=data["total_quantity"],
-                    total_amount=data["total_amount"],
+                    total_amount=final_amount,  # total + postal charges
+                    postal_charge=postal_charge,  # store postal charges separately
                     payment_status="Pending",
                 )
 
@@ -247,8 +255,8 @@ def process_order(request):
                         "customer_phone": order.phone
                     },
                     "order_meta": {
-                        # "return_url": f"https://hasafarm.com/cart/payment/confirmation?order_id={cashfree_order_id}",
-                        "notify_url": "https://hasafarm.com/payment/webhook/"
+                        "return_url": "https://hasafarm.com/",  # Redirect here after payment
+                        "notify_url": "https://hasafarm.com/webhooks/cashfree"
                     }
                 }
 
@@ -281,7 +289,9 @@ def process_order(request):
                 return JsonResponse({
                     "message": "Order placed successfully!",
                     "order_id": order.id,
-                    "payment_link": payment_link
+                    "payment_link": payment_link,
+                    "postal_charge": postal_charge,
+                    "total_amount": final_amount
                 }, status=201)
 
         except json.JSONDecodeError as e:
@@ -292,6 +302,7 @@ def process_order(request):
             return JsonResponse({"error": "Internal server error"}, status=500)
 
     return JsonResponse({"error": "Invalid request method"}, status=405)
+
 
 
 
@@ -324,7 +335,7 @@ def order_success(request):
 
 @csrf_exempt
 def cashfree_webhook_view(request):
-    print("Webhook received")
+
     if request.method != "POST":
         print("Invalid method:", request.method)
         return JsonResponse({"error": "Invalid method"}, status=405)
@@ -427,6 +438,7 @@ Payment Status: {order.payment_status}
 
         else:
             print(f"Unhandled payment status received: {order_status}")
+            print("Webhook received")
             return JsonResponse({"error": "Unhandled status"}, status=400)
 
     except json.JSONDecodeError:

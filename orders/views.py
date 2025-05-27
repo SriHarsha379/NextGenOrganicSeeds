@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from .models import Cart, Order
+
+from cart.models import Cart
+from .models import  Order
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
-from .utils import generate_upi_payment_link  # Implement this function
 
 @login_required
 def checkout(request):

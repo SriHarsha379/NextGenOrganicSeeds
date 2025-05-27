@@ -229,6 +229,8 @@
 
 <div class="container">
     <h1>Your Cart</h1>
+<!-- Example notification box in HTML -->
+<div id="notification" class="hidden text-center p-2 rounded bg-red-100 text-red-700 mb-4"></div>
 
     {% if cart_items %}
         <ul id="cart-items">
@@ -270,15 +272,31 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const checkoutButton = document.getElementById("checkout-btn");
-    const totalAmountElement = document.getElementById("total-amount");
+    const notificationBox = document.getElementById("notification");
+
+    function showNotification(message, type = "error") {
+        if (!notificationBox) return;
+
+        notificationBox.textContent = message;
+
+        // You can style based on type
+        notificationBox.className = `text-center p-2 rounded mb-4 ${
+            type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+        }`;
+
+        notificationBox.classList.remove("hidden");
+
+        setTimeout(() => {
+            notificationBox.classList.add("hidden");
+        }, 4000); // Hide after 4 seconds
+    }
 
     document.querySelectorAll(".remove-form").forEach((form) => {
         form.addEventListener("submit", async function (e) {
             e.preventDefault();
 
             const form = this;
-            const itemId = form.closest("li").id.split("-")[1];  // Get the item ID
+            const itemId = form.closest("li").id.split("-")[1];
 
             try {
                 const response = await fetch(form.action, {
@@ -291,18 +309,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const data = await response.json();
                 if (response.ok) {
-                    // Reload the page to reflect the updated cart count
-                    location.reload();
+                    location.reload();  // Update cart
                 } else {
-                    alert("Error: " + data.message);
+                    showNotification(data.message || "Something went wrong.");
                 }
             } catch (error) {
-                alert("Failed to remove item. Try again!");
                 console.error(error);
+                showNotification("Failed to remove item. Please try again.");
             }
         });
     });
 });
+
 </script>
 
 
