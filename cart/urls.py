@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import add_to_cart, view_cart, remove_from_cart, checkout, update_cart_quantity, \
-    process_order, clear_cart, get_cart  # Import checkout
+    process_order, clear_cart, get_cart, cashfree_webhook_view  # Import checkout
 from .views import order_success
 
 urlpatterns = [
@@ -13,5 +13,6 @@ urlpatterns = [
     path('clear_cart/', clear_cart, name='clear_cart'),
     path("get_cart/", get_cart, name="get_cart"),
     path("order-success/", order_success, name="order_success"),
+    path('webhooks/cashfree', cashfree_webhook_view, name='cashfree_webhook_view'),
 
 ]

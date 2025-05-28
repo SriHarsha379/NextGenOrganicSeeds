@@ -3,7 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from users.views import home_redirect  # Import the home redirect view
-from cart.views import order_success
+from cart.views import order_success, cashfree_webhook_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -12,6 +12,8 @@ urlpatterns = [
     path('cart/', include('cart.urls')),  # Include cart URLs
     path('accounts/', include('accounts.urls')),
     path('order-success/', order_success, name='order_success'),
+path('', include('orders.urls')),
+path('webhooks/cashfree', cashfree_webhook_view, name='cashfree_webhook_view'),
 ]
 
 # ✅ Serve media files in development

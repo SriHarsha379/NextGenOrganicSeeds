@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.conf import settings
+from django.views.decorators.http import require_POST
 import hashlib
 import hmac
 import requests
@@ -162,7 +163,7 @@ def checkout(request):
     cart_items, total_quantity, total_amount = get_cart_summary(cart)
 
     # ✅ Shipping logic (free if above ₹499)
-    postage_charge = 0 if total_amount >= 499 else 49
+    postage_charge = 0
     grand_total = total_amount + postage_charge
 
     context = {
@@ -213,7 +214,7 @@ def process_order(request):
                 return JsonResponse({"error": f"Missing required fields: {', '.join(missing_fields)}"}, status=400)
 
             # Fixed postal charges = ₹80
-            postal_charge = 80
+            postal_charge = 0
 
             # Calculate final amount including postal charges
             base_total = float(data["total_amount"])
@@ -257,7 +258,7 @@ def process_order(request):
                         "customer_phone": order.phone
                     },
                     "order_meta": {
-                        "return_url": "https://hasafarm.com/",  # Redirect here after payment
+                        "return_url": "https://hasafarm.com/order-success/?order_id={order_id}",
                         "notify_url": "https://hasafarm.com/webhooks/cashfree"
                     }
                 }
@@ -323,64 +324,162 @@ def clear_cart(request):
 def order_success(request):
     order_id = request.GET.get('order_id')
     if not order_id:
-        return render(request, "cart/order_success.html", {"error": "Order ID missing."})
+        return render(request, "cart/order_success.html", {
+            "error": "Order ID missing.",
+            "message_title": "Order Error",
+            "message_body": "No order ID was provided.",
+            "btn_text": "Go Home",
+            "btn_link": "/"
+        })
 
     order = get_object_or_404(Order, cf_order_id=order_id)
 
+    headers = {
+        "Content-Type": "application/json",
+        "X-Client-Id": settings.CASHFREE_APP_ID,
+        "X-Client-Secret": settings.CASHFREE_SECRET_KEY,
+        "x-api-version": "2022-01-01"
+    }
+
+    response = requests.get(
+        f"https://api.cashfree.com/pg/orders/{order.cf_order_id}",
+        headers=headers
+    )
+
+    if response.status_code == 200:
+        data = response.json()
+        cashfree_status = data.get("order_status")
+        if cashfree_status and cashfree_status != order.payment_status:
+            order.payment_status = cashfree_status
+            order.save()
+    else:
+        print("Error fetching order status from Cashfree:", response.text)
+
+    if order.payment_status == "PAID" or order.payment_status == "SUCCESS":
+        message_title = "Payment Successful!"
+        message_body = f"Thank you for your order #{order.id}. We've received your payment."
+        btn_text = "Continue Shopping"
+        btn_link = "/products/"  # Or wherever you want them to go
+    elif order.payment_status == "FAILED":
+        message_title = "Payment Failed"
+        message_body = "Unfortunately, your payment failed. Please try again."
+        btn_text = "Retry Payment"
+        btn_link = f"/checkout/?order_id={order.cf_order_id}"
+    else:
+        message_title = "Payment Pending"
+        message_body = "We're waiting to confirm your payment. You'll be notified once it's complete."
+        btn_text = "Go Home"
+        btn_link = "/"
 
     context = {
         "order": order,
         "payment_status": order.payment_status,
+        "message_title": message_title,
+        "message_body": message_body,
+        "btn_text": btn_text,
+        "btn_link": btn_link
     }
     return render(request, "cart/order_success.html", context)
 
 
+
 @csrf_exempt
-def cashfree_webhook(request):
-    if request.method == "POST":
+def cashfree_webhook_view(request):
+    if request.method != "POST":
+        print("Invalid method:", request.method)
+        return JsonResponse({"error": "Invalid method"}, status=405)
+
+    try:
+        payload = request.body.decode("utf-8")
+        print("Raw payload:", payload)
+        data = json.loads(payload)
+        print("Parsed JSON data:", data)
+
+        received_signature = request.headers.get("X-Cf-Signature")
+        print("Received signature:", received_signature)
+        if not received_signature:
+            return JsonResponse({"error": "Missing signature"}, status=400)
+
+        expected_signature = hmac.new(
+            key=bytes(settings.CASHFREE_SECRET_KEY, 'utf-8'),
+            msg=bytes(payload, 'utf-8'),
+            digestmod=hashlib.sha256
+        ).hexdigest()
+
+        if received_signature != expected_signature:
+            print("Signature mismatch")
+            return JsonResponse({"error": "Invalid signature"}, status=403)
+
+        cf_order_id = data.get("order", {}).get("order_id")
+        order_status = data.get("order", {}).get("order_status")
+        if not cf_order_id or not order_status:
+            return JsonResponse({"error": "Missing order_id or status"}, status=400)
+
         try:
-            data = json.loads(request.body)
-            print("Cashfree webhook payload:", data)
+            order = Order.objects.get(cf_order_id=cf_order_id)
+        except Order.DoesNotExist:
+            return JsonResponse({"error": "Order not found"}, status=404)
 
-            order_id = data.get("orderId")        # e.g. "HASA-116"
-            txn_id = data.get("referenceId")     # transaction ID
-            payment_status = data.get("txStatus") # e.g. "SUCCESS"
-            payment_mode = data.get("paymentMode")
-            payment_time = data.get("txTime")
+        if order.payment_status == "Paid":
+            return HttpResponse("Already processed", status=200)
 
-            if payment_status == "SUCCESS" and order_id:
-                try:
-                    order_pk = int(order_id.split("-")[1])
-                except (IndexError, ValueError):
-                    return JsonResponse({"error": "Invalid order ID format"}, status=400)
+        if order_status.upper() == "PAID":
+            order.payment_status = "Paid"
+            order.save()
 
-                try:
-                    order = Order.objects.get(id=order_pk)
-                except Order.DoesNotExist:
-                    return JsonResponse({"error": "Order not found"}, status=404)
+            ordered_items = ""
+            try:
+                cart_items = json.loads(order.cart_items) if isinstance(order.cart_items, str) else order.cart_items
+                for item in cart_items:
+                    ordered_items += f"{item['name']} - Qty: {item['quantity']} - ₹{item.get('total_price', 'N/A')}\n"
+            except Exception as e:
+                print(f"Error loading cart items: {e}")
+                ordered_items = "Unable to fetch ordered items."
 
-                order.payment_status = "Paid"
-                order.payment_id = txn_id
-                order.payment_method = payment_mode  # You can add this field if desired (currently missing in your model)
-                order.payment_date = payment_time    # You can add this field if desired (currently missing in your model)
-                order.save()
+            email_subject = f"🛒 Payment Confirmed - Order #{order.id}"
+            email_message = f"""
+Order Details:
 
-                # Send confirmation email to admin with order details
-                send_order_confirmation_email(order)
+Customer: {order.full_name}
+Email: {order.email}
+Phone: {order.phone}
+Address: {order.address}
 
-                return JsonResponse({"status": "success"}, status=200)
+Ordered Items:
+{ordered_items}
 
-            else:
-                # Handle failure cases if needed
-                return JsonResponse({"status": "payment not successful or missing order ID"}, status=200)
+Total Quantity: {order.total_quantity}
+Total Amount: ₹{order.total_amount}
 
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
-        except Exception as e:
-            print("Webhook error:", e)
-            return JsonResponse({"error": "Internal server error"}, status=500)
+Payment Status: {order.payment_status}
+            """.strip()
 
-    return JsonResponse({"error": "Invalid request method"}, status=405)
+            try:
+                send_mail(
+                    subject=email_subject,
+                    message=email_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[order.email, "contact@hasafarm.com"],
+                    fail_silently=False
+                )
+            except Exception as e:
+                print(f"Email send error: {e}")
+
+            return HttpResponse("Payment successful", status=200)
+
+        elif order_status.upper() == "FAILED":
+            order.payment_status = "Failed"
+            order.save()
+            return HttpResponse("Payment failed", status=200)
+
+        else:
+            return JsonResponse({"error": "Unhandled status"}, status=400)
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        print("Webhook error:", e)
+        return JsonResponse({"error": "Server error"}, status=500)
 
 
 def send_order_confirmation_email(order):
