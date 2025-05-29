@@ -1,8 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
-from products.models import Seed
 
 class Order(models.Model):
+    PAYMENT_STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Paid', 'Paid'),
+        ('Failed', 'Failed'),
+        ('Refunded', 'Refunded'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=255)
     email = models.EmailField()
@@ -11,24 +17,12 @@ class Order(models.Model):
     cart_items = models.JSONField(default=list)
     total_quantity = models.IntegerField(default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_status = models.CharField(
-        max_length=20,
-        choices=[
-            ('Pending', 'Pending'),
-            ('Paid', 'Paid'),
-            ('Failed', 'Failed'),
-            ('Refunded', 'Refunded'),
-        ],
-        default='Pending'
-    )
-
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='Pending')
     payment_id = models.CharField(max_length=100, blank=True, null=True)
     postal_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    # ✅ Add these new fields:
     cf_order_id = models.CharField(max_length=100, blank=True, null=True)
     order_token = models.CharField(max_length=255, blank=True, null=True)
     payment_link = models.URLField(blank=True, null=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
@@ -37,4 +31,3 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.id} - {self.user.username} - {self.payment_status}"
-

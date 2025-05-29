@@ -240,9 +240,7 @@
 
                     <div class="item-details">
                         <h2>{{ item.seed.name }}</h2>
-                        <p>Price: ₹{{ item.seed.price }}</p>
-                        <p>Quantity: {{ item.quantity }}</p>
-                        <p>Total: ₹{{ item.total_price }}</p>
+                       <p>Total: ₹{{ item.total_price }}</p>
                     </div>
                     <form action="{% url 'remove_from_cart' item.seed.id %}" method="post" class="remove-form">
                         {% csrf_token %}
