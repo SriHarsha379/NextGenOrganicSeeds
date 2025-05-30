@@ -1,11 +1,18 @@
-from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-
+from django.conf import settings
 from cart.models import Cart
 from .models import  Order
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from io import BytesIO
+from reportlab.platypus import Table, TableStyle
+from reportlab.lib import colors
+import os
 
 @login_required
 def checkout(request):
@@ -69,3 +76,121 @@ def payment_success(request):
     orders = Order.objects.filter(user=request.user, status="Pending")
     orders.update(status="Completed")
     return render(request, "orders/payment_success.html")
+
+
+@login_required
+def my_orders(request):
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'orders/my_orders.html', {
+        'orders': orders,
+        'MEDIA_URL': settings.MEDIA_URL
+    })
+
+
+@login_required
+def download_invoice(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+
+    # Clean address to remove empty parts causing double commas
+    raw_address = order.address or ""
+    address_parts = [part.strip() for part in raw_address.split(",")]
+    clean_address = ", ".join([part for part in address_parts if part])
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    y = height - 50
+
+    # Logo
+    logo_path = os.path.join('E:/imp/python project/NextGenOrganicSeeds/static/images/hasa_organic_seeds.png')
+    if os.path.exists(logo_path):
+        p.drawImage(logo_path, (width - 130) / 2, y - 40, width=130, height=40, mask='auto')
+
+    # Title
+    p.setFont("Helvetica-Bold", 18)
+    p.drawCentredString(width / 2, y - 70, f"INVOICE - Order #{order.id}")
+
+    # Customer & Order Details
+    p.setFont("Helvetica", 12)
+    text_start_y = y - 110
+    line_height = 18
+
+    customer_lines = [
+        f"Name: {order.full_name}",
+        f"Email: {order.email}",
+        f"Phone: {order.phone}",
+        f"Address: {clean_address}",  # use cleaned address here
+        f"Order Date: {order.created_at.strftime('%d %b %Y, %I:%M %p')}",
+        f"Payment Status: {order.payment_status}",
+    ]
+
+    for i, line in enumerate(customer_lines):
+        p.drawString(40, text_start_y - (i * line_height), line)
+
+    # Table Data
+    data = [['Item', 'Quantity', 'Price (INR)', 'Total (INR)']]
+    for item in order.cart_items:
+        name = item.get("name", "")
+        qty = item.get("quantity", 1)
+        price = item.get("price", 0)
+        total = qty * price
+        data.append([name, qty, f"{price:.2f}", f"{total:.2f}"])
+
+    data.append(["", "", "Subtotal", f"{order.total_amount:.2f}"])
+    data.append(["", "", "Postal Charge", f"{order.postal_charge:.2f}"])
+    grand_total = order.total_amount + order.postal_charge
+    data.append(["", "", "Grand Total", f"INR {grand_total:.2f}"])
+
+    # Table Styling
+    table = Table(data, colWidths=[220, 80, 100, 100])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f0f0f0')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#333333')),
+        ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+        ('TOPPADDING', (0, 0), (-1, 0), 10),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),
+        ('FONTNAME', (-2, -3), (-1, -1), 'Helvetica-Bold'),
+        ('BACKGROUND', (-2, -3), (-1, -1), colors.HexColor("#e8f6f3")),
+    ]))
+
+    # Position table
+    table.wrapOn(p, width, height)
+    table.drawOn(p, 40, text_start_y - 220)
+
+    # Footer
+    p.setFont("Helvetica-Oblique", 9)
+    p.setFillColor(colors.grey)
+    p.drawCentredString(width / 2, 40, "Thank you for shopping with Hasa Farm – We value your trust!")
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+
+    return HttpResponse(buffer, content_type='application/pdf', headers={
+        'Content-Disposition': f'attachment; filename="Invoice_Order_{order.id}.pdf"'
+    })
+
+
+
+@login_required
+def reorder(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    # order.cart_items is a list of items; convert to dict with seed IDs as keys
+    cart_dict = {}
+    for item in order.cart_items:
+        # Assuming each item has an 'id' or 'seed_id' field
+        seed_id = str(item.get('id') or item.get('seed_id'))
+        if seed_id:
+            cart_dict[seed_id] = {
+                'quantity': item.get('quantity', 1),
+                # add other cart item details if needed
+            }
+    request.session['cart'] = cart_dict
+    request.session.modified = True  # mark session as modified to save changes
+    return redirect('view_cart')
+

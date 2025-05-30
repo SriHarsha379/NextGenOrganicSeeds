@@ -584,6 +584,11 @@ body {
         <a href="{% url 'logout' %}" class="auth-link">Logout</a>
     {% endif %}
 
+    {% if user.is_authenticated %}
+    <li><a href="{% url 'my_orders' %}">My Orders</a></li>
+    {% endif %}
+
+
 <a href="{% url 'view_cart' %}" id="cart-link" class="cart-link">
     <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png"
          alt="Cart"

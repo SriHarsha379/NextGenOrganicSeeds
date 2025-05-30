@@ -12,6 +12,9 @@ urlpatterns = [
     path('cart/', include('cart.urls')),  # Include cart URLs
     path('accounts/', include('accounts.urls')),
     path('order-success/', order_success, name='order_success'),
+    # project/urls.py
+    path('orders/', include('orders.urls')),
+
 ]
 
 # ✅ Serve media files in development
