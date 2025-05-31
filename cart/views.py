@@ -214,7 +214,7 @@ def process_order(request):
                 return JsonResponse({"error": f"Missing required fields: {', '.join(missing_fields)}"}, status=400)
 
             # Fixed postal charges = ₹80
-            postal_charge = 0
+            postal_charge = 80
 
             # Calculate final amount including postal charges
             base_total = float(data["total_amount"])

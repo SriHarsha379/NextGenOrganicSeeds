@@ -14,52 +14,52 @@ from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
 import os
 
-@login_required
-def checkout(request):
-    cart_items = Cart.objects.filter(user=request.user)
-    total_amount = sum(item.total_price() for item in cart_items)
-
-    if request.method == "POST":
-        full_name = request.POST["full_name"]
-        email = request.POST["email"]
-        phone = request.POST["phone"]
-        address = request.POST["address"]
-
-        with transaction.atomic():
-            # Store all cart items inside `cart_items` JSONField
-            order_data = [
-                {"seed": item.seed.name, "quantity": item.quantity, "price": item.total_price()}
-                for item in cart_items
-            ]
-            order_id = get_random_string(10).upper()  # Generate a unique order ID
-
-            order = Order.objects.create(
-                user=request.user,
-                full_name=full_name,
-                email=email,
-                phone=phone,
-                address=address,
-                cart_items=order_data,  # Store cart as JSON
-                total_quantity=sum(item.quantity for item in cart_items),
-                total_amount=total_amount,
-                payment_status="Pending",
-                payment_id=order_id,  # Temporary order ID
-            )
-
-            cart_items.delete()  # Clear cart after placing the order
-
-        # Send order confirmation email
-        send_mail(
-            "Order Confirmation - Next Gen Organic Seeds",
-            f"Hello {full_name},\n\nYour order has been placed successfully!\n\nOrder ID: {order_id}\nTotal: ₹{total_amount}\n\nThank you for shopping with us!",
-            "yourstore@example.com",
-            [email],
-            fail_silently=False,
-        )
-
-        return redirect("order_success", order_id=order_id)  # Redirect to success page
-
-    return render(request, "orders/checkout.html", {"cart_items": cart_items, "total_amount": total_amount})
+# @login_required
+# def checkout(request):
+#     cart_items = Cart.objects.filter(user=request.user)
+#     total_amount = sum(item.total_price() for item in cart_items)
+#
+#     if request.method == "POST":
+#         full_name = request.POST["full_name"]
+#         email = request.POST["email"]
+#         phone = request.POST["phone"]
+#         address = request.POST["address"]
+#
+#         with transaction.atomic():
+#             # Store all cart items inside `cart_items` JSONField
+#             order_data = [
+#                 {"seed": item.seed.name, "quantity": item.quantity, "price": item.total_price()}
+#                 for item in cart_items
+#             ]
+#             order_id = get_random_string(10).upper()  # Generate a unique order ID
+#
+#             order = Order.objects.create(
+#                 user=request.user,
+#                 full_name=full_name,
+#                 email=email,
+#                 phone=phone,
+#                 address=address,
+#                 cart_items=order_data,  # Store cart as JSON
+#                 total_quantity=sum(item.quantity for item in cart_items),
+#                 total_amount=total_amount,
+#                 payment_status="Pending",
+#                 payment_id=order_id,  # Temporary order ID
+#             )
+#
+#             cart_items.delete()  # Clear cart after placing the order
+#
+#         # Send order confirmation email
+#         send_mail(
+#             "Order Confirmation - Next Gen Organic Seeds",
+#             f"Hello {full_name},\n\nYour order has been placed successfully!\n\nOrder ID: {order_id}\nTotal: ₹{total_amount}\n\nThank you for shopping with us!",
+#             "yourstore@example.com",
+#             [email],
+#             fail_silently=False,
+#         )
+#
+#         return redirect("order_success", order_id=order_id)  # Redirect to success page
+#
+#     return render(request, "orders/checkout.html", {"cart_items": cart_items, "total_amount": total_amount})
 
 
 @login_required

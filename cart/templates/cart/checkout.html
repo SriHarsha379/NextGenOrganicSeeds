@@ -253,26 +253,62 @@
 
 <script>
 
-    function confirmOrder() {
-const fullName = document.getElementById("full_name").value;
-const phone = document.getElementById("phone").value;
+function confirmOrder() {
+    const requiredFields = [
+        "full_name",
+        "email",
+        "phone",
+        "address_line1",
+        "city",
+        "state",
+        "postal_code",
+        "country"
+    ];
 
-const messageBox = document.getElementById("message-box");
+    const messageBox = document.getElementById("message-box");
 
-if (!fullName || !phone) {
-    messageBox.textContent = "Please fill in all required details!";
-    messageBox.style.display = "block";
-    setTimeout(() => {
-        messageBox.style.display = "none";
-    }, 5000);
+    for (const fieldId of requiredFields) {
+        const field = document.getElementById(fieldId);
+        if (!field.value.trim()) {
+            messageBox.textContent = `Please fill in the required field: ${field.previousElementSibling.textContent}`;
+            messageBox.style.display = "block";
+            setTimeout(() => {
+                messageBox.style.display = "none";
+            }, 5000);
+            return; // stop submission
+        }
+    }
 
-    return;
-} else {
+    // Email pattern check
+    const email = document.getElementById("email").value.trim();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+        messageBox.textContent = "Please enter a valid email address.";
+        messageBox.style.display = "block";
+        setTimeout(() => {
+            messageBox.style.display = "none";
+        }, 5000);
+        return;
+    }
+
+    // Phone pattern check (10 digits)
+    const phone = document.getElementById("phone").value.trim();
+    const phonePattern = /^[0-9]{10}$/;
+    if (!phonePattern.test(phone)) {
+        messageBox.textContent = "Phone number must be exactly 10 digits.";
+        messageBox.style.display = "block";
+        setTimeout(() => {
+            messageBox.style.display = "none";
+        }, 5000);
+        return;
+    }
+
     messageBox.style.display = "none";
-}
 
+    // All validations passed
     submitOrder();
 }
+
 
 function submitOrder() {
     fetch("/cart/get_cart/")
