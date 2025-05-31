@@ -359,7 +359,7 @@ def order_success(request):
         message_title = "Payment Successful!"
         message_body = f"Thank you for your order #{order.id}. We've received your payment."
         btn_text = "Continue Shopping"
-        btn_link = "/products/"  # Or wherever you want them to go
+        btn_link = "/seeds/"  # ← ✅ Updated to existing path
     elif order.payment_status == "FAILED":
         message_title = "Payment Failed"
         message_body = "Unfortunately, your payment failed. Please try again."
@@ -392,11 +392,11 @@ def cashfree_webhook_view(request):
     try:
         payload = request.body.decode("utf-8")
         print("Raw payload:", payload)
+
         data = json.loads(payload)
         print("Parsed JSON data:", data)
 
         received_signature = request.headers.get("X-Cf-Signature")
-        print("Received signature:", received_signature)
         if not received_signature:
             return JsonResponse({"error": "Missing signature"}, status=400)
 
@@ -412,6 +412,7 @@ def cashfree_webhook_view(request):
 
         cf_order_id = data.get("order", {}).get("order_id")
         order_status = data.get("order", {}).get("order_status")
+
         if not cf_order_id or not order_status:
             return JsonResponse({"error": "Missing order_id or status"}, status=400)
 
@@ -421,39 +422,44 @@ def cashfree_webhook_view(request):
             return JsonResponse({"error": "Order not found"}, status=404)
 
         if order.payment_status == "Paid":
+            print("Order already marked as paid.")
             return HttpResponse("Already processed", status=200)
 
         if order_status.upper() == "PAID":
             order.payment_status = "Paid"
             order.save()
 
+            # Fetch ordered items
             ordered_items = ""
             try:
                 cart_items = json.loads(order.cart_items) if isinstance(order.cart_items, str) else order.cart_items
                 for item in cart_items:
                     ordered_items += f"{item['name']} - Qty: {item['quantity']} - ₹{item.get('total_price', 'N/A')}\n"
             except Exception as e:
-                print(f"Error loading cart items: {e}")
+                print("Error parsing cart items:", e)
                 ordered_items = "Unable to fetch ordered items."
 
-            email_subject = f"🛒 Payment Confirmed - Order #{order.id}"
+            # Build email content
+            email_subject = f"✅ Order #{order.id} Confirmed - Hasa Organic Seeds"
             email_message = f"""
-Order Details:
+Hi {order.full_name},
 
-Customer: {order.full_name}
-Email: {order.email}
-Phone: {order.phone}
-Address: {order.address}
+Thanks for your purchase! Your payment for order #{order.id} has been received.
 
-Ordered Items:
+Order Summary:
 {ordered_items}
 
 Total Quantity: {order.total_quantity}
 Total Amount: ₹{order.total_amount}
 
-Payment Status: {order.payment_status}
+We'll notify you once your order is shipped.
+
+Regards,  
+Hasa Organic Seeds Team
             """.strip()
 
+            # Send email
+            print("Sending email to:", order.email)
             try:
                 send_mail(
                     subject=email_subject,
@@ -462,8 +468,11 @@ Payment Status: {order.payment_status}
                     recipient_list=[order.email, "contact@hasafarm.com"],
                     fail_silently=False
                 )
+                print("✅ Confirmation email sent!")
             except Exception as e:
-                print(f"Email send error: {e}")
+                print("❌ Email send failed:", e)
+                import traceback
+                traceback.print_exc()
 
             return HttpResponse("Payment successful", status=200)
 
@@ -478,9 +487,10 @@ Payment Status: {order.payment_status}
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
     except Exception as e:
-        print("Webhook error:", e)
+        print("Unhandled webhook error:", e)
+        import traceback
+        traceback.print_exc()
         return JsonResponse({"error": "Server error"}, status=500)
-
 
 def send_order_confirmation_email(order):
     subject = f"Payment Received for Order {order.cf_order_id or order.id}"
