@@ -104,7 +104,7 @@ def forgot_password(request):
             domain = request.get_host()
 
             reset_link = f"{protocol}://{domain}/accounts/reset-password/{uid}/{token}/"
-            subject = "Password Reset Request - HASA Organic Seeds"
+            subject = "Password Reset Request - HASA Farm"
             message = render_to_string("accounts/password_reset_email.html", {
                 'user': user,
                 'reset_link': reset_link,
@@ -183,10 +183,10 @@ def reset_password(request, uidb64, token):
 
 
 def send_welcome_email(user):
-    subject = 'Welcome to Hasa Organic Seeds!'
+    subject = 'Welcome to Hasa Farm!'
     html_message = render_to_string('accounts/emails/welcome_email.html', {'user': user})
 
-    plain_message = f"Hi {user.username},\n\nThank you for registering at Hasa Organic Seeds!"
+    plain_message = f"Hi {user.username},\n\nThank you for registering at Hasa Farm!"
     from_email = settings.DEFAULT_FROM_EMAIL
     to = user.email
 

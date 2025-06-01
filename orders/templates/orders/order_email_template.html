@@ -1,27 +1,64 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Order Payment Received</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 600px;
+            background-color: #fff;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        h2 {
+            color: #2b9348;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #777;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <h2>Payment Successful - Order {{ order.cf_order_id }}</h2>
-    <p><strong>Customer:</strong> {{ order.full_name }}<br>
-       <strong>Email:</strong> {{ order.email }}<br>
-       <strong>Phone:</strong> {{ order.phone }}</p>
+    <div class="container">
+        <h2>✅ Payment Successful - Order #{{ order.cf_order_id }}</h2>
 
-    <p><strong>Address:</strong><br>
-       {{ order.address }}</p>
+        <p><strong>Customer:</strong> {{ order.full_name }}<br>
+           <strong>Email:</strong> {{ order.email }}<br>
+           <strong>Phone:</strong> {{ order.phone }}</p>
 
-    <h3>Items Purchased:</h3>
-    <ul>
-    {% for item in cart_items %}
-        <li>{{ item.name }} - Quantity: {{ item.quantity }}</li>
-    {% endfor %}
-    </ul>
+        <p><strong>Shipping Address:</strong><br>
+           {{ order.address }}</p>
 
-    <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
-    <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
-    <p><strong>Payment Date:</strong> {{ order.payment_date }}</p>
-    <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+        <h3>🛒 Items Purchased:</h3>
+        <ul>
+        {% for item in cart_items %}
+            <li>{{ item.name }} - Quantity: {{ item.quantity }}</li>
+        {% endfor %}
+        </ul>
+
+        <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+        <p><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
+        <p><strong>Payment Date:</strong> {{ order.payment_date }}</p>
+        <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+
+        <div class="footer">
+            Hasa Farm | This is an automated email – please do not reply.
+        </div>
+    </div>
 </body>
 </html>

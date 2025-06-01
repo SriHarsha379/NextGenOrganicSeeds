@@ -440,7 +440,7 @@ def cashfree_webhook_view(request):
                 ordered_items = "Unable to fetch ordered items."
 
             # Build email content
-            email_subject = f"✅ Order #{order.id} Confirmed - Hasa Organic Seeds"
+            email_subject = f"✅ Order #{order.id} Confirmed - Hasa Farm"
             email_message = f"""
 Hi {order.full_name},
 
@@ -455,7 +455,7 @@ Total Amount: ₹{order.total_amount}
 We'll notify you once your order is shipped.
 
 Regards,  
-Hasa Organic Seeds Team
+Hasa Farm Team
             """.strip()
 
             # Send email
