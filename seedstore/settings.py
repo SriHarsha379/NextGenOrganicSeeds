@@ -167,11 +167,11 @@ SESSION_SAVE_EVERY_REQUEST = True  # Extend session on activity
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.hostinger.com'
-EMAIL_PORT = 465
+EMAIL_PORT = 587
 EMAIL_USE_SSL = True
 EMAIL_HOST_USER = 'contact@hasafarm.com'
 EMAIL_HOST_PASSWORD = '8Hasa@seeds'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = 'Hasa Farm <contact@hasafarm.com>'
 
 
 CSRF_TRUSTED_ORIGINS = [

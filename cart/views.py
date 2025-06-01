@@ -494,7 +494,7 @@ Hasa Farm Team
 
 def send_order_confirmation_email(order):
     subject = f"Payment Received for Order {order.cf_order_id or order.id}"
-    admin_email = "your_admin_email@example.com"  # Replace with your packing email
+    admin_email = "contact@hasafarm.com"  # Replace with your actual admin/packing email
     cart_items = order.cart_items
 
     message = render_to_string("order_email_template.html", {
