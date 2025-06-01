@@ -109,10 +109,11 @@ h1 {
 
 .seed-card img {
     width: 100%;
-    height: 200px;
-    object-fit: cover;
+    max-height: 250px;
+    object-fit: contain; /* or 'fill' if you want full container */
     border-radius: 10px;
 }
+
 
 .seed-card h2 {
     font-size: 20px;
@@ -188,11 +189,12 @@ h1 {
   }
         /* Out of Stock Message */
 .out-of-stock-msg {
-    color: #d32f2f; /* Red */
+    color: #ff0000; /* Brighter red */
     font-weight: bold;
     font-size: 16px;
     margin-top: 10px;
 }
+
 /* Responsive Design for Mobile */
 @media (max-width: 768px) {
 
@@ -341,7 +343,7 @@ h1 {
     <!-- Add to Cart Button -->
     <button class="add-to-cart-btn" data-seed-id="{{ seed.id }}">Add to Cart</button>
 {% else %}
-    <p class="out-of-stock-msg">Out of Stock</p>
+    <p style="color: red; font-weight: bold;">Out of Stock</p>
 {% endif %}
 
 </div>
