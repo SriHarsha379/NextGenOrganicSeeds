@@ -1,18 +1,24 @@
+import csv
+import json
+
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.conf import settings
+from django.views.decorators.csrf import csrf_protect
+
 from cart.models import Cart
 from .models import  Order
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from io import BytesIO
+from io import BytesIO, StringIO
 from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
 import os
+from django.contrib.admin.views.decorators import staff_member_required
 
 # @login_required
 # def checkout(request):
@@ -193,4 +199,45 @@ def reorder(request, order_id):
     request.session['cart'] = cart_dict
     request.session.modified = True  # mark session as modified to save changes
     return redirect('view_cart')
+
+
+def is_admin(user):
+    return user.is_superuser
+
+@staff_member_required
+@csrf_protect
+def parse_raw_order_data(request):
+    extracted_orders = []
+    error = None
+
+    if request.method == "POST":
+        raw_data = request.POST.get("raw_data")
+        if raw_data:
+            try:
+                f = StringIO(raw_data)
+                reader = csv.reader(f, delimiter='\t')
+
+                for row in reader:
+                    try:
+                        full_name = row[1].strip('"')
+                        phone = row[3].strip('"')
+                        address = row[4].strip('"')
+                        address_lines = [line.strip() for line in address.split(",")]
+
+                        extracted_orders.append({
+                            "name": full_name,
+                            "phone": phone,
+                            "address": address,
+                            "address_lines": address_lines,
+                        })
+                    except Exception as row_error:
+                        continue  # Skip malformed rows
+
+            except Exception as e:
+                error = f"Failed to parse data: {e}"
+
+    return render(request, "orders/parse_order.html", {
+        "extracted_orders": extracted_orders,
+        "error": error,
+    })
 

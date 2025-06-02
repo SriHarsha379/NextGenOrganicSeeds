@@ -1,0 +1,113 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% block content %}
+
+<h1 class="admin-title">📦 Bulk Order Parser</h1>
+<p class="admin-title">Paste raw DB rows (tab-separated) to extract addresses for printing.</p>
+
+<form method="post" style="margin-bottom: 2rem;" class="admin-title">
+    {% csrf_token %}
+    <textarea name="raw_data" rows="12" cols="100" placeholder="Paste multiple tab-separated rows here...">{% if request.POST.raw_data %}{{ request.POST.raw_data }}{% endif %}</textarea><br>
+    <button type="submit">Parse All & Print</button>
+</form>
+
+{% if error %}
+    <div style="color: red; font-weight: bold;">Error: {{ error }}</div>
+{% endif %}
+
+{% if extracted_orders %}
+    <button onclick="window.print()" class="print-btn">🖨️ Print Address Labels</button>
+
+    <div class="print-container">
+        {% for order in extracted_orders %}
+            <div class="label">
+                <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Logo" class="logo">
+                <p><strong>Name:</strong> {{ order.name }}</p>
+                <p><strong>Phone:</strong> {{ order.phone }}</p>
+                <p><strong>Address:</strong><br>
+                    {% for line in order.address_lines %}
+                        {{ line }}<br>
+                    {% endfor %}
+                </p>
+                <p class="fssai">FSSAI: <strong>21225008001765</strong></p>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<style>
+.print-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+.print-btn {
+    margin: 20px 0;
+    padding: 8px 16px;
+    font-size: 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+@media print {
+    .admin-title, form, button, .print-btn {
+        display: none !important;
+    }
+}
+
+.label {
+    width: 45%;
+    border: 1px solid #000;
+    padding: 16px;
+    font-size: 17px; /* Increased from 15px */
+    color: #000;
+    font-family: Arial, sans-serif;
+    page-break-inside: avoid;
+}
+
+.label p {
+    margin: 8px 0;
+}
+
+.label strong {
+    font-size: 18px; /* Make headings stand out */
+}
+
+.logo {
+    max-height: 60px; /* Slightly larger logo */
+    margin-bottom: 10px;
+}
+
+.fssai {
+    font-size: 15px; /* Bigger FSSAI line */
+    margin-top: 12px;
+    font-weight: bold;
+}
+
+@media print {
+    .admin-title, form, button, .print-btn, #header, #user-tools, #nav-sidebar, .breadcrumbs, .module, .footer, .dashboard-module {
+        display: none !important;
+    }
+
+    body {
+        background: #fff !important;
+    }
+
+    #content {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
+
+    .label {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+
+
+</style>
+
+{% endblock %}
