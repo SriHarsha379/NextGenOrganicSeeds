@@ -262,6 +262,13 @@ p {
     color: #999;
     margin-top: 20px;
 }
+.out-of-stock {
+    color: red;
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
 
 
     </style>
@@ -320,18 +327,31 @@ p {
 <div class="container">
     {% if results %}
         {% for seed in results %}
-            <div class="seed-card">
-                <img src="/media/{{ seed.image }}" alt="{{ seed.name }}">
-                <h2>{{ seed.name }}</h2>
-                <p>Price: ₹{{ seed.price }}</p>
-                <form class="add-to-cart-form" data-seed-id="{{ seed.id }}">
-                    {% csrf_token %}
-                    <div class="input-group">
-                        <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}">
-                        <button type="submit">Add to Cart</button>
-                    </div>
-                </form>
+<div class="seed-card">
+    <img src="/media/{{ seed.image }}" alt="{{ seed.name }}">
+    <h2>{{ seed.name }}</h2>
+    <p>Price: ₹{{ seed.price }}</p>
+    
+    {% if seed.stock > 0 %}
+        <form class="add-to-cart-form" data-seed-id="{{ seed.id }}">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}">
+                <button type="submit">Add to Cart</button>
             </div>
+        </form>
+    {% else %}
+        <p style="color: red; font-weight: bold;">Out of Stock</p>
+        <form class="add-to-cart-form" data-seed-id="{{ seed.id }}">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="number" name="quantity" value="0" disabled>
+                <button type="submit" disabled style="background: #ccc; cursor: not-allowed;">Add to Cart</button>
+            </div>
+        </form>
+    {% endif %}
+</div>
+
         {% endfor %}
     {% else %}
         <p>No seeds found matching your search.</p>

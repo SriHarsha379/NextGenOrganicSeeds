@@ -92,9 +92,12 @@ def hybrid_vegetable_seeds(request):
 
 def search_seeds(request):
     query = request.GET.get('q', '')  # Get the search query
-    results = Seed.objects.filter(name__icontains=query) if query else []  # Case-insensitive search
-
+    if query:
+        results = Seed.objects.filter(name__icontains=query)
+    else:
+        results = Seed.objects.none()
     return render(request, 'products/search_results.html', {'results': results, 'query': query})
+
 
 def winter_flower_seeds(request):
     category = get_object_or_404(Category, name="Winter")  # Ensure capitalization matches DB
