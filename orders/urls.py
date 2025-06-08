@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import upi_payment, payment_success, my_orders, parse_raw_order_data
+from .views import upi_payment, payment_success, my_orders, parse_raw_order_data, bulk_item_extractor
 from . import views
 
 
@@ -11,4 +11,5 @@ urlpatterns = [
     path('orders/invoice/<int:order_id>/', views.download_invoice, name='download_invoice'),
     path('reorder/<int:order_id>/', views.reorder, name='reorder'),
     path('admin/parse-order-data/', parse_raw_order_data, name='parse_order_data'),
+    path("bulk-items/", bulk_item_extractor, name="bulk_item_extractor"),
 ]

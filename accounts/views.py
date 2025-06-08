@@ -10,6 +10,12 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
+import time
+from django.core.mail import send_mail, BadHeaderError
+from smtplib import SMTPException
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from validate_email import validate_email as validate_real_email
 
 from orders.models import Order
 from products.models import Seed
@@ -45,24 +51,50 @@ def user_login(request):
 
 def user_register(request):
     if request.method == "POST":
-        username = request.POST["username"]
-        email = request.POST["email"]
-        password = request.POST["password"]
+        username = request.POST.get("username").strip()
+        email = request.POST.get("email").strip()
+        password = request.POST.get("password").strip()
+        confirm_password = request.POST.get("confirm_password").strip()
 
+        # 1. Check if passwords match
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return redirect("register")
+
+        # 2. Check if username exists
         if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists")
-        else:
-            # Create the user
-            user = User.objects.create_user(username=username, email=email, password=password)
+            messages.error(request, "Username already exists.")
+            return redirect("register")
 
-            # Send the welcome email
+        # 3. Check if email is already used
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered.")
+            return redirect("register")
+
+        # 4. Basic email format validation
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, "Invalid email format.")
+            return redirect("register")
+
+        # 5. Check if email actually exists (DNS check)
+        if not validate_real_email(email, verify=True):
+            messages.error(request, "Email address does not exist. Please check and try again.")
+            return redirect("register")
+
+        # 6. Create the user
+        user = User.objects.create_user(username=username, email=email, password=password)
+
+        # 7. Try sending welcome email safely
+        try:
             send_welcome_email(user)
+        except Exception as e:
+            messages.warning(request, f"Registered, but email sending failed: {e}")
 
-            # Log the user in immediately
-            login(request, user)
-
-            # Redirect to seed list page after successful registration
-            return redirect("seed_list")
+        # 8. Login and redirect
+        login(request, user)
+        return redirect("seed_list")
 
     return render(request, "accounts/register.html")
 
@@ -182,15 +214,42 @@ def reset_password(request, uidb64, token):
         return render(request, "accounts/reset_password.html", {"valid": False})
 
 
-def send_welcome_email(user):
+def send_welcome_email(user, max_retries=3):
     subject = 'Welcome to Hasa Farm!'
     html_message = render_to_string('accounts/emails/welcome_email.html', {'user': user})
+    plain_message = f"""Hi {user.username},
 
-    plain_message = f"Hi {user.username},\n\nThank you for registering at Hasa Farm!"
+Thank you for registering at Hasa Farm!
+
+We're excited to have you on board! 🌱
+
+Feel free to explore our organic seed collection and start your gardening journey with us.
+
+If you have any questions, just reply to this email — we're happy to help.
+
+— HASA Farm Team
+"""
     from_email = settings.DEFAULT_FROM_EMAIL
     to = user.email
 
-    send_mail(subject, plain_message, from_email, [to], html_message=html_message)
+    attempt = 0
+    while attempt < max_retries:
+        try:
+            send_mail(
+                subject,
+                plain_message,
+                from_email,
+                [to],
+                html_message=html_message
+            )
+            print(f"✅ Welcome email sent to {to}")
+            break
+        except (SMTPException, BadHeaderError) as e:
+            attempt += 1
+            print(f"❌ Error sending email to {to} (Attempt {attempt}/{max_retries}): {e}")
+            time.sleep(2)  # wait before retrying
+    else:
+        print(f"🚨 Failed to send welcome email to {to} after {max_retries} attempts.")
 
 def password_reset_done(request):
     return render(request, "accounts/password_reset_done.html")
