@@ -115,7 +115,7 @@ def winter_flower_seeds(request):
     })
 
 def all_seasonal_flower_seeds(request):
-    category = get_object_or_404(Category, name="All Seasonal")  # Ensure capitalization matches DB
+    category = get_object_or_404(Category, name="All seasonal")  # Ensure capitalization matches DB
     seeds = Seed.objects.filter(category=category)
 
     # Get the cart from the session
