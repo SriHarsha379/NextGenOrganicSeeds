@@ -20,17 +20,30 @@
 
     <div class="print-container">
         {% for order in extracted_orders %}
-            <div class="label">
-                <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Logo" class="logo">
-                <p><strong>Name:</strong> {{ order.name }}</p>
-                <p><strong>Phone:</strong> {{ order.phone }}</p>
-                <p><strong>Address:</strong><br>
-                    {% for line in order.address_lines %}
-                        {{ line }}<br>
-                    {% endfor %}
-                </p>
-                <p class="fssai">FSSAI: <strong>21225008001765</strong></p>
-            </div>
+<div class="label">
+    <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Logo" class="logo">
+
+    <div class="from-address">
+        <strong>FROM:-</strong><br>
+        HASA FARM<br>
+        #14 1st B Cross<br>
+        Shivapura<br>
+        Bagalur Main Road<br>
+        Yelahanka<br>
+        Bengaluru – 560063<br>
+        Phone number - 7483847243<br><br>
+    </div>
+    <strong>TO:-</strong><br>
+    <p><strong>Name:</strong> {{ order.name }}</p>
+    <p><strong>Phone:</strong> {{ order.phone }}</p>
+    <p><strong>Address:</strong><br>
+        {% for line in order.address_lines %}
+            {{ line }}<br>
+        {% endfor %}
+    </p>
+    <p class="fssai">FSSAI: <strong>21225008001765</strong></p>
+</div>
+
         {% endfor %}
     </div>
 {% endif %}
