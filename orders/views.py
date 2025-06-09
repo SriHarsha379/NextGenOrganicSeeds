@@ -1,6 +1,7 @@
 import csv
+import io
 import json
-
+from collections import Counter
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -241,3 +242,75 @@ def parse_raw_order_data(request):
         "error": error,
     })
 
+@staff_member_required
+def bulk_item_extractor(request):
+    items = []
+    pick_counter = Counter()
+    order_line_summaries = {}
+    errors = []
+
+    if request.method == "POST":
+        raw_data = request.POST.get("raw_data", "")
+        reader = csv.reader(io.StringIO(raw_data), delimiter="\t")
+
+        for line_no, row in enumerate(reader, start=1):
+            if len(row) < 6:
+                errors.append(f"Line {line_no}: not enough columns.")
+                continue
+
+            order_id = row[0].strip()
+            name = row[1].strip()
+            cart_blob = row[5].strip()
+
+            # Clean the JSON string
+            if cart_blob.startswith('"') and cart_blob.endswith('"'):
+                cart_blob = cart_blob[1:-1].replace('""', '"')
+
+            try:
+                cart = json.loads(cart_blob)
+            except json.JSONDecodeError as exc:
+                errors.append(f"Line {line_no}: JSON error – {exc}")
+                continue
+
+            summary_parts = []
+            for prod in cart:
+                item_id = prod["id"]
+                name_item = prod["name"]
+                qty = int(prod["quantity"])
+                price = float(prod["price"])
+                total = float(prod.get("total_price", price * qty))
+
+                items.append([order_id, item_id, name_item, qty, price, total])
+                pick_counter[name_item] += qty
+                summary_parts.append(f"{name_item} ×{qty}")
+
+            # 🔧 Use order_id + name as key for summary
+            display_key = f"{order_id} - {name}" if name else order_id
+            order_line_summaries[display_key] = ", ".join(summary_parts)
+
+        if "download_items" in request.POST:
+            return _csv_response("items_export.csv",
+                                 ["order_id", "sku", "name", "qty", "price", "total"],
+                                 items)
+
+        if "download_pick" in request.POST:
+            pick_rows = [[name, qty] for name, qty in pick_counter.items()]
+            return _csv_response("pick_list.csv", ["name", "total_qty"], pick_rows)
+
+    context = {
+        "items": items,
+        "pick_list": pick_counter.items(),
+        "order_lines": order_line_summaries,
+        "errors": errors,
+    }
+    return render(request, "orders/bulk_item_extractor.html", context)
+
+
+
+def _csv_response(filename, headers, rows):
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    writer = csv.writer(response)
+    writer.writerow(headers)
+    writer.writerows(rows)
+    return response

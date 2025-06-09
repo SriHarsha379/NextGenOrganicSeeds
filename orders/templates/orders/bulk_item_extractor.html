@@ -1,0 +1,58 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<h1 class="admin-title">🧾 Bulk Item Extractor</h1>
+<p class="admin-title">Paste tab-separated order data below to extract item details and print them.</p>
+
+<form method="post" class="admin-title" style="margin-bottom: 2rem;">
+    {% csrf_token %}
+    <textarea name="raw_data" rows="12" cols="140" style="width:100%;" placeholder="Paste PGAdmin raw tab-separated rows here...">{{ request.POST.raw_data }}</textarea>
+    <br>
+    <button type="submit" class="default">Extract</button>
+</form>
+
+{% if errors %}
+    <ul class="errornote">
+        {% for e in errors %}
+            <li>{{ e }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% if order_lines %}
+    <h2 style="margin-top:2rem;">🖨️ Compact Print Format (One Line per Order)</h2>
+    <button onclick="printSection('print-area')" class="default" style="margin-bottom: 1rem;">🖨️ Print</button>
+    <div id="print-area" style="font-size: 16px; background:#f8f8f8; padding:1rem; border:1px solid #ddd;">
+<pre>
+{% for order, summary in order_lines.items %}
+Order {{ order }}: {{ summary }}
+{% endfor %}
+</pre>
+    </div>
+{% endif %}
+
+<script>
+function printSection(id) {
+    const content = document.getElementById(id).innerHTML;
+    const printWindow = window.open('', '', 'width=900,height=600');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>Print Orders</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; font-size: 16px; }
+                    pre { white-space: pre-wrap; word-wrap: break-word; }
+                </style>
+            </head>
+            <body>${content}</body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+}
+</script>
+
+{% endblock %}
