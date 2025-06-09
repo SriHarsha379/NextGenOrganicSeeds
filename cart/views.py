@@ -8,7 +8,7 @@ from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
-
+import json, hmac, hashlib, base64, traceback
 from .models import Cart
 from products.models import Seed
 from django.http import JsonResponse, HttpResponse
@@ -247,9 +247,9 @@ def process_order(request):
                     except Seed.DoesNotExist:
                         return JsonResponse({"error": f"Seed with ID {seed_id} not found"}, status=404)
 
-                cashfree_order_id = f"HASA-{order.id}"
+                # Prepare order payload for Cashfree API
                 order_payload = {
-                    "order_id": cashfree_order_id,
+                    "order_id": str(order.id),  # Use Django Order ID as unique order_id
                     "order_amount": str(order.total_amount),
                     "order_currency": "INR",
                     "customer_details": {
@@ -277,22 +277,20 @@ def process_order(request):
                 if order_response.status_code != 200 or order_resp_json.get("order_status") not in ["CREATED", "ACTIVE"]:
                     raise Exception("Cashfree Order creation failed")
 
-                payment_link = order_resp_json.get("payment_link")
-                if not payment_link:
-                    raise Exception("Payment link missing in order response")
-
-                order.cf_order_id = cashfree_order_id
+                # Store the order_id returned by Cashfree in your DB
+                order.cf_order_id = order_resp_json.get("order_id")  # **important fix**
                 order.order_token = order_resp_json.get("order_token")
-                order.payment_link = payment_link
+                order.payment_link = order_resp_json.get("payment_link")
                 order.save()
 
+                # Clear user cart session
                 request.session["cart"] = {}
                 request.session.modified = True
 
                 return JsonResponse({
                     "message": "Order placed successfully!",
                     "order_id": order.id,
-                    "payment_link": payment_link,
+                    "payment_link": order.payment_link,
                     "postal_charge": postal_charge,
                     "total_amount": final_amount
                 }, status=201)
@@ -386,15 +384,11 @@ def order_success(request):
 @csrf_exempt
 def cashfree_webhook_view(request):
     if request.method != "POST":
-        print("Invalid method:", request.method)
         return JsonResponse({"error": "Invalid method"}, status=405)
 
     try:
         payload = request.body.decode("utf-8")
-        print("Raw payload:", payload)
-
         data = json.loads(payload)
-        print("Parsed JSON data:", data)
 
         received_signature = request.headers.get("X-Cf-Signature")
         if not received_signature:
@@ -407,7 +401,6 @@ def cashfree_webhook_view(request):
         ).hexdigest()
 
         if received_signature != expected_signature:
-            print("Signature mismatch")
             return JsonResponse({"error": "Invalid signature"}, status=403)
 
         cf_order_id = data.get("order", {}).get("order_id")
@@ -422,44 +415,43 @@ def cashfree_webhook_view(request):
             return JsonResponse({"error": "Order not found"}, status=404)
 
         if order.payment_status == "Paid":
-            print("Order already marked as paid.")
             return HttpResponse("Already processed", status=200)
 
         if order_status.upper() == "PAID":
             order.payment_status = "Paid"
             order.save()
 
-            # Fetch ordered items
-            ordered_items = ""
+            # Prepare order details for email
             try:
-                cart_items = json.loads(order.cart_items) if isinstance(order.cart_items, str) else order.cart_items
-                for item in cart_items:
-                    ordered_items += f"{item['name']} - Qty: {item['quantity']} - ₹{item.get('total_price', 'N/A')}\n"
-            except Exception as e:
-                print("Error parsing cart items:", e)
-                ordered_items = "Unable to fetch ordered items."
+                items = order.cart_items
+                ordered_items = ""
+                for item in items:
+                    name = item.get("name", "Unknown")
+                    qty = item.get("quantity", 1)
+                    price = item.get("total_price", "N/A")
+                    ordered_items += f"{name} - Qty: {qty} - ₹{price}\n"
+            except Exception:
+                ordered_items = "Unable to retrieve order items."
 
-            # Build email content
-            email_subject = f"✅ Order #{order.id} Confirmed - Hasa Farm"
+            email_subject = f"✅ Your Order #{order.id} is Confirmed - Hasa Farm"
             email_message = f"""
 Hi {order.full_name},
 
-Thanks for your purchase! Your payment for order #{order.id} has been received.
+Thank you for your purchase! We have received your payment for Order #{order.id}.
 
 Order Summary:
 {ordered_items}
 
 Total Quantity: {order.total_quantity}
-Total Amount: ₹{order.total_amount}
+Postal Charges: ₹{order.postal_charge}
+Total Amount Paid: ₹{order.total_amount}
 
-We'll notify you once your order is shipped.
+We will notify you once your order is shipped.
 
-Regards,  
+Regards,
 Hasa Farm Team
             """.strip()
 
-            # Send email
-            print("Sending email to:", order.email)
             try:
                 send_mail(
                     subject=email_subject,
@@ -468,11 +460,8 @@ Hasa Farm Team
                     recipient_list=[order.email, "contact@hasafarm.com"],
                     fail_silently=False
                 )
-                print("✅ Confirmation email sent!")
             except Exception as e:
-                print("❌ Email send failed:", e)
-                import traceback
-                traceback.print_exc()
+                print("Email send failed:", e)
 
             return HttpResponse("Payment successful", status=200)
 
@@ -487,21 +476,81 @@ Hasa Farm Team
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
     except Exception as e:
-        print("Unhandled webhook error:", e)
-        import traceback
-        traceback.print_exc()
+        print("Webhook error:", e)
         return JsonResponse({"error": "Server error"}, status=500)
 
 def send_order_confirmation_email(order):
-    subject = f"Payment Received for Order {order.cf_order_id or order.id}"
-    admin_email = "contact@hasafarm.com"  # Replace with your actual admin/packing email
-    cart_items = order.cart_items
+    try:
+        items = order.cart_items
+        ordered_items = ""
+        for item in items:
+            name = item.get("name", "Unknown")
+            qty = item.get("quantity", 1)
+            price = item.get("total_price", "N/A")
+            ordered_items += f"{name} - Qty: {qty} - ₹{price}\n"
+    except Exception:
+        ordered_items = "Unable to retrieve order items."
 
-    message = render_to_string("order_email_template.html", {
-        "order": order,
-        "cart_items": cart_items,
-    })
+    email_subject = f"✅ Your Order #{order.id} is Confirmed - Hasa Farm"
+    email_message = f"""
+Hi {order.full_name},
 
-    email = EmailMessage(subject, message, to=[admin_email])
-    email.content_subtype = "html"
-    email.send()
+Thank you for your purchase! We have received your payment for Order #{order.id}.
+
+Order Summary:
+{ordered_items}
+
+Total Quantity: {order.total_quantity}
+Postal Charges: ₹{order.postal_charge}
+Total Amount Paid: ₹{order.total_amount}
+
+We will notify you once your order is shipped.
+
+Regards,
+Hasa Farm Team
+    """.strip()
+
+    send_mail(
+        subject=email_subject,
+        message=email_message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[order.email, "contact@hasafarm.com"],
+        fail_silently=False,
+    )
+
+def verify_cashfree_payment(cf_order_id: str):
+    url = f"{CASHFREE_ORDER_API_URL}{cf_order_id}"
+    headers = {
+        "Content-Type": "application/json",
+        "X-Client-Id": CASHFREE_APP_ID,
+        "X-Client-Secret": CASHFREE_SECRET_KEY,
+        "x-api-version": "2022-01-01"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        print(f"❌ Error verifying Cashfree order {cf_order_id}: {e}")
+        return None
+
+
+def verify_pending_orders():
+    pending_orders = Order.objects.filter(payment_status="Pending")
+    updated_count = 0
+    for order in pending_orders:
+        if order.cf_order_id:
+            result = verify_cashfree_payment(order.cf_order_id)
+            if result and result.get("order_status") == "PAID":
+                order.payment_status = "Paid"
+                order.payment_id = result.get("payment_id") or order.payment_id
+                order.save()
+                send_order_confirmation_email(order)  # Send mail on update
+                print(f"✅ Order #{order.id} updated to Paid and email sent.")
+                updated_count += 1
+            else:
+                status = result.get("order_status") if result else "No result"
+                print(f"⏳ Order #{order.id} still pending or failed: {status}")
+    print(f"Total orders updated: {updated_count}")
+    return updated_count
