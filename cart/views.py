@@ -332,6 +332,14 @@ def order_success(request):
 
     order = get_object_or_404(Order, cf_order_id=order_id)
 
+    # Deserialize cart_items JSON string to list/dict if needed
+    if isinstance(order.cart_items, str):
+        try:
+            order.cart_items = json.loads(order.cart_items)
+        except json.JSONDecodeError:
+            order.cart_items = []
+
+    # Fetch latest payment status from Cashfree API
     headers = {
         "Content-Type": "application/json",
         "X-Client-Id": settings.CASHFREE_APP_ID,
@@ -353,11 +361,12 @@ def order_success(request):
     else:
         print("Error fetching order status from Cashfree:", response.text)
 
-    if order.payment_status == "PAID" or order.payment_status == "SUCCESS":
+    # Determine messages based on payment status
+    if order.payment_status in ["PAID", "SUCCESS", "Paid"]:
         message_title = "Payment Successful!"
         message_body = f"Thank you for your order #{order.id}. We've received your payment."
         btn_text = "Continue Shopping"
-        btn_link = "/seeds/"  # ← ✅ Updated to existing path
+        btn_link = "/seeds/"
     elif order.payment_status == "FAILED":
         message_title = "Payment Failed"
         message_body = "Unfortunately, your payment failed. Please try again."
@@ -378,6 +387,7 @@ def order_success(request):
         "btn_link": btn_link
     }
     return render(request, "cart/order_success.html", context)
+
 
 
 
@@ -480,16 +490,20 @@ Hasa Farm Team
         return JsonResponse({"error": "Server error"}, status=500)
 
 def send_order_confirmation_email(order):
-    try:
-        items = order.cart_items
-        ordered_items = ""
-        for item in items:
-            name = item.get("name", "Unknown")
-            qty = item.get("quantity", 1)
-            price = item.get("total_price", "N/A")
-            ordered_items += f"{name} - Qty: {qty} - ₹{price}\n"
-    except Exception:
-        ordered_items = "Unable to retrieve order items."
+    # Deserialize cart_items if needed
+    items = order.cart_items
+    if isinstance(items, str):
+        try:
+            items = json.loads(items)
+        except json.JSONDecodeError:
+            items = []
+
+    ordered_items = ""
+    for item in items:
+        name = item.get("name", "Unknown")
+        qty = item.get("quantity", 1)
+        price = item.get("price", "N/A")  # use consistent key `price`
+        ordered_items += f"{name} - Qty: {qty} - ₹{price}\n"
 
     email_subject = f"✅ Your Order #{order.id} is Confirmed - Hasa Farm"
     email_message = f"""
