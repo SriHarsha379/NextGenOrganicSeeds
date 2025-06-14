@@ -513,6 +513,9 @@ body {
     opacity: 0.6;
     filter: grayscale(100%);
 }
+.no-bullet {
+  list-style-type: none;
+}
 
 </style>
 
@@ -575,7 +578,10 @@ body {
 <!-- Farm Crops Link -->
 <a href="{% url 'farm_crops' %}" class="elementor-item elementor-item-anchor">Farm Crops</a>
 
+    {% if user.is_authenticated %}
+    <li class="no-bullet"><a href="{% url 'my_orders' %}">My Orders</a></li>
 
+    {% endif %}
     <!-- Show Login/Register if user is not logged in -->
     {% if not user.is_authenticated %}
         <a href="{% url 'login' %}" class="auth-link">Login</a>
@@ -584,9 +590,7 @@ body {
         <a href="{% url 'logout' %}" class="auth-link">Logout</a>
     {% endif %}
 
-    {% if user.is_authenticated %}
-    <li><a href="{% url 'my_orders' %}">My Orders</a></li>
-    {% endif %}
+
 
 
 <a href="{% url 'view_cart' %}" id="cart-link" class="cart-link">
@@ -700,9 +704,21 @@ body {
         <div class="footer-section">
             <h3>Follow Us</h3>
             <div class="social-icons">
-                <a href="#" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook"></a>
-                <a href="#" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram"></a>
-                <a href="#" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/733/733635.png" alt="Twitter"></a>
+                <a href="https://www.facebook.com/profile.php?id=61577475895648"
+   target="_blank"
+   rel="noopener noreferrer"
+   class="facebook-icon">
+  <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png"
+       alt="Facebook profile link"
+       width="32"
+       height="32" />
+</a>
+
+                <a href="https://www.instagram.com/hasafarm88/" target="_blank" rel="noopener noreferrer">
+  <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram" width="32" height="32" />
+</a>
+
+<!--                <a href="#" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/733/733635.png" alt="Twitter"></a>-->
             </div>
         </div>
         <div class="footer-section">
