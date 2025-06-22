@@ -3,6 +3,8 @@ from .models import Seed, Category
 from cart.models import Cart  # Import the Cart model
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from .utils.phonepe_client import client
+
 
 
 @login_required(login_url="/accounts/login/")
