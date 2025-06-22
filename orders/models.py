@@ -25,9 +25,13 @@ class Order(models.Model):
     payment_link = models.URLField(max_length=1000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # ✅ Add this field
+    phonepe_order_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
+
     def save(self, *args, **kwargs):
         self.total_quantity = sum(item.get("quantity", 1) for item in self.cart_items)
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Order #{self.id} - {self.user.username} - {self.payment_status}"
+
