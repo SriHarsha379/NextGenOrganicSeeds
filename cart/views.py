@@ -378,7 +378,13 @@ def phonepe_webhook(request):
             return JsonResponse({"error": "Missing order info"}, status=400)
 
         # Step 4: Get Order
-        order = Order.objects.filter(phonepe_order_id=merchant_order_id).first()
+        order = Order.objects.filter(order_token=merchant_order_id).first()
+        if not order:
+            return JsonResponse({"error": "Order not found"}, status=404)
+
+        # Save PhonePe Order ID for future lookups
+        order.phonepe_order_id = merchant_order_id
+
         print(f"Looking for order with ID: {merchant_order_id}")
 
         if not order:
