@@ -38,15 +38,20 @@ def user_login(request):
                 request.session.set_expiry(3600)  # 1 hour
 
             request.session.modified = True  # Ensure session updates
-            print(f"✅ Login successful: {user.username}, Session Key: {request.session.session_key}")
-            print(f"Session Data: {request.session.items()}")  # Debugging session content
+            print(f"✅ Login successful: {user.username}")
+
+            try:
+                for key, value in request.session.items():
+                    print(f"{key}: {value}")
+            except Exception as e:
+                print(f"⚠️ Error printing session: {e}")
+
             return redirect("home")
         else:
             messages.error(request, "Invalid username or password.")
             print("❌ Login failed")
 
     return render(request, "accounts/login.html")
-
 
 
 def user_register(request):
