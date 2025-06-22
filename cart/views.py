@@ -204,7 +204,6 @@ def update_cart_quantity(request, item_id):
 # CASHFREE_ORDER_API_URL = "https://api.cashfree.com/pg/orders"  # or live URL when live
 
 @csrf_exempt
-@login_required
 def process_order(request):
     if request.method == "POST":
         try:
@@ -224,7 +223,7 @@ def process_order(request):
 
             with transaction.atomic():
                 order = Order.objects.create(
-                    user=request.user,
+                    user=request.user if request.user.is_authenticated else None,
                     full_name=data["full_name"],
                     email=data["email"],
                     phone=data["phone"],
@@ -250,109 +249,32 @@ def process_order(request):
                         return JsonResponse({"error": f"Seed with ID {seed_id} not found"}, status=404)
 
                 # Create PhonePe Payment
-                phonepe_order_id = f"HF{order.id}"  # Optional: prefix for uniqueness
-                redirect_url = "https://hasafarm.com/order-success/"  # Post-payment page
+                phonepe_order_id = f"HF{order.id}"
+                redirect_url = "https://hasafarm.com/order-success/"
 
                 pay_request = StandardCheckoutPayRequest.build_request(
                     merchant_order_id=phonepe_order_id,
-                    amount=int(final_amount * 100),  # Convert to paise
+                    amount=int(final_amount * 100),
                     redirect_url=redirect_url
                 )
 
                 pay_response = client.pay(pay_request)
 
-                # Save PhonePe details
                 order.phonepe_order_id = phonepe_order_id
                 order.payment_link = pay_response.redirect_url
                 order.save()
 
-                @csrf_exempt
-                @login_required
-                def process_order(request):
-                    if request.method == "POST":
-                        try:
-                            data = json.loads(request.body.decode("utf-8"))
-                            print("Received Data:", data)
+                # Clear cart session
+                request.session["cart"] = {}
+                request.session.modified = True
 
-                            address = f"{data.get('address_line1', '')}, {data.get('address_line2', '')}, {data.get('city', '')}, {data.get('state', '')}, {data.get('postal_code', '')}, {data.get('country', '')}"
-
-                            required_fields = ["full_name", "email", "phone", "cart_items", "total_quantity",
-                                               "total_amount"]
-                            missing_fields = [field for field in required_fields if
-                                              field not in data or not data[field]]
-                            if missing_fields:
-                                return JsonResponse({"error": f"Missing required fields: {', '.join(missing_fields)}"},
-                                                    status=400)
-
-                            postal_charge = 80
-                            base_total = float(data["total_amount"])
-                            final_amount = base_total + postal_charge
-
-                            with transaction.atomic():
-                                order = Order.objects.create(
-                                    user=request.user,
-                                    full_name=data["full_name"],
-                                    email=data["email"],
-                                    phone=data["phone"],
-                                    address=address,
-                                    cart_items=data["cart_items"],
-                                    total_quantity=data["total_quantity"],
-                                    total_amount=final_amount,
-                                    postal_charge=postal_charge,
-                                    payment_status="Pending",
-                                )
-
-                                for item in data["cart_items"]:
-                                    seed_id = item["id"]
-                                    quantity_ordered = int(item["quantity"])
-                                    try:
-                                        seed = Seed.objects.select_for_update().get(id=seed_id)
-                                        if seed.stock >= quantity_ordered:
-                                            seed.stock -= quantity_ordered
-                                            seed.save()
-                                        else:
-                                            return JsonResponse({"error": f"Not enough stock for {seed.name}"},
-                                                                status=400)
-                                    except Seed.DoesNotExist:
-                                        return JsonResponse({"error": f"Seed with ID {seed_id} not found"}, status=404)
-
-                                # Create PhonePe Payment
-                                phonepe_order_id = f"HF{order.id}"
-                                redirect_url = "https://hasafarm.com/order-success/"
-
-                                pay_request = StandardCheckoutPayRequest.build_request(
-                                    merchant_order_id=phonepe_order_id,
-                                    amount=int(final_amount * 100),  # in paise
-                                    redirect_url=redirect_url
-                                )
-
-                                pay_response = client.pay(pay_request)
-
-                                # Save PhonePe details
-                                order.phonepe_order_id = phonepe_order_id
-                                order.payment_link = pay_response.redirect_url
-                                order.save()
-
-                                # Clear cart session
-                                request.session["cart"] = {}
-                                request.session.modified = True
-
-                                return JsonResponse({
-                                    "message": "Order placed successfully!",
-                                    "order_id": order.id,
-                                    "payment_link": pay_response.redirect_url,
-                                    "postal_charge": postal_charge,
-                                    "total_amount": final_amount
-                                }, status=201)
-
-                        except json.JSONDecodeError as e:
-                            print("JSON Decode Error:", e)
-                            return JsonResponse({"error": "Invalid JSON format"}, status=400)
-                        except Exception as e:
-                            print("Error placing order:", e)
-                            return JsonResponse({"error": "Internal server error"}, status=500)
-
-                    return JsonResponse({"error": "Invalid request method"}, status=405)
+                return JsonResponse({
+                    "message": "Order placed successfully!",
+                    "order_id": order.id,
+                    "payment_link": pay_response.redirect_url,
+                    "postal_charge": postal_charge,
+                    "total_amount": final_amount
+                }, status=201)
 
         except json.JSONDecodeError as e:
             print("JSON Decode Error:", e)
@@ -362,7 +284,6 @@ def process_order(request):
             return JsonResponse({"error": "Internal server error"}, status=500)
 
     return JsonResponse({"error": "Invalid request method"}, status=405)
-
 
 
 @login_required
