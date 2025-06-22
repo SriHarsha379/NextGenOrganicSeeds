@@ -1,45 +1,76 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Terms & Conditions | HASA FARM</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 2rem;
-      background-color: #f9f9f9;
-      color: #333;
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .terms-container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 30px;
+        background-color: #f9f9f9;
+        border-radius: 16px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        font-family: "Segoe UI", sans-serif;
+        color: #333;
     }
-    h1 {
-      color: #2b7a2b;
+
+    .terms-container h1 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+        text-align: center;
+        color: #2d3748;
     }
-    section {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      max-width: 800px;
-      margin: auto;
+
+    .terms-container h2 {
+        font-size: 1.2rem;
+        margin-top: 25px;
+        margin-bottom: 10px;
+        color: #2c5282;
     }
-    ul {
-      margin-left: 1rem;
+
+    .terms-container p {
+        line-height: 1.6;
+        margin-bottom: 12px;
     }
-  </style>
-</head>
-<body>
-  <section>
+
+    @media (max-width: 600px) {
+        .terms-container {
+            padding: 20px;
+        }
+        .terms-container h1 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="terms-container">
     <h1>Terms & Conditions</h1>
-    <p>Welcome to HASA FARM!</p>
-    <ul>
-      <li>Products are for personal and agricultural use only.</li>
-      <li>We reserve the right to cancel orders at our discretion.</li>
-      <li>Prices are subject to change without prior notice.</li>
-      <li>All website content is property of HASA FARM.</li>
-      <li>Governing law: Karnataka, India.</li>
-    </ul>
-    <p>For queries, contact us at: <a href="mailto:info@HASAFARM.com">contact@hasafarm.com</a></p>
-  </section>
-</body>
-</html>
+
+    <p>Welcome to HASA FARM. By using our website (<a href="https://www.hasafarm.com">www.hasafarm.com</a>), you agree to the following terms:</p>
+
+    <h2>Use of Products</h2>
+    <p>Our products are intended for personal and agricultural use only. Reselling without permission is prohibited.</p>
+
+    <h2>Orders & Cancellations</h2>
+    <p>We reserve the right to cancel or refuse any order. Orders cannot be cancelled once shipped.</p>
+
+    <h2>Pricing</h2>
+    <p>All prices are in INR and may change without prior notice. We strive for accuracy but are not liable for pricing errors.</p>
+
+    <h2>Shipping & Delivery</h2>
+    <p>Delivery timelines are estimates. We are not responsible for delays due to external factors.</p>
+
+    <h2>Returns & Refunds</h2>
+    <p>Returns are accepted only for defective or wrong items, reported within 48 hours of delivery.</p>
+
+    <h2>Intellectual Property</h2>
+    <p>All content on this website is the property of HASA FARM and may not be reused without permission.</p>
+
+    <h2>Limitation of Liability</h2>
+    <p>We are not liable for indirect damages resulting from the use of our products or website.</p>
+
+    <h2>Governing Law</h2>
+    <p>These terms are governed by the laws of Karnataka, India.</p>
+
+    <h2>Contact</h2>
+    <p>For any queries, email us at <a href="mailto:contact@hasafarm.com">contact@hasafarm.com</a></p>
+</div>
+{% endblock %}
