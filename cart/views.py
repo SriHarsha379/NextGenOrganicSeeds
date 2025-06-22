@@ -250,7 +250,8 @@ def process_order(request):
 
                 # Create PhonePe Payment
                 phonepe_order_id = f"HF{order.id}"
-                redirect_url = "https://hasafarm.com/order-success/"
+                redirect_url = f"https://hasafarm.com/order-success/?order_id={phonepe_order_id}"
+
 
                 pay_request = StandardCheckoutPayRequest.build_request(
                     merchant_order_id=phonepe_order_id,
@@ -377,6 +378,8 @@ def phonepe_webhook(request):
 
         # Step 4: Get Order
         order = Order.objects.filter(phonepe_order_id=merchant_order_id).first()
+        print(f"Looking for order with ID: {merchant_order_id}")
+
         if not order:
             return JsonResponse({"error": "Order not found"}, status=404)
 
