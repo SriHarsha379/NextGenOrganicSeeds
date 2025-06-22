@@ -265,53 +265,94 @@ def process_order(request):
                 order.phonepe_order_id = phonepe_order_id
                 order.payment_link = pay_response.redirect_url
                 order.save()
-                # Compose admin email
-                subject = f"New Order Received - Order #{order.id}"
-                message = f"""
-                📦 New order received from {order.full_name}
 
-                📧 Email: {order.email}
-                📞 Phone: {order.phone}
-                🏠 Address: {order.address}
-                📦 Quantity: {order.total_quantity}
-                💰 Total: ₹{order.total_amount}
+                @csrf_exempt
+                @login_required
+                def process_order(request):
+                    if request.method == "POST":
+                        try:
+                            data = json.loads(request.body.decode("utf-8"))
+                            print("Received Data:", data)
 
-                🛒 Items:
-                """
+                            address = f"{data.get('address_line1', '')}, {data.get('address_line2', '')}, {data.get('city', '')}, {data.get('state', '')}, {data.get('postal_code', '')}, {data.get('country', '')}"
 
-                for item in order.cart_items:
-                    message += f"- {item['name']} x {item['quantity']} = ₹{item['total_price']}\n"
+                            required_fields = ["full_name", "email", "phone", "cart_items", "total_quantity",
+                                               "total_amount"]
+                            missing_fields = [field for field in required_fields if
+                                              field not in data or not data[field]]
+                            if missing_fields:
+                                return JsonResponse({"error": f"Missing required fields: {', '.join(missing_fields)}"},
+                                                    status=400)
 
-                message += "\nPlease process the order as soon as possible."
+                            postal_charge = 80
+                            base_total = float(data["total_amount"])
+                            final_amount = base_total + postal_charge
 
-                # Send email to admin (you)
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [settings.ADMIN_NOTIFICATION_EMAIL],
-                    fail_silently=False,
-                )
-                # Customer confirmation email
-                send_mail(
-                    f"Your Order with Hasa Farm (#{order.id})",
-                    f"Hi {order.full_name},\n\nThank you for your order!\nWe’ll process it soon. Order amount: ₹{order.total_amount}.",
-                    settings.DEFAULT_FROM_EMAIL,
-                    [order.email],
-                    fail_silently=True,
-                )
+                            with transaction.atomic():
+                                order = Order.objects.create(
+                                    user=request.user,
+                                    full_name=data["full_name"],
+                                    email=data["email"],
+                                    phone=data["phone"],
+                                    address=address,
+                                    cart_items=data["cart_items"],
+                                    total_quantity=data["total_quantity"],
+                                    total_amount=final_amount,
+                                    postal_charge=postal_charge,
+                                    payment_status="Pending",
+                                )
 
-                # Clear cart session
-                request.session["cart"] = {}
-                request.session.modified = True
+                                for item in data["cart_items"]:
+                                    seed_id = item["id"]
+                                    quantity_ordered = int(item["quantity"])
+                                    try:
+                                        seed = Seed.objects.select_for_update().get(id=seed_id)
+                                        if seed.stock >= quantity_ordered:
+                                            seed.stock -= quantity_ordered
+                                            seed.save()
+                                        else:
+                                            return JsonResponse({"error": f"Not enough stock for {seed.name}"},
+                                                                status=400)
+                                    except Seed.DoesNotExist:
+                                        return JsonResponse({"error": f"Seed with ID {seed_id} not found"}, status=404)
 
-                return JsonResponse({
-                    "message": "Order placed successfully!",
-                    "order_id": order.id,
-                    "payment_link": pay_response.redirect_url,
-                    "postal_charge": postal_charge,
-                    "total_amount": final_amount
-                }, status=201)
+                                # Create PhonePe Payment
+                                phonepe_order_id = f"HF{order.id}"
+                                redirect_url = "https://hasafarm.com/order-success/"
+
+                                pay_request = StandardCheckoutPayRequest.build_request(
+                                    merchant_order_id=phonepe_order_id,
+                                    amount=int(final_amount * 100),  # in paise
+                                    redirect_url=redirect_url
+                                )
+
+                                pay_response = client.pay(pay_request)
+
+                                # Save PhonePe details
+                                order.phonepe_order_id = phonepe_order_id
+                                order.payment_link = pay_response.redirect_url
+                                order.save()
+
+                                # Clear cart session
+                                request.session["cart"] = {}
+                                request.session.modified = True
+
+                                return JsonResponse({
+                                    "message": "Order placed successfully!",
+                                    "order_id": order.id,
+                                    "payment_link": pay_response.redirect_url,
+                                    "postal_charge": postal_charge,
+                                    "total_amount": final_amount
+                                }, status=201)
+
+                        except json.JSONDecodeError as e:
+                            print("JSON Decode Error:", e)
+                            return JsonResponse({"error": "Invalid JSON format"}, status=400)
+                        except Exception as e:
+                            print("Error placing order:", e)
+                            return JsonResponse({"error": "Internal server error"}, status=500)
+
+                    return JsonResponse({"error": "Invalid request method"}, status=405)
 
         except json.JSONDecodeError as e:
             print("JSON Decode Error:", e)
@@ -388,16 +429,16 @@ def order_success(request):
 
 @csrf_exempt
 def phonepe_webhook(request):
-    # Extract the Authorization header
+    # Step 1: Extract Authorization header
     received_auth = request.headers.get("Authorization")
 
-    # Generate expected auth using SHA256(username:password)
+    # Step 2: Generate expected SHA256(username:password)
     username = config("PHONEPE_WEBHOOK_USERNAME")
     password = config("PHONEPE_WEBHOOK_PASSWORD")
     auth_string = f"{username}:{password}"
     expected_auth = hashlib.sha256(auth_string.encode()).hexdigest()
 
-    # Validate the Authorization
+    # Step 3: Validate authorization
     if received_auth != expected_auth:
         return HttpResponseForbidden("Unauthorized")
 
@@ -408,25 +449,62 @@ def phonepe_webhook(request):
         event_type = payload.get("event")
         data = payload.get("payload", {})
         merchant_order_id = data.get("merchantOrderId")
-        payment_status = data.get("state")  # COMPLETED, FAILED, etc.
+        payment_status = data.get("state")  # "COMPLETED", "FAILED", etc.
 
         if not merchant_order_id or not payment_status:
             return JsonResponse({"error": "Missing order info"}, status=400)
 
-        # Get the order (you used prefix like HF{order.id})
+        # Step 4: Get Order
         order = Order.objects.filter(phonepe_order_id=merchant_order_id).first()
         if not order:
             return JsonResponse({"error": "Order not found"}, status=404)
 
-        # Update payment status
-        if payment_status == "COMPLETED":
-            order.payment_status = "Paid"
-        elif payment_status == "FAILED":
-            order.payment_status = "Failed"
-        else:
-            order.payment_status = payment_status  # Just in case
-
+        # Step 5: Update payment status
+        order.payment_status = (
+            "Paid" if payment_status == "COMPLETED"
+            else "Failed" if payment_status == "FAILED"
+            else payment_status
+        )
         order.save()
+
+        # Step 6: Send email if payment is successful
+        if payment_status == "COMPLETED":
+            subject = f"✅ New Paid Order - Order #{order.id}"
+            message = f"""
+📦 New Paid Order Received!
+
+👤 Name: {order.full_name}
+📧 Email: {order.email}
+📞 Phone: {order.phone}
+🏠 Address: {order.address}
+📦 Quantity: {order.total_quantity}
+💰 Total: ₹{order.total_amount}
+
+🛒 Items:
+"""
+            for item in order.cart_items:
+                message += f"- {item['name']} x {item['quantity']} = ₹{item['total_price']}\n"
+
+            message += "\nPlease process and dispatch this order."
+
+            # Send email to admin (you)
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.ADMIN_NOTIFICATION_EMAIL],
+                fail_silently=False,
+            )
+
+            # Confirmation email to customer
+            send_mail(
+                f"Your Order with Hasa Farm (#{order.id}) is Confirmed 🎉",
+                f"Hi {order.full_name},\n\nThank you for your payment! Your order is now confirmed and will be processed shortly.\n\nTotal Paid: ₹{order.total_amount}\n\nRegards,\nHasa Farm",
+                settings.DEFAULT_FROM_EMAIL,
+                [order.email],
+                fail_silently=True,
+            )
+
         return JsonResponse({"message": "Webhook processed successfully"})
 
     except Exception as e:
