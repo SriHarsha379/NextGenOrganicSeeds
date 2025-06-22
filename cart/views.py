@@ -433,82 +433,82 @@ def phonepe_webhook(request):
         print("Webhook Error:", e)
         return JsonResponse({"error": "Internal Server Error"}, status=500)
 
-def send_order_confirmation_email(order):
-    # Deserialize cart_items if needed
-    items = order.cart_items
-    if isinstance(items, str):
-        try:
-            items = json.loads(items)
-        except json.JSONDecodeError:
-            items = []
-
-    ordered_items = ""
-    for item in items:
-        name = item.get("name", "Unknown")
-        qty = item.get("quantity", 1)
-        price = item.get("price", "N/A")  # use consistent key `price`
-        ordered_items += f"{name} - Qty: {qty} - ₹{price}\n"
-
-    email_subject = f"✅ Your Order #{order.id} is Confirmed - Hasa Farm"
-    email_message = f"""
-Hi {order.full_name},
-
-Thank you for your purchase! We have received your payment for Order #{order.id}.
-
-Order Summary:
-{ordered_items}
-
-Total Quantity: {order.total_quantity}
-Postal Charges: ₹{order.postal_charge}
-Total Amount Paid: ₹{order.total_amount}
-
-We will notify you once your order is shipped.
-
-Regards,
-Hasa Farm Team
-    """.strip()
-
-    send_mail(
-        subject=email_subject,
-        message=email_message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[order.email, "contact@hasafarm.com"],
-        fail_silently=False,
-    )
-
-def verify_cashfree_payment(cf_order_id: str):
-    url = f"{CASHFREE_ORDER_API_URL}{cf_order_id}"
-    headers = {
-        "Content-Type": "application/json",
-        "X-Client-Id": CASHFREE_APP_ID,
-        "X-Client-Secret": CASHFREE_SECRET_KEY,
-        "x-api-version": "2022-01-01"
-    }
-
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        return response.json()
-    except requests.RequestException as e:
-        print(f"❌ Error verifying Cashfree order {cf_order_id}: {e}")
-        return None
-
-
-def verify_pending_orders():
-    pending_orders = Order.objects.filter(payment_status="Pending")
-    updated_count = 0
-    for order in pending_orders:
-        if order.cf_order_id:
-            result = verify_cashfree_payment(order.cf_order_id)
-            if result and result.get("order_status") == "PAID":
-                order.payment_status = "Paid"
-                order.payment_id = result.get("payment_id") or order.payment_id
-                order.save()
-                send_order_confirmation_email(order)  # Send mail on update
-                print(f"✅ Order #{order.id} updated to Paid and email sent.")
-                updated_count += 1
-            else:
-                status = result.get("order_status") if result else "No result"
-                print(f"⏳ Order #{order.id} still pending or failed: {status}")
-    print(f"Total orders updated: {updated_count}")
-    return updated_count
+# def send_order_confirmation_email(order):
+#     # Deserialize cart_items if needed
+#     items = order.cart_items
+#     if isinstance(items, str):
+#         try:
+#             items = json.loads(items)
+#         except json.JSONDecodeError:
+#             items = []
+#
+#     ordered_items = ""
+#     for item in items:
+#         name = item.get("name", "Unknown")
+#         qty = item.get("quantity", 1)
+#         price = item.get("price", "N/A")  # use consistent key `price`
+#         ordered_items += f"{name} - Qty: {qty} - ₹{price}\n"
+#
+#     email_subject = f"✅ Your Order #{order.id} is Confirmed - Hasa Farm"
+#     email_message = f"""
+# Hi {order.full_name},
+#
+# Thank you for your purchase! We have received your payment for Order #{order.id}.
+#
+# Order Summary:
+# {ordered_items}
+#
+# Total Quantity: {order.total_quantity}
+# Postal Charges: ₹{order.postal_charge}
+# Total Amount Paid: ₹{order.total_amount}
+#
+# We will notify you once your order is shipped.
+#
+# Regards,
+# Hasa Farm Team
+#     """.strip()
+#
+#     send_mail(
+#         subject=email_subject,
+#         message=email_message,
+#         from_email=settings.DEFAULT_FROM_EMAIL,
+#         recipient_list=[order.email, "contact@hasafarm.com"],
+#         fail_silently=False,
+#     )
+#
+# def verify_cashfree_payment(cf_order_id: str):
+#     url = f"{CASHFREE_ORDER_API_URL}{cf_order_id}"
+#     headers = {
+#         "Content-Type": "application/json",
+#         "X-Client-Id": CASHFREE_APP_ID,
+#         "X-Client-Secret": CASHFREE_SECRET_KEY,
+#         "x-api-version": "2022-01-01"
+#     }
+#
+#     try:
+#         response = requests.get(url, headers=headers)
+#         response.raise_for_status()
+#         return response.json()
+#     except requests.RequestException as e:
+#         print(f"❌ Error verifying Cashfree order {cf_order_id}: {e}")
+#         return None
+#
+#
+# def verify_pending_orders():
+#     pending_orders = Order.objects.filter(payment_status="Pending")
+#     updated_count = 0
+#     for order in pending_orders:
+#         if order.cf_order_id:
+#             result = verify_cashfree_payment(order.cf_order_id)
+#             if result and result.get("order_status") == "PAID":
+#                 order.payment_status = "Paid"
+#                 order.payment_id = result.get("payment_id") or order.payment_id
+#                 order.save()
+#                 send_order_confirmation_email(order)  # Send mail on update
+#                 print(f"✅ Order #{order.id} updated to Paid and email sent.")
+#                 updated_count += 1
+#             else:
+#                 status = result.get("order_status") if result else "No result"
+#                 print(f"⏳ Order #{order.id} still pending or failed: {status}")
+#     print(f"Total orders updated: {updated_count}")
+#     return updated_count
