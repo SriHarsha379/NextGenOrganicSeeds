@@ -10,7 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+from decouple import config
+from decouple import Csv, Config, RepositoryEnv
+
+# This is optional, but you can make sure the path is correct:
+
+
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,6 +27,8 @@ import os
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+config = Config(RepositoryEnv(BASE_DIR / '.env'))  # for custom path
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -173,6 +182,7 @@ EMAIL_USE_SSL = False          # ✅ disable SSL
 EMAIL_HOST_USER = 'contact@hasafarm.com'
 EMAIL_HOST_PASSWORD = '8Hasa@seeds'
 DEFAULT_FROM_EMAIL = 'Hasa Farm <contact@hasafarm.com>'
+ADMIN_NOTIFICATION_EMAIL = 'contact@hasafarm.com'  # Receive order notifications here
 
 
 CSRF_TRUSTED_ORIGINS = [
@@ -184,7 +194,5 @@ CSRF_TRUSTED_ORIGINS = [
     "http://147.93.28.237",
 ]
 
-
-CASHFREE_APP_ID = '9795081b7f0f43691da68d756c805979'
-CASHFREE_SECRET_KEY = 'cfsk_ma_prod_91757a8c50fe123563f89b3fef14c405_b16caf02'
-CASHFREE_ORDER_API_URL = "https://test.cashfree.com/api/v2/cftoken/order"  # or live URL when live
+PHONEPE_WEBHOOK_USERNAME = config("PHONEPE_WEBHOOK_USERNAME")
+PHONEPE_WEBHOOK_PASSWORD = config("PHONEPE_WEBHOOK_PASSWORD")

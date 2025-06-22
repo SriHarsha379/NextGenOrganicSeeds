@@ -1,4 +1,6 @@
 from django.db import transaction
+from products.utils.phonepe_client import client
+from decouple import config
 from django.conf import settings
 from django.views.decorators.http import require_POST
 import hashlib
@@ -9,9 +11,12 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 import json, hmac, hashlib, base64, traceback
+
+from phonepe.sdk.pg.payments.v2.models.request.standard_checkout_pay_request import StandardCheckoutPayRequest
+
 from .models import Cart
 from products.models import Seed
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.contrib.auth.models import User
 import logging
 import json
@@ -194,9 +199,9 @@ def update_cart_quantity(request, item_id):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
-CASHFREE_APP_ID = '9795081b7f0f43691da68d756c805979'
-CASHFREE_SECRET_KEY = 'cfsk_ma_prod_91757a8c50fe123563f89b3fef14c405_b16caf02'
-CASHFREE_ORDER_API_URL = "https://api.cashfree.com/pg/orders"  # or live URL when live
+# CASHFREE_APP_ID = '9795081b7f0f43691da68d756c805979'
+# CASHFREE_SECRET_KEY = 'cfsk_ma_prod_91757a8c50fe123563f89b3fef14c405_b16caf02'
+# CASHFREE_ORDER_API_URL = "https://api.cashfree.com/pg/orders"  # or live URL when live
 
 @csrf_exempt
 @login_required
@@ -213,10 +218,7 @@ def process_order(request):
             if missing_fields:
                 return JsonResponse({"error": f"Missing required fields: {', '.join(missing_fields)}"}, status=400)
 
-            # Fixed postal charges = ₹80
             postal_charge = 80
-
-            # Calculate final amount including postal charges
             base_total = float(data["total_amount"])
             final_amount = base_total + postal_charge
 
@@ -229,8 +231,8 @@ def process_order(request):
                     address=address,
                     cart_items=data["cart_items"],
                     total_quantity=data["total_quantity"],
-                    total_amount=final_amount,  # total + postal charges
-                    postal_charge=postal_charge,  # store postal charges separately
+                    total_amount=final_amount,
+                    postal_charge=postal_charge,
                     payment_status="Pending",
                 )
 
@@ -247,50 +249,66 @@ def process_order(request):
                     except Seed.DoesNotExist:
                         return JsonResponse({"error": f"Seed with ID {seed_id} not found"}, status=404)
 
-                # Prepare order payload for Cashfree API
-                order_payload = {
-                    "order_id": str(order.id),  # Use Django Order ID as unique order_id
-                    "order_amount": str(order.total_amount),
-                    "order_currency": "INR",
-                    "customer_details": {
-                        "customer_id": str(request.user.id),
-                        "customer_email": order.email,
-                        "customer_phone": order.phone
-                    },
-                    "order_meta": {
-                        "return_url": "https://hasafarm.com/order-success/?order_id={order_id}",
-                        "notify_url": "https://hasafarm.com/webhooks/cashfree"
-                    }
-                }
+                # Create PhonePe Payment
+                phonepe_order_id = f"HF{order.id}"  # Optional: prefix for uniqueness
+                redirect_url = "https://hasafarm.com/order-success/"  # Post-payment page
 
-                headers = {
-                    "Content-Type": "application/json",
-                    "X-Client-Id": CASHFREE_APP_ID,
-                    "X-Client-Secret": CASHFREE_SECRET_KEY,
-                    "x-api-version": "2022-01-01"
-                }
+                pay_request = StandardCheckoutPayRequest.build_request(
+                    merchant_order_id=phonepe_order_id,
+                    amount=int(final_amount * 100),  # Convert to paise
+                    redirect_url=redirect_url
+                )
 
-                order_response = requests.post(CASHFREE_ORDER_API_URL, json=order_payload, headers=headers)
-                order_resp_json = order_response.json()
-                print("Order API Response:", order_resp_json)
+                pay_response = client.pay(pay_request)
 
-                if order_response.status_code != 200 or order_resp_json.get("order_status") not in ["CREATED", "ACTIVE"]:
-                    raise Exception("Cashfree Order creation failed")
-
-                # Store the order_id returned by Cashfree in your DB
-                order.cf_order_id = order_resp_json.get("order_id")  # **important fix**
-                order.order_token = order_resp_json.get("order_token")
-                order.payment_link = order_resp_json.get("payment_link")
+                # Save PhonePe details
+                order.phonepe_order_id = phonepe_order_id
+                order.payment_link = pay_response.redirect_url
                 order.save()
+                # Compose admin email
+                subject = f"New Order Received - Order #{order.id}"
+                message = f"""
+                📦 New order received from {order.full_name}
 
-                # Clear user cart session
+                📧 Email: {order.email}
+                📞 Phone: {order.phone}
+                🏠 Address: {order.address}
+                📦 Quantity: {order.total_quantity}
+                💰 Total: ₹{order.total_amount}
+
+                🛒 Items:
+                """
+
+                for item in order.cart_items:
+                    message += f"- {item['name']} x {item['quantity']} = ₹{item['total_price']}\n"
+
+                message += "\nPlease process the order as soon as possible."
+
+                # Send email to admin (you)
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [settings.ADMIN_NOTIFICATION_EMAIL],
+                    fail_silently=False,
+                )
+                # Customer confirmation email
+                send_mail(
+                    f"Your Order with Hasa Farm (#{order.id})",
+                    f"Hi {order.full_name},\n\nThank you for your order!\nWe’ll process it soon. Order amount: ₹{order.total_amount}.",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [order.email],
+                    fail_silently=True,
+                )
+
+                # Clear cart session
                 request.session["cart"] = {}
                 request.session.modified = True
 
                 return JsonResponse({
                     "message": "Order placed successfully!",
                     "order_id": order.id,
-                    "payment_link": order.payment_link,
+                    "payment_link": pay_response.redirect_url,
                     "postal_charge": postal_charge,
                     "total_amount": final_amount
                 }, status=201)
@@ -303,7 +321,6 @@ def process_order(request):
             return JsonResponse({"error": "Internal server error"}, status=500)
 
     return JsonResponse({"error": "Invalid request method"}, status=405)
-
 
 
 
@@ -330,48 +347,26 @@ def order_success(request):
             "btn_link": "/"
         })
 
-    order = get_object_or_404(Order, cf_order_id=order_id)
+    order = get_object_or_404(Order, phonepe_order_id=order_id)
 
-    # Deserialize cart_items JSON string to list/dict if needed
+    # Deserialize cart_items if needed
     if isinstance(order.cart_items, str):
         try:
             order.cart_items = json.loads(order.cart_items)
         except json.JSONDecodeError:
             order.cart_items = []
 
-    # Fetch latest payment status from Cashfree API
-    headers = {
-        "Content-Type": "application/json",
-        "X-Client-Id": settings.CASHFREE_APP_ID,
-        "X-Client-Secret": settings.CASHFREE_SECRET_KEY,
-        "x-api-version": "2022-01-01"
-    }
-
-    response = requests.get(
-        f"https://api.cashfree.com/pg/orders/{order.cf_order_id}",
-        headers=headers
-    )
-
-    if response.status_code == 200:
-        data = response.json()
-        cashfree_status = data.get("order_status")
-        if cashfree_status and cashfree_status != order.payment_status:
-            order.payment_status = cashfree_status
-            order.save()
-    else:
-        print("Error fetching order status from Cashfree:", response.text)
-
     # Determine messages based on payment status
-    if order.payment_status in ["PAID", "SUCCESS", "Paid"]:
+    if order.payment_status in ["Paid", "SUCCESS", "PAID"]:
         message_title = "Payment Successful!"
         message_body = f"Thank you for your order #{order.id}. We've received your payment."
         btn_text = "Continue Shopping"
         btn_link = "/seeds/"
-    elif order.payment_status == "FAILED":
+    elif order.payment_status == "Failed":
         message_title = "Payment Failed"
         message_body = "Unfortunately, your payment failed. Please try again."
         btn_text = "Retry Payment"
-        btn_link = f"/checkout/?order_id={order.cf_order_id}"
+        btn_link = f"/checkout/?order_id={order.phonepe_order_id}"
     else:
         message_title = "Payment Pending"
         message_body = "We're waiting to confirm your payment. You'll be notified once it's complete."
@@ -392,102 +387,51 @@ def order_success(request):
 
 
 @csrf_exempt
-def cashfree_webhook_view(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid method"}, status=405)
+def phonepe_webhook(request):
+    # Extract the Authorization header
+    received_auth = request.headers.get("Authorization")
+
+    # Generate expected auth using SHA256(username:password)
+    username = config("PHONEPE_WEBHOOK_USERNAME")
+    password = config("PHONEPE_WEBHOOK_PASSWORD")
+    auth_string = f"{username}:{password}"
+    expected_auth = hashlib.sha256(auth_string.encode()).hexdigest()
+
+    # Validate the Authorization
+    if received_auth != expected_auth:
+        return HttpResponseForbidden("Unauthorized")
 
     try:
-        payload = request.body.decode("utf-8")
-        data = json.loads(payload)
+        payload = json.loads(request.body)
+        print("📩 PhonePe Webhook Payload:", payload)
 
-        received_signature = request.headers.get("X-Cf-Signature")
-        if not received_signature:
-            return JsonResponse({"error": "Missing signature"}, status=400)
+        event_type = payload.get("event")
+        data = payload.get("payload", {})
+        merchant_order_id = data.get("merchantOrderId")
+        payment_status = data.get("state")  # COMPLETED, FAILED, etc.
 
-        expected_signature = hmac.new(
-            key=bytes(settings.CASHFREE_SECRET_KEY, 'utf-8'),
-            msg=bytes(payload, 'utf-8'),
-            digestmod=hashlib.sha256
-        ).hexdigest()
+        if not merchant_order_id or not payment_status:
+            return JsonResponse({"error": "Missing order info"}, status=400)
 
-        if received_signature != expected_signature:
-            return JsonResponse({"error": "Invalid signature"}, status=403)
-
-        cf_order_id = data.get("order", {}).get("order_id")
-        order_status = data.get("order", {}).get("order_status")
-
-        if not cf_order_id or not order_status:
-            return JsonResponse({"error": "Missing order_id or status"}, status=400)
-
-        try:
-            order = Order.objects.get(cf_order_id=cf_order_id)
-        except Order.DoesNotExist:
+        # Get the order (you used prefix like HF{order.id})
+        order = Order.objects.filter(phonepe_order_id=merchant_order_id).first()
+        if not order:
             return JsonResponse({"error": "Order not found"}, status=404)
 
-        if order.payment_status == "Paid":
-            return HttpResponse("Already processed", status=200)
-
-        if order_status.upper() == "PAID":
+        # Update payment status
+        if payment_status == "COMPLETED":
             order.payment_status = "Paid"
-            order.save()
-
-            # Prepare order details for email
-            try:
-                items = order.cart_items
-                ordered_items = ""
-                for item in items:
-                    name = item.get("name", "Unknown")
-                    qty = item.get("quantity", 1)
-                    price = item.get("total_price", "N/A")
-                    ordered_items += f"{name} - Qty: {qty} - ₹{price}\n"
-            except Exception:
-                ordered_items = "Unable to retrieve order items."
-
-            email_subject = f"✅ Your Order #{order.id} is Confirmed - Hasa Farm"
-            email_message = f"""
-Hi {order.full_name},
-
-Thank you for your purchase! We have received your payment for Order #{order.id}.
-
-Order Summary:
-{ordered_items}
-
-Total Quantity: {order.total_quantity}
-Postal Charges: ₹{order.postal_charge}
-Total Amount Paid: ₹{order.total_amount}
-
-We will notify you once your order is shipped.
-
-Regards,
-Hasa Farm Team
-            """.strip()
-
-            try:
-                send_mail(
-                    subject=email_subject,
-                    message=email_message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[order.email, "contact@hasafarm.com"],
-                    fail_silently=False
-                )
-            except Exception as e:
-                print("Email send failed:", e)
-
-            return HttpResponse("Payment successful", status=200)
-
-        elif order_status.upper() == "FAILED":
+        elif payment_status == "FAILED":
             order.payment_status = "Failed"
-            order.save()
-            return HttpResponse("Payment failed", status=200)
-
         else:
-            return JsonResponse({"error": "Unhandled status"}, status=400)
+            order.payment_status = payment_status  # Just in case
 
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
+        order.save()
+        return JsonResponse({"message": "Webhook processed successfully"})
+
     except Exception as e:
-        print("Webhook error:", e)
-        return JsonResponse({"error": "Server error"}, status=500)
+        print("Webhook Error:", e)
+        return JsonResponse({"error": "Internal Server Error"}, status=500)
 
 def send_order_confirmation_email(order):
     # Deserialize cart_items if needed
