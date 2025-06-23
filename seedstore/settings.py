@@ -17,7 +17,7 @@ from decouple import Csv, Config, RepositoryEnv
 
 
 from pathlib import Path
-from decouple import config
+#from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,8 +36,8 @@ config = Config(RepositoryEnv(BASE_DIR / '.env'))  # for custom path
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-+vofv8mk!los^y4r=^^bt86$nk3e(^a$*i4k-_q7ybwpzwg5%c'
 
-# ALLOWED_HOSTS = ['hasafarm.com', 'www.hasafarm.com', '147.93.28.237']
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+ALLOWED_HOSTS = ['hasafarm.com', 'www.hasafarm.com', '147.93.28.237']
+#ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
