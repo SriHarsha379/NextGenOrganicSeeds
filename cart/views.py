@@ -262,6 +262,7 @@ def process_order(request):
                 pay_response = client.pay(pay_request)
 
                 order.phonepe_order_id = phonepe_order_id
+                order.order_token = phonepe_order_id  # <-- important!
                 order.payment_link = pay_response.redirect_url
                 order.save()
 
@@ -435,6 +436,9 @@ def phonepe_webhook(request):
                 [order.email],
                 fail_silently=True,
             )
+        print("📩 Webhook received for:", merchant_order_id)
+        print("🔎 Found order:", order)
+        print("📌 Old status:", order.payment_status)
 
         return JsonResponse({"message": "Webhook processed successfully"})
 
