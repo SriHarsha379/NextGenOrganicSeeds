@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from cart.views import phonepe_webhook
 
 from orders.views import parse_raw_order_data
 from users.views import home_redirect  # Import the home redirect view
@@ -17,6 +18,7 @@ urlpatterns = [
     # project/urls.py
     path('orders/', include('orders.urls')),
 path('parse-order-data/', parse_raw_order_data, name='parse_order_data'),
+path("payment/response/", phonepe_webhook, name="phonepe_webhook"),
 
 ]
 

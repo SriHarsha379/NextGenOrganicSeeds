@@ -217,7 +217,7 @@ def process_order(request):
             if missing_fields:
                 return JsonResponse({"error": f"Missing required fields: {', '.join(missing_fields)}"}, status=400)
 
-            postal_charge = 80
+            postal_charge = 0
             base_total = float(data["total_amount"])
             final_amount = base_total + postal_charge
 
@@ -248,10 +248,9 @@ def process_order(request):
                     except Seed.DoesNotExist:
                         return JsonResponse({"error": f"Seed with ID {seed_id} not found"}, status=404)
 
-                # Create PhonePe Payment
+                # ✅ Create PhonePe Payment
                 phonepe_order_id = f"HF{order.id}"
                 redirect_url = f"https://hasafarm.com/order-success/?order_id={phonepe_order_id}"
-
 
                 pay_request = StandardCheckoutPayRequest.build_request(
                     merchant_order_id=phonepe_order_id,
@@ -261,11 +260,17 @@ def process_order(request):
 
                 pay_response = client.pay(pay_request)
 
-                order.phonepe_order_id = phonepe_order_id
-                order.payment_link = pay_response.redirect_url
-                order.save()
+		order.phonepe_order_id = merchant_order_id
+		order.order_token = merchant_order_id  # ✅ Add this line
+		order.payment_status = (
+       			"Paid" if payment_status == "COMPLETED"
+	        	else "Failed" if payment_status == "FAILED"
+	        	else payment_status
+		)
+		order.save()
 
-                # Clear cart session
+
+                # ✅ Clear cart
                 request.session["cart"] = {}
                 request.session.modified = True
 
@@ -349,47 +354,50 @@ def order_success(request):
 
 
 
+
 @csrf_exempt
 def phonepe_webhook(request):
-    # Step 1: Extract Authorization header
-    received_auth = request.headers.get("Authorization")
-
-    # Step 2: Generate expected SHA256(username:password)
-    username = config("PHONEPE_WEBHOOK_USERNAME")
-    password = config("PHONEPE_WEBHOOK_PASSWORD")
-    auth_string = f"{username}:{password}"
-    expected_auth = hashlib.sha256(auth_string.encode()).hexdigest()
-
-    # Step 3: Validate authorization
-    if received_auth != expected_auth:
-        return HttpResponseForbidden("Unauthorized")
-
     try:
-        payload = json.loads(request.body)
-        print("📩 PhonePe Webhook Payload:", payload)
+        # ✅ Log initial webhook data
+        with open("/tmp/phonepe_webhook_logs.txt", "a", encoding="utf-8") as f:
+            f.write("\n==== Incoming Webhook ====\n")
+            f.write(f"Headers: {dict(request.headers)}\n")
+            f.write(f"Body: {request.body.decode()}\n")
 
-        event_type = payload.get("event")
-        data = payload.get("payload", {})
-        merchant_order_id = data.get("merchantOrderId")
-        payment_status = data.get("state")  # "COMPLETED", "FAILED", etc.
+        # ✅ Authenticate request
+        received_auth = request.headers.get("Authorization")
+        username = config("PHONEPE_WEBHOOK_USERNAME")
+        password = config("PHONEPE_WEBHOOK_PASSWORD")
+        expected_auth = hashlib.sha256(f"{username}:{password}".encode()).hexdigest()
+
+        if received_auth != expected_auth:
+            with open("/tmp/phonepe_webhook_logs.txt", "a", encoding="utf-8") as f:
+                f.write("❌ Authorization failed.\n")
+            return HttpResponseForbidden("Unauthorized")
+
+        # ✅ Parse JSON payload
+        payload = json.loads(request.body)
+        merchant_order_id = payload.get("payload", {}).get("merchantOrderId")
+        payment_status = payload.get("payload", {}).get("state")
 
         if not merchant_order_id or not payment_status:
+            with open("/tmp/phonepe_webhook_logs.txt", "a", encoding="utf-8") as f:
+                f.write("❌ Missing merchantOrderId or state.\n")
             return JsonResponse({"error": "Missing order info"}, status=400)
 
-        # Step 4: Get Order
+        # ✅ Try to find order
         order = Order.objects.filter(order_token=merchant_order_id).first()
         if not order:
-            return JsonResponse({"error": "Order not found"}, status=404)
-
-        # Save PhonePe Order ID for future lookups
-        order.phonepe_order_id = merchant_order_id
-
-        print(f"Looking for order with ID: {merchant_order_id}")
+            order = Order.objects.filter(phonepe_order_id=merchant_order_id).first()
 
         if not order:
+            with open("/tmp/phonepe_webhook_logs.txt", "a", encoding="utf-8") as f:
+                f.write(f"❌ Order not found for merchantOrderId: {merchant_order_id}\n")
             return JsonResponse({"error": "Order not found"}, status=404)
 
-        # Step 5: Update payment status
+        # ✅ Update order fields
+        order.phonepe_order_id = merchant_order_id
+        order.order_token = merchant_order_id
         order.payment_status = (
             "Paid" if payment_status == "COMPLETED"
             else "Failed" if payment_status == "FAILED"
@@ -397,46 +405,32 @@ def phonepe_webhook(request):
         )
         order.save()
 
-        # Step 6: Send email if payment is successful
-        if payment_status == "COMPLETED":
-            subject = f"✅ New Paid Order - Order #{order.id}"
-            message = f"""
-📦 New Paid Order Received!
+        # ✅ Log updated order status
+        with open("/tmp/phonepe_webhook_logs.txt", "a", encoding="utf-8") as f:
+            f.write(f"✅ Order Updated: ID={order.id}, Token={order.order_token}, Status={order.payment_status}\n")
 
-👤 Name: {order.full_name}
-📧 Email: {order.email}
-📞 Phone: {order.phone}
-🏠 Address: {order.address}
-📦 Quantity: {order.total_quantity}
-💰 Total: ₹{order.total_amount}
-
-🛒 Items:
-"""
-            for item in order.cart_items:
-                message += f"- {item['name']} x {item['quantity']} = ₹{item['total_price']}\n"
-
-            message += "\nPlease process and dispatch this order."
-
-            # Send email to admin (you)
+        # ✅ Send mail if payment is successful
+        if order.payment_status == "Paid":
             send_mail(
-                subject,
-                message,
+                f"✅ New Paid Order - Order #{order.id}",
+                f"Order received from {order.full_name} for ₹{order.total_amount}",
                 settings.DEFAULT_FROM_EMAIL,
                 [settings.ADMIN_NOTIFICATION_EMAIL],
-                fail_silently=False,
+                fail_silently=True
             )
-
-            # Confirmation email to customer
             send_mail(
-                f"Your Order with Hasa Farm (#{order.id}) is Confirmed 🎉",
-                f"Hi {order.full_name},\n\nThank you for your payment! Your order is now confirmed and will be processed shortly.\n\nTotal Paid: ₹{order.total_amount}\n\nRegards,\nHasa Farm",
+                f"Your Order #{order.id} is Confirmed 🎉",
+                f"Hi {order.full_name}, your payment has been received.",
                 settings.DEFAULT_FROM_EMAIL,
                 [order.email],
-                fail_silently=True,
+                fail_silently=True
             )
 
         return JsonResponse({"message": "Webhook processed successfully"})
 
     except Exception as e:
-        print("Webhook Error:", e)
+        with open("/tmp/phonepe_webhook_logs.txt", "a", encoding="utf-8") as f:
+            f.write("❌ Exception occurred:\n")
+            f.write(traceback.format_exc())
+            f.write("\n===========================\n")
         return JsonResponse({"error": "Internal Server Error"}, status=500)
