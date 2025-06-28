@@ -97,7 +97,7 @@ def my_orders(request):
             except json.JSONDecodeError:
                 order.cart_items = []
 
-    return render(request, 'cart/my_orders.html', {"orders": orders})
+    return render(request, 'orders/my_orders.html', {"orders": orders})
 
 
 @login_required
