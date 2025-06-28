@@ -374,10 +374,11 @@ def phonepe_webhook(request):
             return JsonResponse({"error": "Order not found"}, status=404)
 
         order.payment_status = (
-            "Paid" if status == "COMPLETED" else
+            "Paid" if status in ["COMPLETED", "ACTIVE"] else
             "Failed" if status == "FAILED" else
             status
         )
+
         order.save()
 
         if status == "COMPLETED":
