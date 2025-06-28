@@ -24,6 +24,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 LOGIN_URL = '/admin/login/'  # Redirects to admin login if user is not logged in
 import os
+from decouple import config
+
+PHONEPE_CLIENT_ID = config("PHONEPE_CLIENT_ID")
+PHONEPE_CLIENT_SECRET = config("PHONEPE_CLIENT_SECRET")
+PHONEPE_CLIENT_VERSION = config("PHONEPE_CLIENT_VERSION", default="1")
+PHONEPE_ENV = config("PHONEPE_ENV", default="PRODUCTION")
+
+PHONEPE_WEBHOOK_USERNAME = config("PHONEPE_WEBHOOK_USERNAME")
+PHONEPE_WEBHOOK_PASSWORD = config("PHONEPE_WEBHOOK_PASSWORD")
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
