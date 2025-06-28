@@ -352,6 +352,7 @@ def order_success(request):
 
 @csrf_exempt
 def phonepe_webhook(request):
+    print("📬 PhonePe Webhook HIT")
     try:
         # Step 1: Auth
         received_auth = request.headers.get("Authorization")
