@@ -315,6 +315,18 @@ def order_success(request):
         except:
             order.cart_items = []
 
+    # ✅ Check real-time status if payment is still Pending
+    if order.payment_status.lower() not in ["paid", "failed"]:
+        result = get_phonepe_payment_status(order.phonepe_order_id)
+        if result and result.get("success"):
+            state = result.get("data", {}).get("state")
+            if state in ["COMPLETED", "ACTIVE"]:
+                order.payment_status = "Paid"
+            elif state == "FAILED":
+                order.payment_status = "Failed"
+            order.save()
+
+    # Show proper UI
     if order.payment_status.lower() == "paid":
         message_title = "Payment Successful!"
         message_body  = f"Your order #{order.phonepe_order_id} is confirmed."
@@ -340,6 +352,33 @@ def order_success(request):
     })
 
 
+def get_phonepe_payment_status(order_id):
+    url = "https://api.phonepe.com/apis/hermes/pg/v1/status/{}".format(order_id)
+
+    # Build the payload
+    payload = {
+        "merchantId": settings.PHONEPE_CLIENT_ID,
+        "merchantTransactionId": order_id
+    }
+
+    base64_payload = base64.b64encode(json.dumps(payload).encode()).decode()
+
+    salt = settings.PHONEPE_CLIENT_SECRET
+    string_to_hash = base64_payload + "/pg/v1/status/" + order_id + salt
+    x_verify = hashlib.sha256(string_to_hash.encode()).hexdigest() + "###" + settings.PHONEPE_CLIENT_VERSION
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-VERIFY": x_verify,
+        "X-MERCHANT-ID": settings.PHONEPE_CLIENT_ID
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        return response.json()
+    except Exception as e:
+        print("PhonePe API error:", e)
+        return None
 
 
 @csrf_exempt
