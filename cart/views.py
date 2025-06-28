@@ -205,86 +205,90 @@ def update_cart_quantity(request, item_id):
 
 @csrf_exempt
 def process_order(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body.decode("utf-8"))
-            print("Received Data:", data)
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
 
-            address = f"{data.get('address_line1', '')}, {data.get('address_line2', '')}, {data.get('city', '')}, {data.get('state', '')}, {data.get('postal_code', '')}, {data.get('country', '')}"
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        print("📩 Received Order Data:", data)
 
-            required_fields = ["full_name", "email", "phone", "cart_items", "total_quantity", "total_amount"]
-            missing_fields = [field for field in required_fields if field not in data or not data[field]]
-            if missing_fields:
-                return JsonResponse({"error": f"Missing required fields: {', '.join(missing_fields)}"}, status=400)
+        # Validate required fields
+        required_fields = ["full_name", "email", "phone", "cart_items", "total_quantity", "total_amount"]
+        missing = [f for f in required_fields if not data.get(f)]
+        if missing:
+            return JsonResponse({"error": f"Missing fields: {', '.join(missing)}"}, status=400)
 
-            postal_charge = 80
-            base_total = float(data["total_amount"])
-            final_amount = base_total + postal_charge
+        # Build full address
+        address = ", ".join([
+            data.get("address_line1", ""), data.get("address_line2", ""),
+            data.get("city", ""), data.get("state", ""),
+            data.get("postal_code", ""), data.get("country", "")
+        ])
 
-            with transaction.atomic():
-                order = Order.objects.create(
-                    user=request.user if request.user.is_authenticated else None,
-                    full_name=data["full_name"],
-                    email=data["email"],
-                    phone=data["phone"],
-                    address=address,
-                    cart_items=data["cart_items"],
-                    total_quantity=data["total_quantity"],
-                    total_amount=final_amount,
-                    postal_charge=postal_charge,
-                    payment_status="Pending",
-                )
+        # Postal charge & final amount
+        postal_charge = 80
+        base_amount = float(data["total_amount"])
+        final_amount = base_amount + postal_charge
 
-                for item in data["cart_items"]:
-                    seed_id = item["id"]
-                    quantity_ordered = int(item["quantity"])
-                    try:
-                        seed = Seed.objects.select_for_update().get(id=seed_id)
-                        if seed.stock >= quantity_ordered:
-                            seed.stock -= quantity_ordered
-                            seed.save()
-                        else:
-                            return JsonResponse({"error": f"Not enough stock for {seed.name}"}, status=400)
-                    except Seed.DoesNotExist:
-                        return JsonResponse({"error": f"Seed with ID {seed_id} not found"}, status=404)
+        with transaction.atomic():
+            # Step 1: Create order to generate ID
+            order = Order(
+                user=request.user if request.user.is_authenticated else None,
+                full_name=data["full_name"],
+                email=data["email"],
+                phone=data["phone"],
+                address=address,
+                cart_items=data["cart_items"],
+                total_quantity=data["total_quantity"],
+                total_amount=final_amount,
+                postal_charge=postal_charge,
+                payment_status="Pending"
+            )
+            order.save()  # now order.id is available
 
-                # Create PhonePe Payment
-                phonepe_order_id = f"HF{order.id}"
-                redirect_url = f"https://hasafarm.com/order-success/?order_id={phonepe_order_id}"
+            # Step 2: Set phonepe_order_id using order.id
+            phonepe_order_id = f"HF{order.id}"
+            redirect_url = f"https://hasafarm.com/order-success/?order_id={phonepe_order_id}"
 
+            # Step 3: Reserve stock
+            for item in data["cart_items"]:
+                seed = Seed.objects.select_for_update().get(id=item["id"])
+                qty = int(item["quantity"])
+                if seed.stock < qty:
+                    return JsonResponse({"error": f"Not enough stock for {seed.name}"}, status=400)
+                seed.stock -= qty
+                seed.save()
 
-                pay_request = StandardCheckoutPayRequest.build_request(
-                    merchant_order_id=phonepe_order_id,
-                    amount=int(final_amount * 100),
-                    redirect_url=redirect_url
-                )
+            # Step 4: Generate payment link via PhonePe
+            pay_request = StandardCheckoutPayRequest.build_request(
+                merchant_order_id=phonepe_order_id,
+                amount=int(final_amount * 100),  # Convert to paise
+                redirect_url=redirect_url
+            )
 
-                pay_response = client.pay(pay_request)
+            pay_response = client.pay(pay_request)
 
-                order.phonepe_order_id = phonepe_order_id
-                order.payment_link = pay_response.redirect_url
-                order.save()
+            # Step 5: Save order updates
+            order.phonepe_order_id = phonepe_order_id
+            order.payment_link = pay_response.redirect_url
+            order.save(update_fields=["phonepe_order_id", "payment_link"])
 
-                # Clear cart session
-                request.session["cart"] = {}
-                request.session.modified = True
+            # Step 6: Clear cart from session
+            request.session["cart"] = {}
+            request.session.modified = True
 
-                return JsonResponse({
-                    "message": "Order placed successfully!",
-                    "order_id": order.id,
-                    "payment_link": pay_response.redirect_url,
-                    "postal_charge": postal_charge,
-                    "total_amount": final_amount
-                }, status=201)
+            # Step 7: Return response
+            return JsonResponse({
+                "message": "Order created!",
+                "order_id": order.id,
+                "payment_link": pay_response.redirect_url,
+                "postal_charge": postal_charge,
+                "total_amount": final_amount
+            }, status=201)
 
-        except json.JSONDecodeError as e:
-            print("JSON Decode Error:", e)
-            return JsonResponse({"error": "Invalid JSON format"}, status=400)
-        except Exception as e:
-            print("Error placing order:", e)
-            return JsonResponse({"error": "Internal server error"}, status=500)
-
-    return JsonResponse({"error": "Invalid request method"}, status=405)
+    except Exception as e:
+        print("❌ Order error:", e)
+        return JsonResponse({"error": "Internal Server Error"}, status=500)
 
 
 
@@ -304,36 +308,33 @@ def order_success(request):
     order_id = request.GET.get('order_id')
     if not order_id:
         return render(request, "cart/order_success.html", {
-            "error": "Order ID missing.",
             "message_title": "Order Error",
-            "message_body": "No order ID was provided.",
+            "message_body": "No order ID provided.",
             "btn_text": "Go Home",
             "btn_link": "/"
         })
 
     order = get_object_or_404(Order, phonepe_order_id=order_id)
 
-    # Deserialize cart_items if needed
     if isinstance(order.cart_items, str):
         try:
             order.cart_items = json.loads(order.cart_items)
-        except json.JSONDecodeError:
+        except:
             order.cart_items = []
 
-    # Based on payment status
-    if order.payment_status in ["Paid", "SUCCESS", "PAID"]:
-        message_title = "✅ Payment Successful!"
-        message_body = f"Thank you for your order #{order.id}. We've received your payment."
+    if order.payment_status == "Paid":
+        message_title = "Payment Successful!"
+        message_body = f"Your order #{order.phonepe_order_id} is confirmed."
         btn_text = "Continue Shopping"
         btn_link = "/seeds/"
     elif order.payment_status == "Failed":
-        message_title = "❌ Payment Failed"
-        message_body = "Unfortunately, your payment failed. Please try again."
+        message_title = "Payment Failed"
+        message_body = "Your payment failed. Please try again."
         btn_text = "Retry Payment"
         btn_link = f"/checkout/?order_id={order.phonepe_order_id}"
     else:
-        message_title = "⏳ Payment Pending"
-        message_body = "We're waiting to confirm your payment. You'll be notified shortly."
+        message_title = "Payment Pending"
+        message_body = "Your payment is pending. We'll notify you shortly."
         btn_text = "Go Home"
         btn_link = "/"
 
@@ -342,9 +343,9 @@ def order_success(request):
         "message_title": message_title,
         "message_body": message_body,
         "btn_text": btn_text,
-        "btn_link": btn_link,
-        "payment_status": order.payment_status
+        "btn_link": btn_link
     })
+
 
 
 
@@ -352,77 +353,55 @@ def order_success(request):
 @csrf_exempt
 def phonepe_webhook(request):
     try:
-        # Step 1: Auth check
+        # Step 1: Auth
         received_auth = request.headers.get("Authorization")
-        expected_auth = hashlib.sha256(
-            f"{config('PHONEPE_WEBHOOK_USERNAME')}:{config('PHONEPE_WEBHOOK_PASSWORD')}".encode()
-        ).hexdigest()
-
+        expected_auth = hashlib.sha256(f"{settings.PHONEPE_WEBHOOK_USERNAME}:{settings.PHONEPE_WEBHOOK_PASSWORD}".encode()).hexdigest()
         if received_auth != expected_auth:
             return HttpResponseForbidden("Unauthorized")
 
-        # Step 2: Extract and validate payload
+        # Step 2: Parse Payload
         payload = json.loads(request.body)
-        print("📩 Webhook Payload:", payload)
-
-        event_type = payload.get("event")
+        event = payload.get("event")
         data = payload.get("payload", {})
-        merchant_order_id = data.get("merchantOrderId")  # Example: HF123
-        payment_status = data.get("state")  # COMPLETED, FAILED, etc.
+        merchant_order_id = data.get("merchantOrderId")
+        status = data.get("state")
 
-        if not merchant_order_id or not payment_status:
+        if not merchant_order_id or not status:
             return JsonResponse({"error": "Missing order info"}, status=400)
 
-        # Step 3: Find order by phonepe_order_id
         order = Order.objects.filter(phonepe_order_id=merchant_order_id).first()
         if not order:
             return JsonResponse({"error": "Order not found"}, status=404)
 
-        # Step 4: Update payment status
-        if payment_status == "COMPLETED":
-            order.payment_status = "Paid"
-        elif payment_status == "FAILED":
-            order.payment_status = "Failed"
-        else:
-            order.payment_status = payment_status  # catch unexpected states
-
+        order.payment_status = (
+            "Paid" if status == "COMPLETED" else
+            "Failed" if status == "FAILED" else
+            status
+        )
         order.save()
-        print(f"✅ Order {order.id} status updated to {order.payment_status}")
 
-        # Step 5: Send confirmation emails
-        if order.payment_status == "Paid":
-            # notify admin
+        if status == "COMPLETED":
+            # Customer Email
             send_mail(
-                subject=f"✅ New Paid Order - #{order.id}",
-                message=f"Order placed by {order.full_name} for ₹{order.total_amount}",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[settings.ADMIN_NOTIFICATION_EMAIL],
-                fail_silently=True,
+                f"✅ Order Confirmed: {order.phonepe_order_id}",
+                f"Hi {order.full_name},\n\nYour payment was successful and your order is confirmed.\nOrder ID: {order.phonepe_order_id}\nTotal: ₹{order.total_amount}\n\nThank you for shopping with Hasa Farm!",
+                settings.DEFAULT_FROM_EMAIL,
+                [order.email],
+                fail_silently=True
             )
 
-            # confirmation to customer
+            # Admin Email
+            items_list = "\n".join([f"- {i['name']} x {i['quantity']} = ₹{i['total_price']}" for i in order.cart_items])
             send_mail(
-                subject=f"Your Order with Hasa Farm #{order.id} is Confirmed 🎉",
-                message=f"Hi {order.full_name},\n\nThank you for your payment of ₹{order.total_amount}. Your order is confirmed!",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[order.email],
-                fail_silently=True,
+                f"🛒 New Paid Order: {order.phonepe_order_id}",
+                f"Customer: {order.full_name}\nEmail: {order.email}\nPhone: {order.phone}\nAddress: {order.address}\nTotal: ₹{order.total_amount}\n\nItems:\n{items_list}",
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.ADMIN_NOTIFICATION_EMAIL],
+                fail_silently=False
             )
 
         return JsonResponse({"message": "Webhook processed successfully"})
 
     except Exception as e:
-        print("🚨 Webhook error:", e)
-        return JsonResponse({"error": "Internal server error"}, status=500)
-
-
-def check_order_status(request):
-    order_id = request.GET.get("order_id")
-    if not order_id:
-        return JsonResponse({"status": "error", "message": "Order ID not provided"}, status=400)
-
-    order = Order.objects.filter(phonepe_order_id=order_id).first()
-    if not order:
-        return JsonResponse({"status": "error", "message": "Order not found"}, status=404)
-
-    return JsonResponse({"status": order.payment_status})
+        print("❌ Webhook error:", e)
+        return JsonResponse({"error": "Webhook error"}, status=500)
