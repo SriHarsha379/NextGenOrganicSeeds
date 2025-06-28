@@ -14,5 +14,5 @@ urlpatterns = [
     path("get_cart/", get_cart, name="get_cart"),
     path("order-success/", order_success, name="order_success"),
     path("payment/response/", phonepe_webhook, name="phonepe_webhook"),
-
+    path("payment/response", phonepe_webhook),
 ]
