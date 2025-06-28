@@ -88,10 +88,16 @@ def payment_success(request):
 @login_required
 def my_orders(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'orders/my_orders.html', {
-        'orders': orders,
-        'MEDIA_URL': settings.MEDIA_URL
-    })
+
+    for order in orders:
+        order.refresh_from_db()  # refresh the latest DB state
+        if isinstance(order.cart_items, str):
+            try:
+                order.cart_items = json.loads(order.cart_items)
+            except json.JSONDecodeError:
+                order.cart_items = []
+
+    return render(request, 'cart/my_orders.html', {"orders": orders})
 
 
 @login_required
