@@ -384,6 +384,8 @@ def get_phonepe_payment_status(order_id):
 @csrf_exempt
 def phonepe_webhook(request):
     logger.info("📬 PhonePe Webhook HIT")
+    print("🧪 ENV DEBUG — Username:", settings.PHONEPE_WEBHOOK_USERNAME)
+    print("🧪 ENV DEBUG — Password:", settings.PHONEPE_WEBHOOK_PASSWORD)
 
     # ✅ Basic Auth Validation
     auth_header = request.headers.get('Authorization')
