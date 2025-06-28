@@ -305,38 +305,31 @@ def clear_cart(request):
     return JsonResponse({"message": "Cart cleared"})
 
 def order_success(request):
-    order_id = request.GET.get('order_id')
-    if not order_id:
-        return render(request, "cart/order_success.html", {
-            "message_title": "Order Error",
-            "message_body": "No order ID provided.",
-            "btn_text": "Go Home",
-            "btn_link": "/"
-        })
-
+    order_id = request.GET.get("order_id")
     order = get_object_or_404(Order, phonepe_order_id=order_id)
 
+    # ensure JSON cart_items
     if isinstance(order.cart_items, str):
         try:
             order.cart_items = json.loads(order.cart_items)
         except:
             order.cart_items = []
 
-    if order.payment_status == "Paid":
+    if order.payment_status.lower() == "paid":
         message_title = "Payment Successful!"
-        message_body = f"Your order #{order.phonepe_order_id} is confirmed."
-        btn_text = "Continue Shopping"
-        btn_link = "/seeds/"
-    elif order.payment_status == "Failed":
+        message_body  = f"Your order #{order.phonepe_order_id} is confirmed."
+        btn_text      = "Continue Shopping"
+        btn_link      = "/seeds/"
+    elif order.payment_status.lower() == "failed":
         message_title = "Payment Failed"
-        message_body = "Your payment failed. Please try again."
-        btn_text = "Retry Payment"
-        btn_link = f"/checkout/?order_id={order.phonepe_order_id}"
+        message_body  = "Your payment failed. Please try again."
+        btn_text      = "Retry Payment"
+        btn_link      = f"/checkout/?order_id={order.phonepe_order_id}"
     else:
         message_title = "Payment Pending"
-        message_body = "Your payment is pending. We'll notify you shortly."
-        btn_text = "Go Home"
-        btn_link = "/"
+        message_body  = "Your payment is pending. We'll notify you shortly."
+        btn_text      = "Go Home"
+        btn_link      = "/"
 
     return render(request, "cart/order_success.html", {
         "order": order,
@@ -349,61 +342,76 @@ def order_success(request):
 
 
 
-
 @csrf_exempt
 def phonepe_webhook(request):
     print("📬 PhonePe Webhook HIT")
+
+    # 1) Validate SHA256(username:password)
+    received_auth = request.headers.get("Authorization")
+    expected_auth = hashlib.sha256(
+        f"{settings.PHONEPE_WEBHOOK_USERNAME}:{settings.PHONEPE_WEBHOOK_PASSWORD}".encode()
+    ).hexdigest()
+    if received_auth != expected_auth:
+        print("❌ Invalid Authorization Header")
+        return HttpResponseForbidden("Unauthorized")
+
+    # 2) Parse the JSON body
     try:
-        # Step 1: Auth
-        received_auth = request.headers.get("Authorization")
-        expected_auth = hashlib.sha256(f"{settings.PHONEPE_WEBHOOK_USERNAME}:{settings.PHONEPE_WEBHOOK_PASSWORD}".encode()).hexdigest()
-        if received_auth != expected_auth:
-            return HttpResponseForbidden("Unauthorized")
-
-        # Step 2: Parse Payload
         payload = json.loads(request.body)
-        event = payload.get("event")
-        data = payload.get("payload", {})
-        merchant_order_id = data.get("merchantOrderId")
-        status = data.get("state")
+    except json.JSONDecodeError:
+        print("❌ Invalid JSON Format")
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-        if not merchant_order_id or not status:
-            return JsonResponse({"error": "Missing order info"}, status=400)
+    event = payload.get("event")
+    data = payload.get("payload", {})
+    merchant_order_id = data.get("merchantOrderId")
+    state = data.get("state")
+    print(f"🔍 Event={event}  ID={merchant_order_id}  State={state}")
 
-        order = Order.objects.filter(phonepe_order_id=merchant_order_id).first()
-        if not order:
-            return JsonResponse({"error": "Order not found"}, status=404)
+    if not merchant_order_id or not state:
+        return JsonResponse({"error": "Missing merchantOrderId or state"}, status=400)
 
-        order.payment_status = (
-            "Paid" if status in ["COMPLETED", "ACTIVE"] else
-            "Failed" if status == "FAILED" else
-            status
+    # 3) Lookup and update the Order
+    order = Order.objects.filter(phonepe_order_id=merchant_order_id).first()
+    if not order:
+        print("❌ Order not found")
+        return JsonResponse({"error": "Order not found"}, status=404)
+
+    prev = order.payment_status
+    if state in ("COMPLETED", "ACTIVE"):
+        order.payment_status = "Paid"
+    elif state == "FAILED":
+        order.payment_status = "Failed"
+    else:
+        order.payment_status = state
+    order.save()
+    print(f"✅ Order {order.phonepe_order_id}: {prev} → {order.payment_status}")
+
+    # 4) Send emails on success
+    if order.payment_status == "Paid":
+        if isinstance(order.cart_items, str):
+            try:
+                order.cart_items = json.loads(order.cart_items)
+            except:
+                order.cart_items = []
+
+        # customer
+        send_mail(
+            f"✅ Order Confirmed: {order.phonepe_order_id}",
+            f"Hi {order.full_name},\nYour payment succeeded!\nOrder ID: {order.phonepe_order_id}\nTotal: ₹{order.total_amount}\n\nThanks for shopping!",
+            settings.DEFAULT_FROM_EMAIL,
+            [order.email],
+            fail_silently=True
         )
 
-        order.save()
+        # admin
+        items = "\n".join(f"- {i['name']} x{i['quantity']} = ₹{i['total_price']}" for i in order.cart_items)
+        send_mail(
+            f"🛒 New Paid Order: {order.phonepe_order_id}",
+            f"Customer: {order.full_name}\nEmail: {order.email}\nPhone: {order.phone}\nAddress: {order.address}\n\nItems:\n{items}\n\nTotal: ₹{order.total_amount}",
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.ADMIN_NOTIFICATION_EMAIL],
+            fail_silently=False
+        )
 
-        if status == "COMPLETED":
-            # Customer Email
-            send_mail(
-                f"✅ Order Confirmed: {order.phonepe_order_id}",
-                f"Hi {order.full_name},\n\nYour payment was successful and your order is confirmed.\nOrder ID: {order.phonepe_order_id}\nTotal: ₹{order.total_amount}\n\nThank you for shopping with Hasa Farm!",
-                settings.DEFAULT_FROM_EMAIL,
-                [order.email],
-                fail_silently=True
-            )
-
-            # Admin Email
-            items_list = "\n".join([f"- {i['name']} x {i['quantity']} = ₹{i['total_price']}" for i in order.cart_items])
-            send_mail(
-                f"🛒 New Paid Order: {order.phonepe_order_id}",
-                f"Customer: {order.full_name}\nEmail: {order.email}\nPhone: {order.phone}\nAddress: {order.address}\nTotal: ₹{order.total_amount}\n\nItems:\n{items_list}",
-                settings.DEFAULT_FROM_EMAIL,
-                [settings.ADMIN_NOTIFICATION_EMAIL],
-                fail_silently=False
-            )
-
-        return JsonResponse({"message": "Webhook processed successfully"})
-
-    except Exception as e:
-        print("❌ Webhook error:", e)
-        return JsonResponse({"error": "Webhook error"}, status=500)
+    return JsonResponse({"message": "Webhook processed successfully"})
