@@ -384,8 +384,7 @@ def get_phonepe_payment_status(order_id):
 @csrf_exempt
 def phonepe_webhook(request):
     logger.info("📬 PhonePe Webhook HIT")
-    print("🧪 ENV DEBUG — Username:", settings.PHONEPE_WEBHOOK_USERNAME)
-    print("🧪 ENV DEBUG — Password:", settings.PHONEPE_WEBHOOK_PASSWORD)
+
 
     # ✅ Basic Auth Validation
     auth_header = request.headers.get('Authorization')
@@ -398,6 +397,7 @@ def phonepe_webhook(request):
         username, password = decoded_credentials.split(':', 1)
     except Exception:
         return HttpResponseForbidden("Unauthorized")
+    print("🚨 Incoming Authorization:", request.headers.get('Authorization'))
 
     if username != settings.PHONEPE_WEBHOOK_USERNAME or password != settings.PHONEPE_WEBHOOK_PASSWORD:
         return HttpResponseForbidden("Unauthorized")
@@ -473,5 +473,6 @@ def phonepe_webhook(request):
             [settings.ADMIN_NOTIFICATION_EMAIL],
             fail_silently=False,
         )
-
+    print("🧪 ENV DEBUG — Username:", settings.PHONEPE_WEBHOOK_USERNAME)
+    print("🧪 ENV DEBUG — Password:", settings.PHONEPE_WEBHOOK_PASSWORD)
     return JsonResponse({"message": "Webhook processed successfully"}, status=200)
