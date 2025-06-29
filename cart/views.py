@@ -212,26 +212,26 @@ def process_order(request):
         data = json.loads(request.body.decode("utf-8"))
         print("📩 Received Order Data:", data)
 
-        # Validate required fields
+        # Required fields check
         required_fields = ["full_name", "email", "phone", "cart_items", "total_quantity", "total_amount"]
         missing = [f for f in required_fields if not data.get(f)]
         if missing:
             return JsonResponse({"error": f"Missing fields: {', '.join(missing)}"}, status=400)
 
-        # Build full address
+        # Address formatting
         address = ", ".join([
             data.get("address_line1", ""), data.get("address_line2", ""),
             data.get("city", ""), data.get("state", ""),
             data.get("postal_code", ""), data.get("country", "")
         ])
 
-        # Postal charge & final amount
+        # Final amount calculation
         postal_charge = 80
         base_amount = float(data["total_amount"])
         final_amount = base_amount + postal_charge
 
         with transaction.atomic():
-            # Step 1: Create order to generate ID
+            # Step 1: Create order
             order = Order(
                 user=request.user if request.user.is_authenticated else None,
                 full_name=data["full_name"],
@@ -244,13 +244,17 @@ def process_order(request):
                 postal_charge=postal_charge,
                 payment_status="Pending"
             )
-            order.save()  # now order.id is available
+            order.save()
 
-            # Step 2: Set phonepe_order_id using order.id
+            # Step 2: Assign phonepe_order_id & save early ✅
             phonepe_order_id = f"HF{order.id}"
+            order.phonepe_order_id = phonepe_order_id
+            order.save(update_fields=["phonepe_order_id"])
+
+            # Step 3: Set redirect URL
             redirect_url = f"https://hasafarm.com/order-success/?order_id={phonepe_order_id}"
 
-            # Step 3: Reserve stock
+            # Step 4: Check & reserve stock
             for item in data["cart_items"]:
                 seed = Seed.objects.select_for_update().get(id=item["id"])
                 qty = int(item["quantity"])
@@ -259,25 +263,23 @@ def process_order(request):
                 seed.stock -= qty
                 seed.save()
 
-            # Step 4: Generate payment link via PhonePe
+            # Step 5: PhonePe payment link
             pay_request = StandardCheckoutPayRequest.build_request(
                 merchant_order_id=phonepe_order_id,
-                amount=int(final_amount * 100),  # Convert to paise
+                amount=int(final_amount * 100),
                 redirect_url=redirect_url
             )
-
             pay_response = client.pay(pay_request)
 
-            # Step 5: Save order updates
-            order.phonepe_order_id = phonepe_order_id
+            # Step 6: Save payment link
             order.payment_link = pay_response.redirect_url
-            order.save(update_fields=["phonepe_order_id", "payment_link"])
+            order.save(update_fields=["payment_link"])
 
-            # Step 6: Clear cart from session
+            # Step 7: Clear session cart
             request.session["cart"] = {}
             request.session.modified = True
 
-            # Step 7: Return response
+            # Step 8: Return success response
             return JsonResponse({
                 "message": "Order created!",
                 "order_id": order.id,
@@ -289,6 +291,7 @@ def process_order(request):
     except Exception as e:
         print("❌ Order error:", e)
         return JsonResponse({"error": "Internal Server Error"}, status=500)
+
 
 
 
@@ -306,16 +309,26 @@ def clear_cart(request):
 
 def order_success(request):
     order_id = request.GET.get("order_id")
-    order = get_object_or_404(Order, phonepe_order_id=order_id)
+    order_id = order_id.strip() if order_id else None
 
-    # ensure JSON cart_items
+    # ✅ Try matching by phonepe_order_id first
+    order = Order.objects.filter(phonepe_order_id__iexact=order_id).first()
+
+    # ✅ Fallback to numeric ID
+    if not order and order_id and order_id.isdigit():
+        order = Order.objects.filter(id=int(order_id)).first()
+
+    if not order:
+        raise Http404("Order not found")
+
+    # Decode JSON safely
     if isinstance(order.cart_items, str):
         try:
             order.cart_items = json.loads(order.cart_items)
         except:
             order.cart_items = []
 
-    # ✅ Check real-time status if payment is still Pending
+    # Real-time payment check if still pending
     if order.payment_status.lower() not in ["paid", "failed"]:
         result = get_phonepe_payment_status(order.phonepe_order_id)
         if result and result.get("success"):
@@ -326,7 +339,7 @@ def order_success(request):
                 order.payment_status = "Failed"
             order.save()
 
-    # Show proper UI
+    # UI rendering
     if order.payment_status.lower() == "paid":
         message_title = "Payment Successful!"
         message_body  = f"Your order #{order.phonepe_order_id} is confirmed."
@@ -352,33 +365,33 @@ def order_success(request):
     })
 
 
+
 def get_phonepe_payment_status(order_id):
-    url = "https://api.phonepe.com/apis/hermes/pg/v1/status/{}".format(order_id)
-
-    # Build the payload
-    payload = {
-        "merchantId": settings.PHONEPE_CLIENT_ID,
-        "merchantTransactionId": order_id
-    }
-
-    base64_payload = base64.b64encode(json.dumps(payload).encode()).decode()
-
-    salt = settings.PHONEPE_CLIENT_SECRET
-    string_to_hash = base64_payload + "/pg/v1/status/" + order_id + salt
-    x_verify = hashlib.sha256(string_to_hash.encode()).hexdigest() + "###" + settings.PHONEPE_CLIENT_VERSION
-
-    headers = {
-        "Content-Type": "application/json",
-        "X-VERIFY": x_verify,
-        "X-MERCHANT-ID": settings.PHONEPE_CLIENT_ID
-    }
-
     try:
-        response = requests.get(url, headers=headers)
+        salt_key = settings.PHONEPE_SALT_KEY
+        salt_index = settings.PHONEPE_SALT_INDEX
+        merchant_id = settings.PHONEPE_MERCHANT_ID
+
+        url_path = f"/pg/v1/status/{order_id}"
+        base_url = "https://api.phonepe.com"  # for production
+        full_url = base_url + url_path
+
+        string_to_hash = f"{url_path}{salt_key}"
+        hashed = hashlib.sha256(string_to_hash.encode()).hexdigest()
+        x_verify = f"{hashed}###{salt_index}"
+
+        headers = {
+            "X-VERIFY": x_verify,
+            "X-MERCHANT-ID": merchant_id,
+            "Content-Type": "application/json"
+        }
+
+        response = requests.get(full_url, headers=headers, timeout=10)
         return response.json()
+
     except Exception as e:
-        print("PhonePe API error:", e)
-        return None
+        print("❌ PhonePe status check error:", e)
+        return {}
 
 
 @csrf_exempt
