@@ -46,7 +46,7 @@ config = Config(RepositoryEnv(BASE_DIR / '.env'))  # for custom path
 SECRET_KEY = 'django-insecure-+vofv8mk!los^y4r=^^bt86$nk3e(^a$*i4k-_q7ybwpzwg5%c'
 
 ALLOWED_HOSTS = ['hasafarm.com', 'www.hasafarm.com', '147.93.28.237']
-#ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+# ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
