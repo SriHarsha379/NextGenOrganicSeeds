@@ -53,3 +53,25 @@
     </div>
 </body>
 </html>
+
+{% if payment_status == "Pending" %}
+<script>
+  const orderId = "{{ order.phonepe_order_id }}";
+
+  function checkPaymentStatus() {
+    fetch(`/check-order-status/?order_id=${orderId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === "Paid") {
+          location.reload();  // Refresh the page to show payment success
+        }
+      })
+      .catch(error => {
+        console.error("Error checking payment status:", error);
+      });
+  }
+
+  // Poll every 5 seconds
+  setInterval(checkPaymentStatus, 5000);
+</script>
+{% endif %}
