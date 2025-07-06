@@ -17,5 +17,5 @@ urlpatterns = [
     path('order-success/', order_success, name='order_success'),
 
     # ✅ KEEP ONLY THIS version (with trailing slash)
-    path('payment/response/', phonepe_webhook, name='phonepe_webhook'),
+    path('cart/payment/response/', phonepe_webhook, name='phonepe_webhook'),
 ]
