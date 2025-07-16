@@ -290,6 +290,14 @@
     document.querySelector('button[type="submit"]').disabled = true;
 });
 
+        setTimeout(function() {
+        const msg = document.getElementById("messages");
+        if (msg) {
+            msg.style.transition = "opacity 0.5s ease";
+            msg.style.opacity = 0;
+            setTimeout(() => msg.style.display = "none", 500);  // Clean hide
+        }
+    }, 5000);  // 5 seconds
     </script>
 </body>
 </html>
