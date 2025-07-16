@@ -24,31 +24,32 @@ from .forms import ForgotPasswordForm
 
 def user_login(request):
     if request.method == "POST":
-        username = request.POST["username"]
-        password = request.POST["password"]
+        username = request.POST.get("username")
+        password = request.POST.get("password")
         remember_me = request.POST.get("remember_me")
+
+        # Check if the username or email actually exists first
+        user_exists = User.objects.filter(username=username).exists() or User.objects.filter(email__iexact=username).exists()
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
 
+            # Set session expiry
             if remember_me:
                 request.session.set_expiry(1209600)  # 2 weeks
             else:
                 request.session.set_expiry(3600)  # 1 hour
 
-            request.session.modified = True  # Ensure session updates
+            request.session.modified = True
             print(f"✅ Login successful: {user.username}")
-
-            try:
-                for key, value in request.session.items():
-                    print(f"{key}: {value}")
-            except Exception as e:
-                print(f"⚠️ Error printing session: {e}")
 
             return redirect("home")
         else:
-            messages.error(request, "Invalid username or password.")
+            if not user_exists:
+                messages.error(request, "Account does not exist. Please register first or contact support.")
+            else:
+                messages.error(request, "Invalid password. Please try again.")
             print("❌ Login failed")
 
     return render(request, "accounts/login.html")
