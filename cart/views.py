@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from django.http import Http404
 from django.db import transaction
 from products.utils.phonepe_client import client
@@ -6,6 +8,7 @@ from django.conf import settings
 from django.views.decorators.http import require_POST
 import hashlib
 import hmac
+from decimal import Decimal
 import requests
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
@@ -35,53 +38,58 @@ def add_to_cart(request, seed_id):
         # Get or create session cart
         cart = request.session.get("cart", {})
 
-        # Get quantity from request
+        # Parse request body
         data = json.loads(request.body)
-        requested_quantity = int(data.get("quantity", 1))  # Default to 1 if not provided
 
-        # Get current quantity in cart (default to 0 if not in cart)
-        current_quantity = cart[str(seed_id)]["quantity"] if str(seed_id) in cart else 0
+        # ✅ Sanitize and validate quantity
+        quantity_raw = data.get("quantity", 1)
 
-        # New total quantity after adding
+        try:
+            requested_quantity = int(quantity_raw)
+        except (TypeError, ValueError):
+            return JsonResponse({"error": "Invalid quantity format."}, status=400)
+
+        if requested_quantity < 1:
+            return JsonResponse({"error": "Quantity must be at least 1."}, status=400)
+        if requested_quantity > 999:  # Arbitrary max limit to prevent abuse
+            return JsonResponse({"error": "Quantity too large."}, status=400)
+
+        # Get current quantity in cart
+        current_quantity = cart.get(str(seed_id), {}).get("quantity", 0)
+
+        # Total quantity after addition
         new_quantity = current_quantity + requested_quantity
 
-        # ✅ Validate against available stock
         if new_quantity > seed.stock:
             return JsonResponse({
                 "error": f"Only {seed.stock} items available in stock! You already have {current_quantity} in your cart."
             }, status=400)
 
-        # Update cart quantity
-        if str(seed_id) in cart:
-            cart[str(seed_id)]["quantity"] = new_quantity  # Update existing quantity
-        else:
-            cart[str(seed_id)] = {
-                "name": seed.name,
-                "price": float(seed.price),  # Convert Decimal to float
-                "quantity": requested_quantity
-            }
+        # Update cart
+        cart[str(seed_id)] = {
+            "name": seed.name,
+            "price": float(seed.price),
+            "quantity": new_quantity
+        }
 
-        # Save back to session
         request.session["cart"] = cart
         request.session.modified = True
 
-        # Get unique count of items
-        unique_item_count = len(cart)  # Number of unique items
-
         return JsonResponse({
             "message": "Item added successfully",
-            "cart_count": unique_item_count,
+            "cart_count": len(cart),
             "cart": cart
         })
 
     except Seed.DoesNotExist:
         return JsonResponse({"error": "Seed not found"}, status=404)
+
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
 logger = logging.getLogger(__name__)
 
-@login_required
+
 def view_cart(request):
     cart = request.session.get('cart', {})  # Retrieve cart from session
     seed_ids = [int(seed_id) for seed_id in cart.keys() if seed_id.isdigit()]
@@ -120,7 +128,7 @@ def view_cart(request):
     })
 
 
-@login_required
+
 def remove_from_cart(request, cart_id):
     if request.method == "POST":
         cart = request.session.get('cart', {})
@@ -168,18 +176,19 @@ def checkout(request):
     cart = request.session.get("cart", {})
     cart_items, total_quantity, total_amount = get_cart_summary(cart)
 
-    # ✅ Shipping logic (free if above ₹499)
-    postage_charge = 0
+    # ✅ Shipping logic (₹80 shipping if total below 499)
+    postage_charge = 80 if total_amount < 499 else 0
     grand_total = total_amount + postage_charge
 
     context = {
         "cart_items": cart_items,
         "total_quantity": total_quantity,
-        "total_amount": f"{total_amount:.2f}",
-        "postage_charge": f"{postage_charge:.2f}",
-        "grand_total": f"{grand_total:.2f}",
+        "total_amount": total_amount,         # leave as number
+        "postage_charge": postage_charge,     # leave as number
+        "grand_total": grand_total,           # leave as number
     }
     return render(request, "cart/checkout.html", context)
+
 
 
 
@@ -204,6 +213,8 @@ def update_cart_quantity(request, item_id):
 # CASHFREE_SECRET_KEY = 'cfsk_ma_prod_91757a8c50fe123563f89b3fef14c405_b16caf02'
 # CASHFREE_ORDER_API_URL = "https://api.cashfree.com/pg/orders"  # or live URL when live
 
+logger = logging.getLogger(__name__)
+
 @csrf_exempt
 def process_order(request):
     if request.method != "POST":
@@ -211,159 +222,147 @@ def process_order(request):
 
     try:
         data = json.loads(request.body.decode("utf-8"))
-        print("📩 Received Order Data:", data)
+        logger.info("📩 Received Order Data: %s", data)
 
-        # Required fields check
+        # ✅ Step 1: Required fields validation
         required_fields = ["full_name", "email", "phone", "cart_items", "total_quantity", "total_amount"]
         missing = [f for f in required_fields if not data.get(f)]
         if missing:
             return JsonResponse({"error": f"Missing fields: {', '.join(missing)}"}, status=400)
 
-        # Address formatting
-        address = ", ".join([
-            data.get("address_line1", ""), data.get("address_line2", ""),
-            data.get("city", ""), data.get("state", ""),
-            data.get("postal_code", ""), data.get("country", "")
-        ])
+        if not isinstance(data["cart_items"], list) or not data["cart_items"]:
+            return JsonResponse({"error": "Invalid cart items"}, status=400)
 
-        # Final amount calculation
-        postal_charge = 80
-        base_amount = float(data["total_amount"])
+        # ✅ Step 2: Address sanitization
+        address = ", ".join(filter(None, [
+            data.get("address_line1", ""),
+            data.get("address_line2", ""),
+            data.get("city", ""),
+            data.get("state", ""),
+            data.get("postal_code", ""),
+            data.get("country", "")
+        ])).strip()
+
+        postal_charge = Decimal("80.00")
+        try:
+            base_amount = Decimal(str(data["total_amount"]))
+            if base_amount <= 0:
+                raise ValueError("Invalid total_amount")
+        except:
+            return JsonResponse({"error": "Invalid amount format"}, status=400)
+
         final_amount = base_amount + postal_charge
 
         with transaction.atomic():
-            # Step 1: Create order
-            order = Order(
+            # ✅ Step 3: Order creation
+            order = Order.objects.create(
                 user=request.user if request.user.is_authenticated else None,
-                full_name=data["full_name"],
-                email=data["email"],
-                phone=data["phone"],
+                full_name=data["full_name"].strip(),
+                email=data["email"].strip(),
+                phone=data["phone"].strip(),
                 address=address,
                 cart_items=data["cart_items"],
-                total_quantity=data["total_quantity"],
+                total_quantity=int(data["total_quantity"]),
                 total_amount=final_amount,
                 postal_charge=postal_charge,
                 payment_status="Pending"
             )
-            order.save()
 
-            # Step 2: Assign phonepe_order_id & save early ✅
-            phonepe_order_id = f"HF{order.id}"
-            order.phonepe_order_id = phonepe_order_id
+            # ✅ Step 4: Assign unique PhonePe order ID
+            order.phonepe_order_id = f"HF{order.id}"
             order.save(update_fields=["phonepe_order_id"])
 
-            # Step 3: Set redirect URL
-            redirect_url = f"https://hasafarm.com/order-success/?order_id={phonepe_order_id}"
-
-            # Step 4: Check & reserve stock
+            # ✅ Step 5: Reserve stock
             for item in data["cart_items"]:
-                seed = Seed.objects.select_for_update().get(id=item["id"])
-                qty = int(item["quantity"])
-                if seed.stock < qty:
-                    return JsonResponse({"error": f"Not enough stock for {seed.name}"}, status=400)
+                seed = get_object_or_404(Seed.objects.select_for_update(), id=item["id"])
+                qty = int(item.get("quantity", 1))
+                if qty <= 0 or qty > seed.stock:
+                    raise ValueError(f"Invalid quantity for seed: {seed.name}")
                 seed.stock -= qty
                 seed.save()
 
-            # Step 5: PhonePe payment link
+            # ✅ Step 6: Create payment link via PhonePe
+            redirect_url = f"https://hasafarm.com/order-success/?order_id={order.phonepe_order_id}"
             pay_request = StandardCheckoutPayRequest.build_request(
-                merchant_order_id=phonepe_order_id,
-                amount=int(final_amount * 100),
+                merchant_order_id=order.phonepe_order_id,
+                amount=int(final_amount * 100),  # in paisa
                 redirect_url=redirect_url
             )
             pay_response = client.pay(pay_request)
 
-            # Step 6: Save payment link
+            # ✅ Step 7: Save payment link
             order.payment_link = pay_response.redirect_url
             order.save(update_fields=["payment_link"])
 
-            # Step 7: Clear session cart
+            # ✅ Step 8: Store order ID in session
+            request.session["last_order_id"] = order.id
+            request.session.modified = True
+            request.session["last_order_id"] = order.id
+            request.session["last_order_time"] = datetime.utcnow().isoformat()
+            request.session.modified = True
+
+            # ✅ Step 9: Clear cart
             request.session["cart"] = {}
             request.session.modified = True
 
-            # Step 8: Return success response
+            # ✅ Step 10: Return JSON response
             return JsonResponse({
                 "message": "Order created!",
                 "order_id": order.id,
                 "payment_link": pay_response.redirect_url,
-                "postal_charge": postal_charge,
-                "total_amount": final_amount
+                "postal_charge": float(postal_charge),
+                "total_amount": float(final_amount)
             }, status=201)
 
+    except ValueError as ve:
+        logger.warning("❌ Validation error: %s", ve)
+        return JsonResponse({"error": str(ve)}, status=400)
+    except Seed.DoesNotExist:
+        return JsonResponse({"error": "One or more items not found"}, status=404)
     except Exception as e:
-        print("❌ Order error:", e)
+        logger.exception("❌ Order processing error:")
         return JsonResponse({"error": "Internal Server Error"}, status=500)
 
 
 
 
-@login_required
 def get_cart(request):
     cart = request.session.get("cart", {})
     return JsonResponse(cart)
 
 
 
+@csrf_exempt
 def clear_cart(request):
-    request.session["cart"] = {}  # ✅ Clear cart session
-    request.session.modified = True
-    return JsonResponse({"message": "Cart cleared"})
+    if request.method == "POST":
+        request.session["cart"] = {}
+        return JsonResponse({"status": "cleared"})
+    return JsonResponse({"error": "Invalid request"}, status=400)
 
 def order_success(request):
-    order_id = request.GET.get("order_id")
-    order_id = order_id.strip() if order_id else None
+    phonepe_order_id = request.GET.get("order_id", "").strip()
 
-    # ✅ Try matching by phonepe_order_id first
-    order = Order.objects.filter(phonepe_order_id__iexact=order_id).first()
+    if not phonepe_order_id:
+        return render(request, "cart/order_success.html", {"error": "❌ No order ID provided."})
 
-    # ✅ Fallback to numeric ID
-    if not order and order_id and order_id.isdigit():
-        order = Order.objects.filter(id=int(order_id)).first()
+    order = get_object_or_404(Order, phonepe_order_id__iexact=phonepe_order_id)
 
-    if not order:
-        raise Http404("Order not found")
-
-    # Decode JSON safely
-    if isinstance(order.cart_items, str):
-        try:
-            order.cart_items = json.loads(order.cart_items)
-        except:
-            order.cart_items = []
-
-    # Real-time payment check if still pending
-    if order.payment_status.lower() not in ["paid", "failed"]:
-        result = get_phonepe_payment_status(order.phonepe_order_id)
-        if result and result.get("success"):
-            state = result.get("data", {}).get("state")
-            if state in ["COMPLETED", "ACTIVE"]:
-                order.payment_status = "Paid"
-            elif state == "FAILED":
-                order.payment_status = "Failed"
-            order.save()
-
-    # UI rendering
-    if order.payment_status.lower() == "paid":
-        message_title = "Payment Successful!"
-        message_body  = f"Your order #{order.phonepe_order_id} is confirmed."
-        btn_text      = "Continue Shopping"
-        btn_link      = "/seeds/"
-    elif order.payment_status.lower() == "failed":
-        message_title = "Payment Failed"
-        message_body  = "Your payment failed. Please try again."
-        btn_text      = "Retry Payment"
-        btn_link      = f"/checkout/?order_id={order.phonepe_order_id}"
+    # 🔐 Prevent unauthorized access for guest users
+    if request.user.is_authenticated:
+        if order.user != request.user:
+            return render(request, "cart/order_success.html", {"error": "⚠️ Access denied."})
     else:
-        message_title = "Payment Pending"
-        message_body  = "Your payment is pending. We'll notify you shortly."
-        btn_text      = "Go Home"
-        btn_link      = "/"
+        order_time_str = request.session.get("last_order_time")
+        if not order_time_str:
+            return render(request, "cart/order_success.html", {"error": "⚠️ Order session expired."})
 
-    return render(request, "cart/order_success.html", {
-        "order": order,
-        "message_title": message_title,
-        "message_body": message_body,
-        "btn_text": btn_text,
-        "btn_link": btn_link
-    })
+        try:
+            order_time = datetime.fromisoformat(order_time_str)
+            if datetime.utcnow() - order_time > timedelta(minutes=15):
+                return render(request, "cart/order_success.html", {"error": "⚠️ Order view has expired for guests."})
+        except Exception:
+            return render(request, "cart/order_success.html", {"error": "⚠️ Invalid session data."})
+
 
 
 
@@ -374,7 +373,7 @@ def get_phonepe_payment_status(order_id):
         merchant_id = settings.PHONEPE_MERCHANT_ID
 
         url_path = f"/pg/v1/status/{order_id}"
-        base_url = "https://api.phonepe.com"  # for production
+        base_url = "https://api.phonepe.com"
         full_url = base_url + url_path
 
         string_to_hash = f"{url_path}{salt_key}"
@@ -388,39 +387,37 @@ def get_phonepe_payment_status(order_id):
         }
 
         response = requests.get(full_url, headers=headers, timeout=10)
+        response.raise_for_status()
         return response.json()
 
-    except Exception as e:
-        print("❌ PhonePe status check error:", e)
-        return {}
+    except requests.exceptions.RequestException as e:
+        logger.error("❌ PhonePe status check error:", exc_info=True)
+        return {"success": False, "error": str(e)}
 
-
-logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def phonepe_webhook(request):
     logger.info("📬 PhonePe Webhook HIT")
 
-    # ✅ Basic Auth Validation (based on PhonePe dashboard)
+    # ✅ Basic Auth
     auth_header = request.headers.get('Authorization')
-    logger.info(f"🛡️ Received Authorization: {auth_header}")
     if not auth_header or not auth_header.startswith('Basic '):
         return HttpResponseForbidden("Unauthorized")
 
     try:
-        encoded = auth_header.split(' ')[1]
-        decoded = base64.b64decode(encoded).decode('utf-8')
-        username, password = decoded.split(':', 1)
+        encoded_credentials = auth_header.split(' ')[1]
+        decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
+        username, password = decoded_credentials.split(':', 1)
     except Exception:
         return HttpResponseForbidden("Unauthorized")
 
-    if username != "olivia19" or password != "olivia123":
+    if username != settings.PHONEPE_WEBHOOK_USERNAME or password != settings.PHONEPE_WEBHOOK_PASSWORD:
         return HttpResponseForbidden("Unauthorized")
 
-    # ✅ Parse and validate payload
+    # ✅ Parse payload
     try:
         payload = json.loads(request.body)
-        logger.info(f"🔔 Webhook Payload: {payload}")
+        logger.info(f"Payload: {payload}")
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
@@ -430,72 +427,87 @@ def phonepe_webhook(request):
     state = data.get("state")
 
     if event not in ["checkout.order.completed", "checkout.order.failed"]:
-        logger.warning(f"🚫 Unknown event: {event}")
+        logger.warning(f"Ignoring unknown event: {event}")
         return JsonResponse({"message": "Ignored"}, status=200)
 
     if not merchant_order_id or not state:
-        return JsonResponse({"error": "Missing order ID or state"}, status=400)
+        return JsonResponse({"error": "Missing required fields"}, status=400)
 
     order = Order.objects.filter(phonepe_order_id=merchant_order_id).first()
     if not order:
         return JsonResponse({"error": "Order not found"}, status=404)
 
     previous_status = order.payment_status
-
-    # ✅ Update order status
     if previous_status == "Paid":
-        logger.info(f"🔁 Duplicate webhook for paid order {order.phonepe_order_id}")
+        logger.info(f"🔁 Duplicate webhook for already paid order {merchant_order_id}")
         return JsonResponse({"message": "Already paid"}, status=200)
 
-    if state in ["COMPLETED", "ACTIVE"]:
+    # ✅ Status update
+    if state in ("COMPLETED", "ACTIVE"):
         order.payment_status = "Paid"
     elif state == "FAILED":
         order.payment_status = "Failed"
     else:
-        order.payment_status = state  # fallback
+        order.payment_status = state
 
-    # ✅ Save transaction ID if present
     txn_id = data.get("transactionId")
     if txn_id:
         order.payment_id = txn_id
 
     order.save()
-    logger.info(f"✅ Payment status updated for {order.phonepe_order_id}: {previous_status} → {order.payment_status}")
+    logger.info(f"✅ Payment status updated: {previous_status} → {order.payment_status}")
 
-    # ✅ Email Notifications (only on first successful payment)
+    # ✅ Send Emails (only once)
     if order.payment_status == "Paid" and previous_status != "Paid":
         try:
-            # Parse items
             if isinstance(order.cart_items, str):
                 order.cart_items = json.loads(order.cart_items)
-        except:
+        except Exception:
             order.cart_items = []
 
-        # ✅ Send customer email
         send_mail(
-            subject=f"✅ Order Confirmed: {order.phonepe_order_id}",
-            message=f"Hi {order.full_name},\nYour payment succeeded!\nOrder ID: {order.phonepe_order_id}\nTotal: ₹{order.total_amount}",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[order.email],
+            f"✅ Order Confirmed: {order.phonepe_order_id}",
+            f"Hi {order.full_name},\nYour payment succeeded!\nOrder ID: {order.phonepe_order_id}\nTotal: ₹{order.total_amount}",
+            settings.DEFAULT_FROM_EMAIL,
+            [order.email],
             fail_silently=True,
         )
 
-        # ✅ Send admin email
-        item_lines = "\n".join(f"- {i['name']} x{i['quantity']} = ₹{i['total_price']}" for i in order.cart_items)
+        items = "\n".join(f"- {i['name']} x{i['quantity']} = ₹{i['total_price']}" for i in order.cart_items)
         send_mail(
-            subject=f"🛒 New Paid Order: {order.phonepe_order_id}",
-            message=f"""Customer: {order.full_name}
-Email: {order.email}
-Phone: {order.phone}
-Address: {order.address}
-
-Items:
-{item_lines}
-
-Total: ₹{order.total_amount}""",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[settings.ADMIN_NOTIFICATION_EMAIL],
+            f"🛒 New Paid Order: {order.phonepe_order_id}",
+            f"Customer: {order.full_name}\nEmail: {order.email}\nPhone: {order.phone}\nAddress: {order.address}\n\nItems:\n{items}\n\nTotal: ₹{order.total_amount}",
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.ADMIN_NOTIFICATION_EMAIL],
             fail_silently=False,
         )
 
     return JsonResponse({"message": "Webhook processed successfully"}, status=200)
+
+
+
+def retry_payment(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    # 🔐 Validate access
+    if request.user.is_authenticated:
+        if order.user != request.user:
+            logger.warning(f"⚠️ Unauthorized retry by another user: {request.user}")
+            return redirect("home")
+    else:
+        if request.session.get("last_order_id") != order.id:
+            logger.warning(f"⚠️ Guest unauthorized retry attempt for Order #{order.id}")
+            return redirect("home")
+
+    # ✅ Retry logic
+    if order.payment_status != "Paid":
+        return redirect(order.payment_link or "home")
+
+    return redirect("my_orders")
+
+@login_required
+def my_orders(request):
+    orders = Order.objects.filter(user=request.user).order_by("-created_at")
+    return render(request, "cart/my_orders.html", {"orders": orders})
+
+

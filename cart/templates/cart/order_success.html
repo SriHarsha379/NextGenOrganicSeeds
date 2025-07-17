@@ -1,77 +1,68 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8" />
-    <title>Order Status</title>
+    <title>Order Confirmation</title>
     <style>
-        .container {
-            max-width: 600px;
-            margin: 3rem auto;
-            text-align: center;
+        body {
             font-family: Arial, sans-serif;
+            background: #f6f9fc;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
         }
+
+        .box {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #28a745;
+        }
+
+        p {
+            font-size: 16px;
+            color: #333;
+        }
+
         .btn {
             display: inline-block;
-            background-color: #28a745;
+            margin-top: 25px;
+            padding: 12px 24px;
+            background: #28a745;
             color: white;
-            padding: 10px 25px;
-            margin-top: 20px;
+            border-radius: 6px;
             text-decoration: none;
-            border-radius: 5px;
+            font-weight: bold;
         }
-        .btn:hover {
-            background-color: #218838;
-        }
-        .redirect-msg {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #555;
+
+        .error {
+            color: red;
+            font-weight: bold;
         }
     </style>
-
-    {% if not error %}
-    <script>
-        // Redirect after 7 seconds
-        setTimeout(function() {
-            window.location.href = "{{ btn_link }}";
-        }, 7000); // 7000ms = 7 seconds
-    </script>
-    {% endif %}
 </head>
 <body>
-    <div class="container">
-        {% if error %}
-            <h1>Error</h1>
-            <p>{{ error }}</p>
-            <a href="/" class="btn">Go Home</a>
-        {% else %}
-            <h1>{{ message_title }}</h1>
-            <p>{{ message_body }}</p>
-            <a href="{{ btn_link }}" class="btn">{{ btn_text }}</a>
-            <p class="redirect-msg">You will be redirected in a few seconds...</p>
-        {% endif %}
-    </div>
+<div class="box">
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% else %}
+        <h1>✅ Order Confirmed!</h1>
+        <p>Thank you <strong>{{ order.full_name }}</strong> for shopping with us.</p>
+        <p>Your order ID is <strong>{{ order.phonepe_order_id }}</strong></p>
+        <p>We’ve sent a confirmation email to <strong>{{ order.email }}</strong></p>
+        <p>We’ll ship your items to:</p>
+        <p>{{ order.address|linebreaks }}</p>
+        <p>Amount Paid: ₹{{ order.total_amount }}</p>
+
+        <a href="{% url 'home' %}" class="btn">Return to Home</a>
+    {% endif %}
+</div>
 </body>
 </html>
-
-{% if payment_status == "Pending" %}
-<script>
-  const orderId = "{{ order.phonepe_order_id }}";
-
-  function checkPaymentStatus() {
-    fetch(`/check-order-status/?order_id=${orderId}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === "Paid") {
-          location.reload();  // Refresh the page to show payment success
-        }
-      })
-      .catch(error => {
-        console.error("Error checking payment status:", error);
-      });
-  }
-
-  // Poll every 5 seconds
-  setInterval(checkPaymentStatus, 5000);
-</script>
-{% endif %}

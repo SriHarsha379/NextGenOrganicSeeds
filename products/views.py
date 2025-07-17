@@ -7,7 +7,7 @@ from .utils.phonepe_client import client
 
 
 
-@login_required(login_url="/accounts/login/")
+
 def seed_list(request):
     seeds = Seed.objects.all().order_by('id')
 
