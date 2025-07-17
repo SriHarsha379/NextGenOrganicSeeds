@@ -864,6 +864,17 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error('Error fetching cart count:', error);
         });
 });
+
+    document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('input', function () {
+            const max = parseInt(this.getAttribute('max'));
+            const min = parseInt(this.getAttribute('min'));
+            if (this.value > max) this.value = max;
+            if (this.value < min) this.value = min;
+        });
+    });
+});
 </script>
 
 

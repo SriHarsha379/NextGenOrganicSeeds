@@ -1,4 +1,6 @@
 {% load static %}
+{% load cart_extras %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -205,12 +207,11 @@
     {% if cart_items %}
         <div class="summary-box">
             <ul>
-                {% for item in cart_items %}
-                    <li>
-                        <strong>{{ item.name }}</strong><br>
-                        Quantity: {{ item.quantity }} × ₹{{ item.price }} = ₹{{ item.quantity|floatformat:0|add:item.price|floatformat:0 }}
-                    </li>
-                {% endfor %}
+                {{% for item in cart_items %}
+    <strong>{{ item.name }}</strong><br>
+    Quantity: {{ item.quantity }} × ₹{{ item.price }} = ₹{{ item.price|mul:item.quantity }}
+{% endfor %}
+
             </ul>
             <p class="total-amount"><strong>Subtotal:</strong> ₹{{ total_amount|floatformat:2 }}</p>
             <p class="total-amount"><strong>Shipping:</strong> ₹{{ postage_charge|floatformat:2 }}</p>

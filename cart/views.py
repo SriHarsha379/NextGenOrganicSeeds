@@ -38,47 +38,52 @@ def add_to_cart(request, seed_id):
         # Get or create session cart
         cart = request.session.get("cart", {})
 
-        # Get quantity from request
+        # Parse request body
         data = json.loads(request.body)
-        requested_quantity = int(data.get("quantity", 1))  # Default to 1 if not provided
 
-        # Get current quantity in cart (default to 0 if not in cart)
-        current_quantity = cart[str(seed_id)]["quantity"] if str(seed_id) in cart else 0
+        # ✅ Sanitize and validate quantity
+        quantity_raw = data.get("quantity", 1)
 
-        # New total quantity after adding
+        try:
+            requested_quantity = int(quantity_raw)
+        except (TypeError, ValueError):
+            return JsonResponse({"error": "Invalid quantity format."}, status=400)
+
+        if requested_quantity < 1:
+            return JsonResponse({"error": "Quantity must be at least 1."}, status=400)
+        if requested_quantity > 999:  # Arbitrary max limit to prevent abuse
+            return JsonResponse({"error": "Quantity too large."}, status=400)
+
+        # Get current quantity in cart
+        current_quantity = cart.get(str(seed_id), {}).get("quantity", 0)
+
+        # Total quantity after addition
         new_quantity = current_quantity + requested_quantity
 
-        # ✅ Validate against available stock
         if new_quantity > seed.stock:
             return JsonResponse({
                 "error": f"Only {seed.stock} items available in stock! You already have {current_quantity} in your cart."
             }, status=400)
 
-        # Update cart quantity
-        if str(seed_id) in cart:
-            cart[str(seed_id)]["quantity"] = new_quantity  # Update existing quantity
-        else:
-            cart[str(seed_id)] = {
-                "name": seed.name,
-                "price": float(seed.price),  # Convert Decimal to float
-                "quantity": requested_quantity
-            }
+        # Update cart
+        cart[str(seed_id)] = {
+            "name": seed.name,
+            "price": float(seed.price),
+            "quantity": new_quantity
+        }
 
-        # Save back to session
         request.session["cart"] = cart
         request.session.modified = True
 
-        # Get unique count of items
-        unique_item_count = len(cart)  # Number of unique items
-
         return JsonResponse({
             "message": "Item added successfully",
-            "cart_count": unique_item_count,
+            "cart_count": len(cart),
             "cart": cart
         })
 
     except Seed.DoesNotExist:
         return JsonResponse({"error": "Seed not found"}, status=404)
+
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
