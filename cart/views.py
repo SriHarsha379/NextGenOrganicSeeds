@@ -395,31 +395,32 @@ def get_phonepe_payment_status(order_id):
         return {}
 
 
+logger = logging.getLogger(__name__)
+
 @csrf_exempt
 def phonepe_webhook(request):
     logger.info("📬 PhonePe Webhook HIT")
 
-
-    # ✅ Basic Auth Validation
+    # ✅ Basic Auth Validation (based on PhonePe dashboard)
     auth_header = request.headers.get('Authorization')
+    logger.info(f"🛡️ Received Authorization: {auth_header}")
     if not auth_header or not auth_header.startswith('Basic '):
         return HttpResponseForbidden("Unauthorized")
 
     try:
-        encoded_credentials = auth_header.split(' ')[1]
-        decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
-        username, password = decoded_credentials.split(':', 1)
+        encoded = auth_header.split(' ')[1]
+        decoded = base64.b64decode(encoded).decode('utf-8')
+        username, password = decoded.split(':', 1)
     except Exception:
         return HttpResponseForbidden("Unauthorized")
-    print("🚨 Incoming Authorization:", request.headers.get('Authorization'))
 
-    if username != settings.PHONEPE_WEBHOOK_USERNAME or password != settings.PHONEPE_WEBHOOK_PASSWORD:
+    if username != "olivia19" or password != "olivia123":
         return HttpResponseForbidden("Unauthorized")
 
-    # ✅ Parse JSON
+    # ✅ Parse and validate payload
     try:
         payload = json.loads(request.body)
-        logger.info(f"Payload: {payload}")
+        logger.info(f"🔔 Webhook Payload: {payload}")
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
@@ -428,13 +429,12 @@ def phonepe_webhook(request):
     merchant_order_id = data.get("merchantOrderId") or data.get("merchantTransactionId")
     state = data.get("state")
 
-    # ✅ Ignore unknown event types
     if event not in ["checkout.order.completed", "checkout.order.failed"]:
-        logger.warning(f"Ignoring unknown event: {event}")
+        logger.warning(f"🚫 Unknown event: {event}")
         return JsonResponse({"message": "Ignored"}, status=200)
 
     if not merchant_order_id or not state:
-        return JsonResponse({"error": "Missing merchantOrderId or state"}, status=400)
+        return JsonResponse({"error": "Missing order ID or state"}, status=400)
 
     order = Order.objects.filter(phonepe_order_id=merchant_order_id).first()
     if not order:
@@ -442,51 +442,60 @@ def phonepe_webhook(request):
 
     previous_status = order.payment_status
 
+    # ✅ Update order status
     if previous_status == "Paid":
-        logger.info(f"🔁 Duplicate webhook for already Paid order {order.phonepe_order_id}")
+        logger.info(f"🔁 Duplicate webhook for paid order {order.phonepe_order_id}")
         return JsonResponse({"message": "Already paid"}, status=200)
 
-    if state in ("COMPLETED", "ACTIVE"):
+    if state in ["COMPLETED", "ACTIVE"]:
         order.payment_status = "Paid"
     elif state == "FAILED":
         order.payment_status = "Failed"
     else:
-        order.payment_status = state
+        order.payment_status = state  # fallback
 
-    # Optional: Save PhonePe transaction ID
+    # ✅ Save transaction ID if present
     txn_id = data.get("transactionId")
     if txn_id:
         order.payment_id = txn_id
 
     order.save()
-    logger.info(f"✅ Payment status updated: {previous_status} → {order.payment_status}")
+    logger.info(f"✅ Payment status updated for {order.phonepe_order_id}: {previous_status} → {order.payment_status}")
 
-    # 📨 Send email only on first successful payment
+    # ✅ Email Notifications (only on first successful payment)
     if order.payment_status == "Paid" and previous_status != "Paid":
-        if isinstance(order.cart_items, str):
-            try:
+        try:
+            # Parse items
+            if isinstance(order.cart_items, str):
                 order.cart_items = json.loads(order.cart_items)
-            except:
-                order.cart_items = []
+        except:
+            order.cart_items = []
 
-        # Send customer mail
+        # ✅ Send customer email
         send_mail(
-            f"✅ Order Confirmed: {order.phonepe_order_id}",
-            f"Hi {order.full_name},\nYour payment succeeded!\nOrder ID: {order.phonepe_order_id}\nTotal: ₹{order.total_amount}",
-            settings.DEFAULT_FROM_EMAIL,
-            [order.email],
+            subject=f"✅ Order Confirmed: {order.phonepe_order_id}",
+            message=f"Hi {order.full_name},\nYour payment succeeded!\nOrder ID: {order.phonepe_order_id}\nTotal: ₹{order.total_amount}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[order.email],
             fail_silently=True,
         )
 
-        # Send admin mail
-        items = "\n".join(f"- {i['name']} x{i['quantity']} = ₹{i['total_price']}" for i in order.cart_items)
+        # ✅ Send admin email
+        item_lines = "\n".join(f"- {i['name']} x{i['quantity']} = ₹{i['total_price']}" for i in order.cart_items)
         send_mail(
-            f"🛒 New Paid Order: {order.phonepe_order_id}",
-            f"Customer: {order.full_name}\nEmail: {order.email}\nPhone: {order.phone}\nAddress: {order.address}\n\nItems:\n{items}\n\nTotal: ₹{order.total_amount}",
-            settings.DEFAULT_FROM_EMAIL,
-            [settings.ADMIN_NOTIFICATION_EMAIL],
+            subject=f"🛒 New Paid Order: {order.phonepe_order_id}",
+            message=f"""Customer: {order.full_name}
+Email: {order.email}
+Phone: {order.phone}
+Address: {order.address}
+
+Items:
+{item_lines}
+
+Total: ₹{order.total_amount}""",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.ADMIN_NOTIFICATION_EMAIL],
             fail_silently=False,
         )
-    print("🧪 ENV DEBUG — Username:", settings.PHONEPE_WEBHOOK_USERNAME)
-    print("🧪 ENV DEBUG — Password:", settings.PHONEPE_WEBHOOK_PASSWORD)
+
     return JsonResponse({"message": "Webhook processed successfully"}, status=200)
