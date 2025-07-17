@@ -77,7 +77,7 @@ def upi_payment(request):
     return render(request, "orders/upi_payment.html", {"upi_link": upi_link})
 
 
-@login_required
+
 def payment_success(request):
     # Here, you should verify the payment via UPI API before updating order status
     orders = Order.objects.filter(user=request.user, status="Pending")
@@ -100,7 +100,7 @@ def my_orders(request):
     return render(request, 'orders/my_orders.html', {"orders": orders})
 
 
-@login_required
+
 def download_invoice(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
 
@@ -190,7 +190,7 @@ def download_invoice(request, order_id):
 
 
 
-@login_required
+
 def reorder(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     # order.cart_items is a list of items; convert to dict with seed IDs as keys

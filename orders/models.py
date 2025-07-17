@@ -9,7 +9,7 @@ class Order(models.Model):
         ('Refunded', 'Refunded'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # ✅ allow guests
     full_name = models.CharField(max_length=255)
     email = models.EmailField()
     phone = models.CharField(max_length=15)
@@ -33,5 +33,7 @@ class Order(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Order #{self.id} - {self.user.username} - {self.payment_status}"
+        username = self.user.username if self.user else "Guest"
+        return f"Order #{self.id} - {username} - {self.payment_status}"
+
 

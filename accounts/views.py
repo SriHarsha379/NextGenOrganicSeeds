@@ -19,40 +19,54 @@ from django.core.exceptions import ValidationError
 
 from orders.models import Order
 from products.models import Seed
-from .forms import ForgotPasswordForm
+from .forms import ForgotPasswordForm, LoginForm
 
 
 def user_login(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        remember_me = request.POST.get("remember_me")
+        form = LoginForm(request, data=request.POST)
 
-        # Check if the username or email actually exists first
-        user_exists = User.objects.filter(username=username).exists() or User.objects.filter(email__iexact=username).exists()
+        if form.is_valid():
+            username = form.cleaned_data.get("username").strip()
+            password = form.cleaned_data.get("password")
+            remember_me = form.cleaned_data.get("remember_me")
 
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
+            # 🚫 Reject inputs starting with www.
+            if username.lower().startswith("www."):
+                messages.error(request, "Please enter a valid username or email without 'www.'")
+                return render(request, "accounts/login.html", {"form": form})
 
-            # Set session expiry
-            if remember_me:
-                request.session.set_expiry(1209600)  # 2 weeks
+            # Find user by username or email
+            try:
+                user_obj = User.objects.get(username=username)
+            except User.DoesNotExist:
+                try:
+                    user_obj = User.objects.get(email__iexact=username)
+                except User.DoesNotExist:
+                    user_obj = None
+
+            if user_obj:
+                user = authenticate(request, username=user_obj.username, password=password)
+                if user:
+                    login(request, user)
+
+                    # Session expiry
+                    if remember_me:
+                        request.session.set_expiry(1209600)  # 2 weeks
+                    else:
+                        request.session.set_expiry(3600)  # 1 hour
+
+                    request.session.modified = True
+                    print(f"✅ Login successful: {user.username}")
+                    return redirect("home")
+                else:
+                    messages.error(request, "Invalid password. Please try again.")
             else:
-                request.session.set_expiry(3600)  # 1 hour
+                messages.error(request, "Account does not exist. <a href='/register/'>Register here</a> or contact support.")
+    else:
+        form = LoginForm()
 
-            request.session.modified = True
-            print(f"✅ Login successful: {user.username}")
-
-            return redirect("home")
-        else:
-            if not user_exists:
-                messages.error(request, "Account does not exist. Please register first or contact support.")
-            else:
-                messages.error(request, "Invalid password. Please try again.")
-            print("❌ Login failed")
-
-    return render(request, "accounts/login.html")
+    return render(request, "accounts/login.html", {"form": form})
 
 
 def user_register(request):
