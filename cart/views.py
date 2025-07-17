@@ -347,7 +347,7 @@ def order_success(request):
 
     order = get_object_or_404(Order, phonepe_order_id__iexact=phonepe_order_id)
 
-    # 🔐 Prevent unauthorized access for guest users
+    # 🔐 Security: Ensure user is allowed to view this
     if request.user.is_authenticated:
         if order.user != request.user:
             return render(request, "cart/order_success.html", {"error": "⚠️ Access denied."})
@@ -355,7 +355,6 @@ def order_success(request):
         order_time_str = request.session.get("last_order_time")
         if not order_time_str:
             return render(request, "cart/order_success.html", {"error": "⚠️ Order session expired."})
-
         try:
             order_time = datetime.fromisoformat(order_time_str)
             if datetime.utcnow() - order_time > timedelta(minutes=15):
@@ -363,7 +362,10 @@ def order_success(request):
         except Exception:
             return render(request, "cart/order_success.html", {"error": "⚠️ Invalid session data."})
 
-    # ✅ FINAL return if all checks pass
+    # ✅ Only allow viewing the order success if payment was actually successful
+    if order.payment_status != "Success":
+        return render(request, "cart/order_success.html", {"error": f"⚠️ This order is marked as '{order.payment_status}'."})
+
     return render(request, "cart/order_success.html", {"order": order})
 
 
