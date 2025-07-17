@@ -5,7 +5,10 @@ from .views import (
     get_cart, phonepe_webhook, order_success
 )
 from .views import get_phonepe_payment_status  # Make sure it's imported
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2610304708a256451eb9ef488619c695b1316558
 
 urlpatterns = [
     path('add/<int:seed_id>/', add_to_cart, name='add_to_cart'),
