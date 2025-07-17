@@ -363,6 +363,8 @@ def order_success(request):
         except Exception:
             return render(request, "cart/order_success.html", {"error": "⚠️ Invalid session data."})
 
+    # ✅ FINAL return if all checks pass
+    return render(request, "cart/order_success.html", {"order": order})
 
 
 
