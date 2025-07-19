@@ -34,7 +34,6 @@ PHONEPE_ENV = config("PHONEPE_ENV", default="PRODUCTION")
 PHONEPE_WEBHOOK_USERNAME = "olivia19"
 PHONEPE_WEBHOOK_PASSWORD = "olivia123"
 
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
