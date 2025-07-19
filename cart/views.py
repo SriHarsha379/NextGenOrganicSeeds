@@ -378,7 +378,7 @@ def order_success(request):
 
 
 
-def get_phonepe_payment_status(order_id):
+def get_phonepe_payment_status(request, order_id):
     try:
         salt_key = settings.PHONEPE_SALT_KEY
         salt_index = settings.PHONEPE_SALT_INDEX
@@ -400,11 +400,11 @@ def get_phonepe_payment_status(order_id):
 
         response = requests.get(full_url, headers=headers, timeout=10)
         response.raise_for_status()
-        return response.json()
+        return JsonResponse(response.json())
 
     except requests.exceptions.RequestException as e:
         logger.error("❌ PhonePe status check error:", exc_info=True)
-        return {"success": False, "error": str(e)}
+        return JsonResponse({"success": False, "error": str(e)})
 
 
 

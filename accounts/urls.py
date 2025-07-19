@@ -5,8 +5,8 @@ from .views import user_login, user_register, user_logout, forgot_password, rese
 from . import views
 
 urlpatterns = [
-    path("login/", user_login, name="login"),
-    path("register/", user_register, name="register"),
+#    path("login/", user_login, name="login"),
+#    path("register/", user_register, name="register"),
     # path("logout/", user_logout, name="logout"),
     # path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     # path('password-reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
