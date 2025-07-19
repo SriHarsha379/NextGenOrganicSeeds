@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from .views import (
     add_to_cart, view_cart, remove_from_cart, checkout,
     update_cart_quantity, process_order, clear_cart,
@@ -20,6 +20,6 @@ urlpatterns = [
 
 
     # ✅ KEEP ONLY THIS version (with trailing slash)
-    path('payment/response/', phonepe_webhook, name='phonepe_webhook'),
+    re_path(r'^payment/response/?$', phonepe_webhook, name='phonepe_webhook'),
 
 ]
