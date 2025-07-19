@@ -354,7 +354,7 @@ def order_success(request):
 
     order = get_object_or_404(Order, phonepe_order_id__iexact=phonepe_order_id)
 
-    # 🔐 Security: Ensure user is allowed to view this
+    # 🔐 Security: Ensure user is allowed to view this order
     if request.user.is_authenticated:
         if order.user != request.user:
             return render(request, "cart/order_success.html", {"error": "⚠️ Access denied."})
@@ -369,13 +369,11 @@ def order_success(request):
         except Exception:
             return render(request, "cart/order_success.html", {"error": "⚠️ Invalid session data."})
 
-    # ✅ Only allow viewing the order success if payment was actually successful
-    if order.payment_status != "Paid":
-        return render(request, "cart/order_success.html",
-                      {"error": f"⚠️ This order is marked as '{order.payment_status}'."})
-
-    return render(request, "cart/order_success.html", {"order": order})
-
+    # ✅ Allow access even if not yet marked as Paid (so webhook can catch up)
+    return render(request, "cart/order_success.html", {
+        "order": order,
+        "pending": order.payment_status != "Paid"
+    })
 
 
 def get_phonepe_payment_status(request, order_id):

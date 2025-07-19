@@ -53,6 +53,24 @@
             font-size: 18px;
         }
 
+        .alert-warning {
+            background-color: #fff3cd;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
         @media (max-width: 600px) {
             body {
                 padding: 20px 10px;
@@ -70,7 +88,7 @@
         <h1 class="error">⚠️ Order Not Confirmed</h1>
         <p class="error">{{ error }}</p>
 
-        {% if order and order.payment_status != "Success" %}
+        {% if order and order.payment_status != "Paid" %}
             <p>Your payment status is: <strong>{{ order.payment_status }}</strong></p>
             <a href="{% url 'retry_payment' order.phonepe_order_id %}" class="btn">Retry Payment</a>
         {% endif %}
@@ -78,6 +96,19 @@
         <a href="{% url 'home' %}" class="btn btn-secondary">Return to Home</a>
     {% else %}
         <h1>✅ Order Confirmed!</h1>
+
+        {% if pending %}
+            <div class="alert-warning">
+                ✅ Your payment is successful and currently being verified.<br>
+                No action is needed. You will receive an email once it's confirmed.<br><br>
+                If it stays pending for too long, please <a href="/contact/">contact us</a>.
+            </div>
+        {% else %}
+            <div class="alert-success">
+                ✅ Payment received successfully. Your order is being processed.
+            </div>
+        {% endif %}
+
         <p>Thank you <strong>{{ order.full_name }}</strong> for shopping with us.</p>
         <p>Your order ID is <strong>{{ order.phonepe_order_id }}</strong></p>
         <p>We’ve sent a confirmation email to <strong>{{ order.email }}</strong></p>
@@ -85,6 +116,14 @@
         <p>{{ order.address|linebreaks }}</p>
         <p>Amount Paid: ₹{{ order.total_amount }}</p>
         <p>Your order will be shipped via India Post. Delivery may take 5–7 working days depending on your location.</p>
+
+        {% if pending %}
+            <form method="post" action="{% url 'get_phonepe_payment_status' %}">
+                {% csrf_token %}
+                <input type="hidden" name="order_id" value="{{ order.phonepe_order_id }}">
+                <button type="submit" class="btn btn-secondary">🔁 Refresh Payment Status</button>
+            </form>
+        {% endif %}
 
         <a href="{% url 'home' %}" class="btn">Return to Home</a>
     {% endif %}
