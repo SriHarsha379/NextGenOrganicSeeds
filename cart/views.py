@@ -29,6 +29,13 @@ from django.db.models import Sum
 from django.contrib import messages
 from orders.models import Order
 from django.core.mail import send_mail, EmailMessage
+# from utils.phonepe_client import PhonePeClient
+
+# client = PhonePeClient()
+
+# Example usage:
+# response = client.check_payment_status("HF444")
+
 
 
 def add_to_cart(request, seed_id):
@@ -363,8 +370,9 @@ def order_success(request):
             return render(request, "cart/order_success.html", {"error": "⚠️ Invalid session data."})
 
     # ✅ Only allow viewing the order success if payment was actually successful
-    if order.payment_status != "Success":
-        return render(request, "cart/order_success.html", {"error": f"⚠️ This order is marked as '{order.payment_status}'."})
+    if order.payment_status != "Paid":
+        return render(request, "cart/order_success.html",
+                      {"error": f"⚠️ This order is marked as '{order.payment_status}'."})
 
     return render(request, "cart/order_success.html", {"order": order})
 
@@ -400,30 +408,36 @@ def get_phonepe_payment_status(order_id):
 
 
 
+logger = logging.getLogger(__name__)
+
 @csrf_exempt
 def phonepe_webhook(request):
     logger.info("📬 PhonePe Webhook HIT")
 
-    # ✅ Basic Auth
+    # ✅ Step 1: Basic Auth Verification
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Basic '):
+        logger.warning("❌ Missing or invalid Basic Auth header")
         return HttpResponseForbidden("Unauthorized")
 
     try:
         encoded_credentials = auth_header.split(' ')[1]
         decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
         username, password = decoded_credentials.split(':', 1)
-    except Exception:
+
+        if username != settings.PHONEPE_WEBHOOK_USERNAME or password != settings.PHONEPE_WEBHOOK_PASSWORD:
+            logger.warning("❌ Basic Auth credentials mismatch")
+            return HttpResponseForbidden("Unauthorized")
+    except Exception as e:
+        logger.exception("❌ Failed to decode Basic Auth")
         return HttpResponseForbidden("Unauthorized")
 
-    if username != settings.PHONEPE_WEBHOOK_USERNAME or password != settings.PHONEPE_WEBHOOK_PASSWORD:
-        return HttpResponseForbidden("Unauthorized")
-
-    # ✅ Parse payload
+    # ✅ Step 2: Parse Payload
     try:
         payload = json.loads(request.body)
-        logger.info(f"Payload: {payload}")
+        logger.info(f"📦 Webhook Payload: {json.dumps(payload)}")
     except json.JSONDecodeError:
+        logger.error("❌ Invalid JSON in webhook")
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
     event = payload.get("event")
@@ -431,23 +445,23 @@ def phonepe_webhook(request):
     merchant_order_id = data.get("merchantOrderId") or data.get("merchantTransactionId")
     state = data.get("state")
 
-    if event not in ["checkout.order.completed", "checkout.order.failed"]:
-        logger.warning(f"Ignoring unknown event: {event}")
-        return JsonResponse({"message": "Ignored"}, status=200)
-
     if not merchant_order_id or not state:
+        logger.error("❌ Missing merchantOrderId or state in payload")
         return JsonResponse({"error": "Missing required fields"}, status=400)
 
+    # ✅ Step 3: Find Order
     order = Order.objects.filter(phonepe_order_id=merchant_order_id).first()
     if not order:
+        logger.warning(f"❌ Order not found for ID: {merchant_order_id}")
         return JsonResponse({"error": "Order not found"}, status=404)
 
-    previous_status = order.payment_status
-    if previous_status == "Paid":
+    # ✅ Step 4: Avoid re-processing
+    if order.payment_status == "Paid":
         logger.info(f"🔁 Duplicate webhook for already paid order {merchant_order_id}")
         return JsonResponse({"message": "Already paid"}, status=200)
 
-    # ✅ Status update
+    # ✅ Step 5: Update Payment Status
+    previous_status = order.payment_status
     if state in ("COMPLETED", "ACTIVE"):
         order.payment_status = "Paid"
     elif state == "FAILED":
@@ -460,9 +474,9 @@ def phonepe_webhook(request):
         order.payment_id = txn_id
 
     order.save()
-    logger.info(f"✅ Payment status updated: {previous_status} → {order.payment_status}")
+    logger.info(f"✅ Order {merchant_order_id} status updated: {previous_status} → {order.payment_status}")
 
-    # ✅ Send Emails (only once)
+    # ✅ Step 6: Send Email (only once)
     if order.payment_status == "Paid" and previous_status != "Paid":
         try:
             if isinstance(order.cart_items, str):
@@ -470,14 +484,16 @@ def phonepe_webhook(request):
         except Exception:
             order.cart_items = []
 
+        # Customer email
         send_mail(
             f"✅ Order Confirmed: {order.phonepe_order_id}",
-            f"Hi {order.full_name},\nYour payment succeeded!\nOrder ID: {order.phonepe_order_id}\nTotal: ₹{order.total_amount}",
+            f"Hi {order.full_name},\n\nYour payment succeeded!\n\nOrder ID: {order.phonepe_order_id}\nTotal: ₹{order.total_amount}\n\nWe will ship your items shortly.\n\nThanks,\nHasaFarm",
             settings.DEFAULT_FROM_EMAIL,
             [order.email],
             fail_silently=True,
         )
 
+        # Admin email
         items = "\n".join(f"- {i['name']} x{i['quantity']} = ₹{i['total_price']}" for i in order.cart_items)
         send_mail(
             f"🛒 New Paid Order: {order.phonepe_order_id}",
