@@ -117,13 +117,19 @@
         <p>Amount Paid: ₹{{ order.total_amount }}</p>
         <p>Your order will be shipped via India Post. Delivery may take 5–7 working days depending on your location.</p>
 
-        {% if pending %}
-            <form method="post" action="{% url 'get_phonepe_payment_status' %}">
-                {% csrf_token %}
-                <input type="hidden" name="order_id" value="{{ order.phonepe_order_id }}">
-                <button type="submit" class="btn btn-secondary">🔁 Refresh Payment Status</button>
-            </form>
-        {% endif %}
+{% if pending %}
+    <div class="alert-warning">
+        ✅ Your payment is successful and currently being verified.<br>
+        No action is needed at this time.<br><br>
+        📨 A confirmation email will be sent to you once the payment is fully verified.<br><br>
+        If it stays pending for too long, please <a href="/contact/">contact us</a>.
+    </div>
+{% else %}
+    <div class="alert-success">
+        ✅ Payment received successfully. Your order is being processed.
+    </div>
+{% endif %}
+
 
         <a href="{% url 'home' %}" class="btn">Return to Home</a>
     {% endif %}
