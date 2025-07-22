@@ -17,6 +17,8 @@ class Command(BaseCommand):
             return
 
         try:
+            seeds_in_csv = set()
+
             with open(file_path, newline='', encoding='utf-8') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
@@ -27,22 +29,20 @@ class Command(BaseCommand):
                     image = row["image"].strip()
                     category_name = row["category"].strip().capitalize()
 
-                    # Get or create category
+                    seeds_in_csv.add(name)
+
                     category, _ = Category.objects.get_or_create(name=category_name)
 
-                    # Check if seed exists
                     existing_seed = Seed.objects.filter(name=name).first()
                     if existing_seed:
-                        # Increment stock and update other details
                         existing_seed.stock = stock
                         existing_seed.description = description
                         existing_seed.price = price
                         existing_seed.image = image
                         existing_seed.category = category
                         existing_seed.save()
-                        self.stdout.write(self.style.SUCCESS(f"🔄 Updated and incremented stock for: {name}"))
+                        self.stdout.write(self.style.SUCCESS(f"🔄 Updated: {name}"))
                     else:
-                        # Create new seed
                         Seed.objects.create(
                             name=name,
                             description=description,
@@ -51,8 +51,16 @@ class Command(BaseCommand):
                             image=image,
                             category=category
                         )
-                        self.stdout.write(self.style.SUCCESS(f"➕ Created new seed: {name}"))
+                        self.stdout.write(self.style.SUCCESS(f"➕ Created: {name}"))
+
+            # ❌ Delete seeds NOT in CSV
+            deleted_seeds = Seed.objects.exclude(name__in=seeds_in_csv)
+            count_deleted = deleted_seeds.count()
+            deleted_seeds.delete()
+            self.stdout.write(self.style.WARNING(f"🗑️ Deleted {count_deleted} seeds not in CSV."))
 
             self.stdout.write(self.style.SUCCESS("✅ All seeds processed successfully!"))
+
         except Exception as e:
             self.stderr.write(self.style.ERROR(f"❌ Error: {e}"))
+
