@@ -90,8 +90,10 @@
 
         {% if order and order.payment_status != "Paid" %}
             <p>Your payment status is: <strong>{{ order.payment_status }}</strong></p>
+            <p>📨 A confirmation email will be sent to you once the payment is fully verified.</p>
             <a href="{% url 'retry_payment' order.phonepe_order_id %}" class="btn">Retry Payment</a>
         {% endif %}
+
 
         <a href="{% url 'home' %}" class="btn btn-secondary">Return to Home</a>
     {% else %}

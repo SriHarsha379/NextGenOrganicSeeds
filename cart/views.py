@@ -369,6 +369,18 @@ def order_success(request):
         except Exception:
             return render(request, "cart/order_success.html", {"error": "⚠️ Invalid session data."})
 
+    # 🛡️ Fallback check if payment is still marked as Pending
+    if order.payment_status == "Pending":
+        try:
+            status_response = get_phonepe_payment_status(request, order.phonepe_order_id)
+            payment_data = status_response.json().get("data", {})
+            if payment_data.get("code") == "PAYMENT_SUCCESS":
+                order.payment_status = "Paid"
+                order.payment_id = payment_data.get("transactionId")
+                order.save(update_fields=["payment_status", "payment_id"])
+        except Exception as e:
+            print("PhonePe fallback check failed:", e)
+
     # ✅ Only allow viewing the order success if payment was actually successful
     if order.payment_status != "Paid":
         return render(request, "cart/order_success.html",
