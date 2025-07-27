@@ -289,16 +289,18 @@ def process_order(request):
                 seed.save()
 
             # ✅ Step 6: Create payment link via PhonePe
-            # redirect_url = f"https://hasafarm.com/order-success/?order_id={order.phonepe_order_id}"
+            redirect_url = f"https://hasafarm.com/order/success/{order.phonepe_order_id}/"
+
             pay_request = StandardCheckoutPayRequest.build_request(
                 merchant_order_id=order.phonepe_order_id,
                 amount=int(final_amount * 100),  # in paisa
-                # redirect_url=redirect_url
+                redirect_url=redirect_url,
+                redirect_mode="POST"
             )
             pay_response = client.pay(pay_request)
 
             # ✅ Step 7: Save payment link
-            # order.payment_link = pay_response.redirect_url
+            order.payment_link = pay_response.redirect_url
             order.save(update_fields=["payment_link"])
 
             # ✅ Step 8: Store order ID in session
@@ -316,7 +318,7 @@ def process_order(request):
             return JsonResponse({
                 "message": "Order created!",
                 "order_id": order.id,
-                # "payment_link": pay_response.redirect_url,
+                "payment_link": pay_response.redirect_url,
                 "postal_charge": float(postal_charge),
                 "total_amount": float(final_amount)
             }, status=201)
@@ -346,48 +348,24 @@ def clear_cart(request):
         return JsonResponse({"status": "cleared"})
     return JsonResponse({"error": "Invalid request"}, status=400)
 
-def order_success(request):
-    phonepe_order_id = request.GET.get("order_id", "").strip()
+def order_success(request, phonepe_order_id):
+    try:
+        order = Order.objects.get(phonepe_order_id__iexact=phonepe_order_id)
+    except Order.DoesNotExist:
+        raise Http404("Order not found")
 
-    if not phonepe_order_id:
-        return render(request, "cart/order_success.html", {"error": "❌ No order ID provided."})
+    # 🚨 Session validation: Guest must own this order
+    if request.session.session_key != order.session_key:
+        return HttpResponseForbidden("You are not authorized to view this order.")
 
-    order = get_object_or_404(Order, phonepe_order_id__iexact=phonepe_order_id)
-
-    # 🔐 Security: Ensure user is allowed to view this
-    if request.user.is_authenticated:
-        if order.user != request.user:
-            return render(request, "cart/order_success.html", {"error": "⚠️ Access denied."})
-    else:
-        order_time_str = request.session.get("last_order_time")
-        if not order_time_str:
-            return render(request, "cart/order_success.html", {"error": "⚠️ Order session expired."})
-        try:
-            order_time = datetime.fromisoformat(order_time_str)
-            if datetime.utcnow() - order_time > timedelta(minutes=15):
-                return render(request, "cart/order_success.html", {"error": "⚠️ Order view has expired for guests."})
-        except Exception:
-            return render(request, "cart/order_success.html", {"error": "⚠️ Invalid session data."})
-
-    # 🛡️ Fallback check if payment is still marked as Pending
-    if order.payment_status == "Pending":
-        try:
-            status_response = get_phonepe_payment_status(request, order.phonepe_order_id)
-            payment_data = status_response.json().get("data", {})
-            if payment_data.get("code") == "PAYMENT_SUCCESS":
-                order.payment_status = "Paid"
-                order.payment_id = payment_data.get("transactionId")
-                order.save(update_fields=["payment_status", "payment_id"])
-        except Exception as e:
-            print("PhonePe fallback check failed:", e)
-
-    # ✅ Only allow viewing the order success if payment was actually successful
-    if order.payment_status != "Paid":
-        return render(request, "cart/order_success.html",
-                      {"error": f"⚠️ This order is marked as '{order.payment_status}'."})
+    # 🔄 Fallback: If webhook failed, check status manually
+    if order.payment_status != "PAID":
+        payment_status = get_phonepe_payment_status(order.phonepe_order_id)
+        if payment_status == "PAID":
+            order.payment_status = "PAID"
+            order.save(update_fields=["payment_status"])
 
     return render(request, "cart/order_success.html", {"order": order})
-
 
 def get_phonepe_payment_status(request, order_id):
     try:
