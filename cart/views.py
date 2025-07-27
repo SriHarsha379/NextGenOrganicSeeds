@@ -419,7 +419,7 @@ def phonepe_webhook(request):
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
 
-    # Basic Auth
+    # ✅ Basic Auth check
     auth_header = request.headers.get("Authorization")
     expected_auth = "Basic " + base64.b64encode(
         f"{settings.PHONEPE_WEBHOOK_USER}:{settings.PHONEPE_WEBHOOK_PASSWORD}".encode()
@@ -431,70 +431,80 @@ def phonepe_webhook(request):
 
     try:
         payload = json.loads(request.body.decode("utf-8"))
-        logger.info("Webhook received: %s", json.dumps(payload, indent=2))
+        logger.info("📥 Webhook received:\n%s", json.dumps(payload, indent=2))
 
-        event_type = payload.get("event")
+        event_type = payload.get("event", "").lower().strip()
         data = payload.get("data", {})
 
-        if event_type not in ["CHECKOUT_ORDER_COMPLETED", "CHECKOUT_ORDER_FAILED"]:
-            return JsonResponse({"error": "Ignored event"}, status=200)
+        # ✅ Accept only valid events
+        if event_type not in ["checkout.order.completed", "checkout.order.failed"]:
+            logger.info("🔁 Ignored event: %s", event_type)
+            return JsonResponse({"message": "Ignored event"}, status=200)
 
         merchant_order_id = data.get("merchantOrderId")
         payment_id = data.get("transactionId")
-        success = event_type == "CHECKOUT_ORDER_COMPLETED"
+        success = event_type == "checkout.order.completed"
 
         if not merchant_order_id:
+            logger.error("❗ Missing merchantOrderId in webhook payload")
             return JsonResponse({"error": "Missing merchantOrderId"}, status=400)
 
         try:
             order = Order.objects.get(phonepe_order_id__iexact=merchant_order_id)
         except Order.DoesNotExist:
-            logger.warning("Order not found for merchantOrderId: %s", merchant_order_id)
+            logger.warning("❌ Order not found for merchantOrderId: %s", merchant_order_id)
             return JsonResponse({"error": "Order not found"}, status=404)
 
-        # Update status only if changed
         new_status = "PAID" if success else "FAILED"
-        if order.payment_status != new_status:
+        status_changed = (order.payment_status != new_status)
+
+        if status_changed:
             order.payment_status = new_status
             order.payment_id = payment_id
             order.save(update_fields=["payment_status", "payment_id"])
-            logger.info("Order #%s marked as %s", order.id, new_status)
+            logger.info("✅ Order #%s marked as %s", order.id, new_status)
 
-        # Email to user
-        subject = f"Your Hasafarm Order #{order.id} - {'Confirmed' if success else 'Failed'}"
-        message = (
-            f"Dear {order.full_name},\n\n"
-            f"Thank you for ordering from Hasafarm.\n"
-            f"Your order #{order.id} has been {'confirmed and paid' if success else 'not completed'}.\n\n"
-            f"Details:\n"
-            f"- Amount: ₹{order.total_amount}\n"
-            f"- Payment ID: {order.payment_id or 'N/A'}\n"
-            f"- Order Status: {order.payment_status}\n\n"
-            f"We will notify you once your order is shipped.\n\n"
-            f"Regards,\nHasafarm Team"
-        )
+            # Email to user
+            if order.email:
+                subject = f"Your Hasafarm Order #{order.id} - {'Confirmed' if success else 'Payment Failed'}"
+                message = (
+                    f"Dear {order.full_name},\n\n"
+                    f"Thank you for ordering from Hasafarm.\n"
+                    f"Your order #{order.id} has been {'successfully paid and confirmed' if success else 'not completed due to a payment failure'}.\n\n"
+                    f"Details:\n"
+                    f"- Amount: ₹{order.total_amount}\n"
+                    f"- Payment ID: {order.payment_id or 'N/A'}\n"
+                    f"- Order Status: {order.payment_status}\n\n"
+                    f"We will notify you once your order is shipped.\n\n"
+                    f"Regards,\nHasafarm Team"
+                )
+                try:
+                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [order.email])
+                except Exception as e:
+                    logger.error("📧 Failed to send user email: %s", e)
 
-        try:
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [order.email])
-        except Exception as e:
-            logger.error("Failed to send user email: %s", e)
-
-        # Admin notification
-        try:
-            send_mail(
-                f"[Admin] Order #{order.id} - {order.payment_status}",
-                f"Order ID: {order.id}\nCustomer: {order.full_name}\nStatus: {order.payment_status}\nPhonePe ID: {order.phonepe_order_id}",
-                settings.DEFAULT_FROM_EMAIL,
-                [settings.ADMIN_EMAIL],
-                fail_silently=True,
-            )
-        except Exception as e:
-            logger.error("Failed to send admin email: %s", e)
+            # Email to admin
+            try:
+                send_mail(
+                    f"[Admin] Order #{order.id} - {order.payment_status}",
+                    f"Order ID: {order.id}\nCustomer: {order.full_name}\n"
+                    f"Status: {order.payment_status}\nPhonePe ID: {order.phonepe_order_id}",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [settings.ADMIN_EMAIL],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.error("📧 Failed to send admin email: %s", e)
+        else:
+            logger.info("ℹ️ Order #%s already marked as %s — no change", order.id, order.payment_status)
 
         return JsonResponse({"message": "Webhook handled"}, status=200)
 
+    except json.JSONDecodeError:
+        logger.error("❌ Invalid JSON payload in webhook")
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
     except Exception as e:
-        logger.exception("Webhook processing error")
+        logger.exception("💥 Unexpected error during webhook processing")
         return JsonResponse({"error": "Internal server error"}, status=500)
 
 def retry_payment(request, order_id):
