@@ -512,24 +512,20 @@ def phonepe_webhook(request):
         logger.exception("💥 Unexpected error during webhook processing")
         return JsonResponse({"error": "Internal server error"}, status=500)
 
-def retry_payment(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
+def retry_payment(request, phonepe_order_id):
+    order = get_object_or_404(Order, phonepe_order_id__iexact=phonepe_order_id)
 
-    # 🔐 Validate access
-    if request.user.is_authenticated:
-        if order.user != request.user:
-            logger.warning(f"⚠️ Unauthorized retry by another user: {request.user}")
-            return redirect("home")
-    else:
-        if request.session.get("last_order_id") != order.id:
-            logger.warning(f"⚠️ Guest unauthorized retry attempt for Order #{order.id}")
-            return redirect("home")
+    # 🔐 Guest session validation
+    session_guest_id = str(request.session.get("guest_order_id"))
+    if session_guest_id != str(order.id):
+        return HttpResponseForbidden("Unauthorized access to this guest order.")
 
     # ✅ Retry logic
-    if order.payment_status != "Paid":
+    if order.payment_status != "PAID":
         return redirect(order.payment_link or "home")
 
-    return redirect("my_orders")
+    # Already paid — show success
+    return redirect("order_success", phonepe_order_id=order.phonepe_order_id)
 
 @login_required
 def my_orders(request):
