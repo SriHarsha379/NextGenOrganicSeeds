@@ -15,9 +15,12 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('orders/', include('orders.urls')),
 
-    path('order-success/', order_success, name='order_success'),
     path('parse-order-data/', parse_raw_order_data, name='parse_order_data'),
+ # ✅ FIXED: success URL now works
+    path('order/success/<str:phonepe_order_id>/', order_success, name='order_success'),
 
+    # ✅ FIXED: webhook is directly mapped
+    path('phonepe/webhook/', phonepe_webhook, name='phonepe_webhook'),
     # ✅ KEEP ONLY this version with trailing slash
     path('payment/response/', phonepe_webhook, name='phonepe_webhook'),
 ]

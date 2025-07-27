@@ -24,6 +24,7 @@ class Order(models.Model):
     order_token = models.CharField(max_length=255, blank=True, null=True)
     payment_link = models.URLField(max_length=1000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    session_key = models.CharField(max_length=40, blank=True, null=True)
 
     # ✅ Add this field
     phonepe_order_id = models.CharField(max_length=100, blank=True, null=True, unique=True)

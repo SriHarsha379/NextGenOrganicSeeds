@@ -279,6 +279,12 @@ def process_order(request):
             order.phonepe_order_id = f"HF{order.id}"
             order.save(update_fields=["phonepe_order_id"])
 
+            # ✅ Store session key into the order
+            if not request.session.session_key:
+                request.session.save()
+            order.session_key = request.session.session_key
+            order.save(update_fields=["session_key"])
+
             # ✅ Step 5: Reserve stock
             for item in data["cart_items"]:
                 seed = get_object_or_404(Seed.objects.select_for_update(), id=item["id"])
@@ -295,7 +301,6 @@ def process_order(request):
                 merchant_order_id=order.phonepe_order_id,
                 amount=int(final_amount * 100),  # in paisa
                 redirect_url=redirect_url,
-                redirect_mode="POST"
             )
             pay_response = client.pay(pay_request)
 
@@ -303,10 +308,9 @@ def process_order(request):
             order.payment_link = pay_response.redirect_url
             order.save(update_fields=["payment_link"])
 
-            # ✅ Step 8: Store order ID in session
+            # ✅ Step 8: Store guest order access in session
             request.session["last_order_id"] = order.id
-            request.session.modified = True
-            request.session["last_order_id"] = order.id
+            request.session["guest_order_id"] = str(order.id)
             request.session["last_order_time"] = datetime.utcnow().isoformat()
             request.session.modified = True
 
@@ -334,7 +338,6 @@ def process_order(request):
 
 
 
-
 def get_cart(request):
     cart = request.session.get("cart", {})
     return JsonResponse(cart)
@@ -354,48 +357,60 @@ def order_success(request, phonepe_order_id):
     except Order.DoesNotExist:
         raise Http404("Order not found")
 
-    # 🚨 Session validation: Guest must own this order
-    if request.session.session_key != order.session_key:
-        return HttpResponseForbidden("You are not authorized to view this order.")
+    session_guest_id = str(request.session.get("guest_order_id"))
+    if session_guest_id != str(order.id):
+        return HttpResponseForbidden("Unauthorized access to this guest order.")
 
-    # 🔄 Fallback: If webhook failed, check status manually
     if order.payment_status != "PAID":
-        payment_status = get_phonepe_payment_status(order.phonepe_order_id)
-        if payment_status == "PAID":
+        status_info = get_phonepe_payment_status(phonepe_order_id)
+        if status_info["success"]:
             order.payment_status = "PAID"
-            order.save(update_fields=["payment_status"])
+            order.payment_id = status_info["payment_id"]
+            order.save(update_fields=["payment_status", "payment_id"])
 
     return render(request, "cart/order_success.html", {"order": order})
 
-def get_phonepe_payment_status(request, order_id):
+def get_phonepe_payment_status(order_id):
     try:
-        salt_key = settings.PHONEPE_SALT_KEY
-        salt_index = settings.PHONEPE_SALT_INDEX
-        merchant_id = settings.PHONEPE_MERCHANT_ID
+        merchant_id = settings.PHONEPE_CLIENT_ID
+        client_secret = settings.PHONEPE_CLIENT_SECRET
+        env = settings.PHONEPE_ENV
 
+        base_url = (
+            "https://api.phonepe.com" if env == "PRODUCTION"
+            else "https://api-preprod.phonepe.com"
+        )
         url_path = f"/pg/v1/status/{order_id}"
-        base_url = "https://api.phonepe.com"
         full_url = base_url + url_path
 
-        string_to_hash = f"{url_path}{salt_key}"
-        hashed = hashlib.sha256(string_to_hash.encode()).hexdigest()
-        x_verify = f"{hashed}###{salt_index}"
+        string_to_sign = url_path.encode()
+        hmac_hash = hmac.new(
+            client_secret.encode(),
+            string_to_sign,
+            hashlib.sha256
+        ).hexdigest()
 
         headers = {
-            "X-VERIFY": x_verify,
+            "Content-Type": "application/json",
+            "X-VERIFY": hmac_hash,
             "X-MERCHANT-ID": merchant_id,
-            "Content-Type": "application/json"
         }
 
         response = requests.get(full_url, headers=headers, timeout=10)
         response.raise_for_status()
-        return JsonResponse(response.json())
+        data = response.json()
+
+        code = data.get("code")
+        success = code == "PAYMENT_SUCCESS"
+
+        return {
+            "success": success,
+            "payment_id": data.get("data", {}).get("transactionId"),
+            "raw": data,
+        }
 
     except requests.exceptions.RequestException as e:
-        logger.error("❌ PhonePe status check error:", exc_info=True)
-        return JsonResponse({"success": False, "error": str(e)})
-
-
+        return {"success": False, "error": str(e), "raw": {}}
 
 logger = logging.getLogger(__name__)
 
@@ -404,19 +419,19 @@ def phonepe_webhook(request):
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
 
-    # ✅ 1. Basic Auth check
+    # Basic Auth
     auth_header = request.headers.get("Authorization")
     expected_auth = "Basic " + base64.b64encode(
         f"{settings.PHONEPE_WEBHOOK_USER}:{settings.PHONEPE_WEBHOOK_PASSWORD}".encode()
     ).decode()
 
     if not auth_header or auth_header != expected_auth:
-        logger.warning("🔒 Invalid or missing Authorization header")
+        logger.warning("Invalid or missing Authorization header")
         return JsonResponse({"error": "Unauthorized"}, status=401)
 
     try:
         payload = json.loads(request.body.decode("utf-8"))
-        logger.info("📩 Webhook received: %s", json.dumps(payload, indent=2))
+        logger.info("Webhook received: %s", json.dumps(payload, indent=2))
 
         event_type = payload.get("event")
         data = payload.get("data", {})
@@ -434,17 +449,18 @@ def phonepe_webhook(request):
         try:
             order = Order.objects.get(phonepe_order_id__iexact=merchant_order_id)
         except Order.DoesNotExist:
-            logger.warning("❌ Order not found for merchantOrderId: %s", merchant_order_id)
+            logger.warning("Order not found for merchantOrderId: %s", merchant_order_id)
             return JsonResponse({"error": "Order not found"}, status=404)
 
-        # ✅ Update payment status
-        order.payment_status = "Paid" if success else "Failed"
-        order.payment_id = payment_id
-        order.save(update_fields=["payment_status", "payment_id"])
+        # Update status only if changed
+        new_status = "PAID" if success else "FAILED"
+        if order.payment_status != new_status:
+            order.payment_status = new_status
+            order.payment_id = payment_id
+            order.save(update_fields=["payment_status", "payment_id"])
+            logger.info("Order #%s marked as %s", order.id, new_status)
 
-        logger.info("✅ Order #%s marked as %s", order.id, order.payment_status)
-
-        # ✅ Send emails
+        # Email to user
         subject = f"Your Hasafarm Order #{order.id} - {'Confirmed' if success else 'Failed'}"
         message = (
             f"Dear {order.full_name},\n\n"
@@ -459,17 +475,11 @@ def phonepe_webhook(request):
         )
 
         try:
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [order.email],
-                fail_silently=False,
-            )
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [order.email])
         except Exception as e:
-            logger.error("📧 Failed to send user email: %s", e)
+            logger.error("Failed to send user email: %s", e)
 
-        # ✅ Notify admin
+        # Admin notification
         try:
             send_mail(
                 f"[Admin] Order #{order.id} - {order.payment_status}",
@@ -479,12 +489,12 @@ def phonepe_webhook(request):
                 fail_silently=True,
             )
         except Exception as e:
-            logger.error("📧 Failed to send admin email: %s", e)
+            logger.error("Failed to send admin email: %s", e)
 
         return JsonResponse({"message": "Webhook handled"}, status=200)
 
     except Exception as e:
-        logger.exception("❌ Webhook processing error:")
+        logger.exception("Webhook processing error")
         return JsonResponse({"error": "Internal server error"}, status=500)
 
 def retry_payment(request, order_id):

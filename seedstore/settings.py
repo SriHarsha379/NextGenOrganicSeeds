@@ -46,7 +46,18 @@ config = Config(RepositoryEnv(BASE_DIR / '.env'))  # for custom path
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-+vofv8mk!los^y4r=^^bt86$nk3e(^a$*i4k-_q7ybwpzwg5%c'
 
-ALLOWED_HOSTS = ["hasafarm.com","www.hasafarm.com","hasaorganicseeds.com","www.hasaorganicseeds.com","147.93.28.237","127.0.0.1","localhost"]
+ALLOWED_HOSTS = [
+    "hasafarm.com",
+    "www.hasafarm.com",
+    "hasaorganicseeds.com",
+    "www.hasaorganicseeds.com",
+    "nextgenorganicseeds.com",
+    "www.nextgenorganicseeds.com",
+    "147.93.28.237",
+    "127.0.0.1",
+    "localhost"
+]
+
 # ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 USE_X_FORWARDED_HOST = True
