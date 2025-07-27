@@ -351,6 +351,8 @@ def clear_cart(request):
         return JsonResponse({"status": "cleared"})
     return JsonResponse({"error": "Invalid request"}, status=400)
 
+logger = logging.getLogger(__name__)
+
 def order_success(request, phonepe_order_id):
     try:
         order = Order.objects.get(phonepe_order_id__iexact=phonepe_order_id)
@@ -359,21 +361,28 @@ def order_success(request, phonepe_order_id):
 
     session_guest_id = str(request.session.get("guest_order_id"))
     if session_guest_id != str(order.id):
+        logger.warning(f"⚠️ Guest session mismatch for order {order.id}")
         return HttpResponseForbidden("Unauthorized access to this guest order.")
 
-    # If payment is still not marked as PAID, fetch real-time status
-    if order.payment_status != "PAID":
-        status_info = get_phonepe_payment_status(phonepe_order_id)
-        if status_info["success"]:
-            order.payment_status = "PAID"
-            order.payment_id = status_info["payment_id"]
-            order.save(update_fields=["payment_status", "payment_id"])
-        else:
-            # ❌ Redirect to a failure page instead of showing success
-            return render(request, "cart/payment_failed.html", {"order": order})
+    # 🟡 If already paid, render success
+    if order.payment_status == "PAID":
+        return render(request, "cart/order_success.html", {"order": order})
 
-    # ✅ At this point, payment is definitely PAID
-    return render(request, "cart/order_success.html", {"order": order})
+    # 🔁 Check latest payment status from PhonePe
+    status_info = get_phonepe_payment_status(phonepe_order_id)
+    logger.info(f"ℹ️ Payment status for {order.id}: {status_info}")
+
+    if status_info.get("success"):
+        # ✅ Mark as paid
+        order.payment_status = "PAID"
+        order.payment_id = status_info.get("payment_id", "")
+        order.save(update_fields=["payment_status", "payment_id"])
+        return render(request, "cart/order_success.html", {"order": order})
+    else:
+        # ❌ Handle failure or pending gracefully
+        order.payment_status = "FAILED"
+        order.save(update_fields=["payment_status"])
+        return render(request, "cart/payment_failed.html", {"order": order})
 
 def get_phonepe_payment_status(order_id):
     try:
