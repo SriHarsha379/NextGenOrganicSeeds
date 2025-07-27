@@ -361,13 +361,18 @@ def order_success(request, phonepe_order_id):
     if session_guest_id != str(order.id):
         return HttpResponseForbidden("Unauthorized access to this guest order.")
 
+    # If payment is still not marked as PAID, fetch real-time status
     if order.payment_status != "PAID":
         status_info = get_phonepe_payment_status(phonepe_order_id)
         if status_info["success"]:
             order.payment_status = "PAID"
             order.payment_id = status_info["payment_id"]
             order.save(update_fields=["payment_status", "payment_id"])
+        else:
+            # ❌ Redirect to a failure page instead of showing success
+            return render(request, "cart/payment_failed.html", {"order": order})
 
+    # ✅ At this point, payment is definitely PAID
     return render(request, "cart/order_success.html", {"order": order})
 
 def get_phonepe_payment_status(order_id):

@@ -1,0 +1,3 @@
+<h1>Payment Failed</h1>
+<p>Dear {{ order.full_name }}, your payment was not completed successfully.</p>
+<p>If this was a mistake, please <a href="{% url 'retry_payment' order.phonepe_order_id %}">try again</a>.</p>
