@@ -289,16 +289,16 @@ def process_order(request):
                 seed.save()
 
             # ✅ Step 6: Create payment link via PhonePe
-            redirect_url = f"https://hasafarm.com/order-success/?order_id={order.phonepe_order_id}"
+            # redirect_url = f"https://hasafarm.com/order-success/?order_id={order.phonepe_order_id}"
             pay_request = StandardCheckoutPayRequest.build_request(
                 merchant_order_id=order.phonepe_order_id,
                 amount=int(final_amount * 100),  # in paisa
-                redirect_url=redirect_url
+                # redirect_url=redirect_url
             )
             pay_response = client.pay(pay_request)
 
             # ✅ Step 7: Save payment link
-            order.payment_link = pay_response.redirect_url
+            # order.payment_link = pay_response.redirect_url
             order.save(update_fields=["payment_link"])
 
             # ✅ Step 8: Store order ID in session
@@ -316,7 +316,7 @@ def process_order(request):
             return JsonResponse({
                 "message": "Order created!",
                 "order_id": order.id,
-                "payment_link": pay_response.redirect_url,
+                # "payment_link": pay_response.redirect_url,
                 "postal_charge": float(postal_charge),
                 "total_amount": float(final_amount)
             }, status=201)
