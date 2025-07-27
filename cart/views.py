@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timedelta
 
 from django.http import Http404
@@ -362,11 +363,21 @@ def order_success(request, phonepe_order_id):
         return HttpResponseForbidden("Unauthorized access to this guest order.")
 
     if order.payment_status != "PAID":
-        status_info = get_phonepe_payment_status(phonepe_order_id)
-        if status_info["success"]:
-            order.payment_status = "PAID"
-            order.payment_id = status_info["payment_id"]
-            order.save(update_fields=["payment_status", "payment_id"])
+        max_retries = 5
+        for attempt in range(max_retries):
+            status_info = get_phonepe_payment_status(phonepe_order_id)
+
+            if status_info.get("success") and status_info.get("status") == "PAID":
+                order.payment_status = "PAID"
+                order.payment_id = status_info.get("payment_id")
+                order.save(update_fields=["payment_status", "payment_id"])
+                break
+            else:
+                time.sleep(2)  # Wait before next retry
+
+        order.refresh_from_db()
+        if order.payment_status != "PAID":
+            return render(request, "cart/payment_failed.html", {"order": order})
 
     return render(request, "cart/order_success.html", {"order": order})
 
