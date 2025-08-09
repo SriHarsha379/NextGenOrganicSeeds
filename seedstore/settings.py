@@ -51,8 +51,6 @@ ALLOWED_HOSTS = [
     "www.hasafarm.com",
     "hasaorganicseeds.com",
     "www.hasaorganicseeds.com",
-    "nextgenorganicseeds.com",
-    "www.nextgenorganicseeds.com",
     "147.93.28.237",
     "127.0.0.1",
     "localhost"
