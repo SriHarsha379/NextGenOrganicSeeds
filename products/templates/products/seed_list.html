@@ -58,26 +58,26 @@
     height: auto;
     border-radius: 5px;
 }
-.view-more-btn {
-    display: inline-block;
-    background-color: #28a745; /* Green shade */
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 14px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
+<!--.view-more-btn {-->
+<!--    display: inline-block;-->
+<!--    background-color: #28a745; /* Green shade */-->
+<!--    color: white;-->
+<!--    padding: 8px 16px;-->
+<!--    border-radius: 20px;-->
+<!--    text-decoration: none;-->
+<!--    font-weight: bold;-->
+<!--    font-size: 14px;-->
+<!--    transition: background-color 0.3s ease, transform 0.2s ease;-->
+<!--}-->
 
-.view-more-btn:hover {
-    background-color: #218838;
-    transform: translateY(-2px);
-}
+<!--.view-more-btn:hover {-->
+<!--    background-color: #218838;-->
+<!--    transform: translateY(-2px);-->
+<!--}-->
 
-.view-more-btn:active {
-    transform: translateY(0);
-}
+<!--.view-more-btn:active {-->
+<!--    transform: translateY(0);-->
+<!--}-->
 
     .quantity-control {
     display: flex;
@@ -1059,32 +1059,32 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
-    document.querySelectorAll('.add-to-cart-form').forEach(form => {
-    form.addEventListener('submit', function(event) {
-        event.preventDefault();
+<!--    document.querySelectorAll('.add-to-cart-form').forEach(form => {-->
+<!--    form.addEventListener('submit', function(event) {-->
+<!--        event.preventDefault();-->
 
-        const seedId = this.getAttribute('data-seed-id');
-        const quantity = parseInt(this.querySelector('input[name="quantity"]').value);
+<!--        const seedId = this.getAttribute('data-seed-id');-->
+<!--        const quantity = parseInt(this.querySelector('input[name="quantity"]').value);-->
 
-        fetch(`/cart/add/${seedId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': this.querySelector('[name=csrfmiddlewaretoken]').value,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ quantity: quantity })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);
-            } else {
-                document.getElementById('cart-count').textContent = data.cart_count;
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
-});
+<!--        fetch(`/cart/add/${seedId}/`, {-->
+<!--            method: 'POST',-->
+<!--            headers: {-->
+<!--                'X-CSRFToken': this.querySelector('[name=csrfmiddlewaretoken]').value,-->
+<!--                'Content-Type': 'application/json'-->
+<!--            },-->
+<!--            body: JSON.stringify({ quantity: quantity })-->
+<!--        })-->
+<!--        .then(response => response.json())-->
+<!--        .then(data => {-->
+<!--            if (data.error) {-->
+<!--                alert(data.error);-->
+<!--            } else {-->
+<!--                document.getElementById('cart-count').textContent = data.cart_count;-->
+<!--            }-->
+<!--        })-->
+<!--        .catch(error => console.error('Error:', error));-->
+<!--    });-->
+<!--});-->
     document.querySelectorAll('.add-to-cart-form').forEach(form => {
     form.addEventListener('submit', function(event) {
         event.preventDefault();
