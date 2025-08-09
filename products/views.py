@@ -24,8 +24,31 @@ def seed_list(request):
 
 
 def homepage(request):
-    bestselling_seeds = Seed.objects.order_by('-sold_count')[:8]  # Assuming 'sold_count' tracks bestsellers
-    return render(request, 'products/seed_list.html', {'bestselling_seeds': bestselling_seeds})
+    categories = [
+        ("Native Vegetable Seeds", "native_vegetable_seeds", "Native"),
+        ("Leafy Vegetable Seeds", "leafy_vegetable_seeds", "Leafy"),
+        ("Exotic Vegetable Seeds", "exotic_vegetable_seeds", "Exotic"),
+        ("Winter Flower Seeds", "winter_flower_seeds", "Winter"),
+        ("All Seasonal Flower Seeds", "all_seasonal_flower_seeds", "All seasonal"),
+        ("Summer Flower Seeds", "summer_flower_seeds", "Summer"),
+    ]
+
+    category_data = []
+    for title, url_name, category_name in categories:
+        seeds = Seed.objects.filter(category__name=category_name).order_by('-id')[:4]
+        category_data.append({
+            "title": title,
+            "url_name": url_name,
+            "seeds": seeds
+        })
+
+    cart = request.session.get("cart", {})
+    cart_count = len(cart)
+
+    return render(request, "products/seed_list.html", {
+        "category_data": category_data,
+        "cart_count": cart_count
+    })
 
 def wishlist(request):
     return render(request, 'wishlist.html')

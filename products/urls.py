@@ -5,9 +5,9 @@ from .views import seed_list, wishlist, homepage, search_seeds, privacy_policy, 
     shipping, farm_crops
 
 urlpatterns = [
-    path('', seed_list, name='seed_list'),
+    path('', homepage, name='homepage'),  # ✅ Make homepage default
+    path('seeds/', seed_list, name='seed_list'),  # Keep All Seeds page
     path('wishlist/', wishlist, name='wishlist'),
-    path('homepage/', homepage, name='homepage'),
     path('seeds/native-vegetable-seeds/', views.native_vegetable_seeds, name='native_vegetable_seeds'),
     path('seeds/leafy-vegetable-seeds/', views.leafy_vegetable_seeds, name='leafy_vegetable_seeds'),
     path('seeds/exotic-vegetable-seeds/', views.exotic_vegetable_seeds, name='exotic_vegetable_seeds'),
