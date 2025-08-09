@@ -45,10 +45,11 @@ def homepage(request):
     cart = request.session.get("cart", {})
     cart_count = len(cart)
 
-    return render(request, "products/seed_list.html", {
+    return render(request, "products/home.html", {
         "category_data": category_data,
         "cart_count": cart_count
     })
+
 
 def wishlist(request):
     return render(request, 'wishlist.html')
