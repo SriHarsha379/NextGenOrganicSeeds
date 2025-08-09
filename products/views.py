@@ -9,21 +9,6 @@ from .utils.phonepe_client import client
 
 
 def seed_list(request):
-    seeds = Seed.objects.all().order_by('id')
-
-    cart = request.session.get("cart", {})  # Retrieve cart from session
-    cart_count = len(cart)  # Count unique items in the cart
-
-    # Disable cache for this page
-    response = render(request, "products/seed_list.html", {"seeds": seeds, "cart_count": cart_count})
-    response["Cache-Control"] = "no-store, no-cache, must-revalidate, proxy-revalidate"
-    response["Pragma"] = "no-cache"
-    response["Expires"] = "0"
-
-    return response
-
-
-def homepage(request):
     categories = [
         ("Native Vegetable Seeds", "native_vegetable_seeds", "Native"),
         ("Leafy Vegetable Seeds", "leafy_vegetable_seeds", "Leafy"),
@@ -35,21 +20,52 @@ def homepage(request):
 
     category_data = []
     for title, url_name, category_name in categories:
-        seeds = Seed.objects.filter(category__name=category_name).order_by('-id')[:4]
+        seeds = Seed.objects.filter(category__name__iexact=category_name).order_by('-id')[:4]
         category_data.append({
             "title": title,
             "url_name": url_name,
             "seeds": seeds
         })
 
-    cart = request.session.get("cart", {})
-    cart_count = len(cart)
+    cart_count = len(request.session.get("cart", {}))
 
-    return render(request, "products/home.html", {
+    response = render(request, "products/seed_list.html", {
         "category_data": category_data,
         "cart_count": cart_count
     })
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, proxy-revalidate"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+    return response
 
+
+
+# def homepage(request):
+#     categories = [
+#         ("Native Vegetable Seeds", "native_vegetable_seeds", "Native"),
+#         ("Leafy Vegetable Seeds", "leafy_vegetable_seeds", "Leafy"),
+#         ("Exotic Vegetable Seeds", "exotic_vegetable_seeds", "Exotic"),
+#         ("Winter Flower Seeds", "winter_flower_seeds", "Winter"),
+#         ("All Seasonal Flower Seeds", "all_seasonal_flower_seeds", "All seasonal"),
+#         ("Summer Flower Seeds", "summer_flower_seeds", "Summer"),
+#     ]
+#
+#     category_data = []
+#     for title, url_name, category_name in categories:
+#         seeds = Seed.objects.filter(category__name__iexact=category_name).order_by('-id')[:4]
+#         category_data.append({
+#             "title": title,
+#             "url_name": url_name,
+#             "seeds": seeds
+#         })
+#
+#     cart = request.session.get("cart", {})
+#     cart_count = len(cart)
+#
+#     return render(request, "products/seed_list.html", {
+#         "category_data": category_data,
+#         "cart_count": cart_count
+#     })
 
 def wishlist(request):
     return render(request, 'wishlist.html')

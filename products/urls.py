@@ -1,11 +1,11 @@
 from django.urls import path
 
 from . import views
-from .views import seed_list, wishlist, homepage, search_seeds, privacy_policy, terms_conditions, disclaimer, refund, \
+from .views import seed_list, wishlist, search_seeds, privacy_policy, terms_conditions, disclaimer, refund, \
     shipping, farm_crops
 
 urlpatterns = [
-    path('', homepage, name='homepage'),  # ✅ Make homepage default
+    # path('', homepage, name='homepage'),  # ✅ Make homepage default
     path('seeds/', seed_list, name='seed_list'),  # Keep All Seeds page
     path('wishlist/', wishlist, name='wishlist'),
     path('seeds/native-vegetable-seeds/', views.native_vegetable_seeds, name='native_vegetable_seeds'),
@@ -23,3 +23,4 @@ urlpatterns = [
     path('refund/', refund, name='refund'),
     path('shipping/', shipping, name='shipping'),
 ]
+
