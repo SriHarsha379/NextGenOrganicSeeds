@@ -22,7 +22,7 @@ class Command(BaseCommand):
             with open(file_path, newline='', encoding='utf-8') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
-                    name = row["name"].strip()
+                    name = row["name"].strip().title()
                     description = row["description"].strip()
                     price = float(row["price"].strip())
                     stock = int(row["stock"].strip())
