@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add New Seed - HasaFarm Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+
+    <!-- Navbar -->
+    <nav class="bg-green-600 text-white p-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold">HasaFarm Admin - Add New Seed</h1>
+        <a href="{% url 'adminpanel:logout' %}" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded">Logout</a>
+    </nav>
+
+    <main class="p-6 max-w-3xl mx-auto">
+        <div class="bg-white p-6 rounded shadow">
+            <h2 class="text-xl font-semibold mb-4">Add Seed</h2>
+
+            <form method="POST" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-gray-700">Name</label>
+                    <input type="text" name="name" class="w-full border rounded px-3 py-2" required>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700">Description</label>
+                    <textarea name="description" class="w-full border rounded px-3 py-2" rows="4" required></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700">Price</label>
+                    <input type="number" step="0.01" name="price" class="w-full border rounded px-3 py-2" required>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700">Stock</label>
+                    <input type="number" name="stock" class="w-full border rounded px-3 py-2" required>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700">Category</label>
+                    <select name="category" class="w-full border rounded px-3 py-2">
+                        <option value="">Select Category</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700">Image</label>
+                    <input type="file" name="image" class="w-full border rounded px-3 py-2">
+                </div>
+
+                <div class="flex space-x-4 mt-4">
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded shadow">
+                        Add Seed
+                    </button>
+                    <a href="{% url 'adminpanel:seed_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded shadow">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+</body>
+</html>

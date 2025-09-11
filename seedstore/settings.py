@@ -18,6 +18,7 @@ from decouple import Csv, Config, RepositoryEnv
 
 from pathlib import Path
 #from decouple import config
+LOGIN_URL = '/accounts/login/'  # or use reverse_lazy('login')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -80,6 +81,7 @@ INSTALLED_APPS = [
     'cart',
     'orders',
     'accounts',
+    'adminpanel',
 ]
 
 MIDDLEWARE = [

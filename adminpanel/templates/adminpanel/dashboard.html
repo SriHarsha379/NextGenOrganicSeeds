@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HasaFarm Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+
+    <!-- Navbar -->
+    <nav class="bg-green-600 text-white p-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold">HasaFarm Admin Dashboard</h1>
+        <a href="{% url 'adminpanel:logout' %}" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded">Logout</a>
+    </nav>
+
+    <main class="p-6">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+                <h2 class="text-gray-700 text-xl font-semibold">Total Seeds</h2>
+                <p class="text-3xl font-bold text-green-600">{{ total_seeds }}</p>
+            </div>
+            <div class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+                <h2 class="text-gray-700 text-xl font-semibold">Total Categories</h2>
+                <p class="text-3xl font-bold text-green-600">{{ total_categories }}</p>
+            </div>
+            <div class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+                <h2 class="text-gray-700 text-xl font-semibold">Low Stock Seeds</h2>
+                <p class="text-3xl font-bold text-red-500">{{ low_stock }}</p>
+            </div>
+        </div>
+
+        <!-- Most Stocked Seed -->
+        <div class="bg-white p-6 rounded shadow mb-6 hover:shadow-lg transition">
+            <h2 class="text-gray-700 text-xl font-semibold mb-2">Most Stocked Seed</h2>
+            <p class="text-lg">
+                {% if most_stocked %}
+                    {{ most_stocked.name }} ({{ most_stocked.stock }})
+                {% else %}
+                    N/A
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Recently Added Seeds -->
+        <div class="bg-white p-6 rounded shadow mb-6 hover:shadow-lg transition">
+            <h2 class="text-gray-700 text-xl font-semibold mb-4">Recently Added Seeds</h2>
+            <ul class="list-disc list-inside space-y-2">
+                {% for seed in recent_seeds %}
+                    <li class="flex justify-between items-center">
+                        <span>{{ seed.name }}</span>
+                        <span class="text-gray-500">Stock: {{ seed.stock }}</span>
+                    </li>
+                {% empty %}
+                    <li>No seeds added yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <a href="{% url 'adminpanel:seed_list' %}" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded shadow">
+    Manage Seeds
+</a>
+
+<a href="{% url 'adminpanel:seed_list' %}" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded shadow">
+    Seed Inventory
+</a>
+
+    </main>
+</body>
+</html>

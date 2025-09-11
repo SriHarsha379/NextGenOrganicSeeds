@@ -1,0 +1,31 @@
+<form method="get" class="flex flex-wrap gap-4 mb-6 items-end">
+    <div>
+        <label class="block text-gray-700">Search Name</label>
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search seed..." class="border px-3 py-2 rounded w-full">
+    </div>
+
+    <div>
+        <label class="block text-gray-700">Category</label>
+        <select name="category" class="border px-3 py-2 rounded w-full">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if category_id|add:'' == cat.id|stringformat:"s" %}selected{% endif %}>
+                    {{ cat.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div>
+        <label class="block text-gray-700">Stock Status</label>
+        <select name="stock" class="border px-3 py-2 rounded w-full">
+            <option value="">All</option>
+            <option value="low" {% if stock_filter == 'low' %}selected{% endif %}>Low Stock (≤10)</option>
+            <option value="in" {% if stock_filter == 'in' %}selected{% endif %}>In Stock (>10)</option>
+        </select>
+    </div>
+
+    <div>
+        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded shadow mt-6">Filter</button>
+    </div>
+</form>
