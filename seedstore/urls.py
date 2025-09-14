@@ -1,21 +1,18 @@
+from django.contrib import admin  # <-- import this
 from django.urls import path, include
-from django.conf import settings
-from django.conf.urls.static import static
-from django.views.generic.base import RedirectView
 
+from cart.views import order_success, phonepe_webhook
 from orders.views import parse_raw_order_data
 from users.views import home_redirect
-from cart.views import phonepe_webhook, order_success
 
 urlpatterns = [
-    # Home page
     path('', home_redirect, name='home'),
 
-    # Custom admin panel at /admin/
-    path('admin/', include('adminpanel.urls')),  # All admin URLs under /admin/
+    # Built-in Django admin
+    path('django-admin/', admin.site.urls),   # keeps namespace 'admin'
 
-    # Optional: redirect old /admin/login/ if anything still points to it
-    path('admin/login/', RedirectView.as_view(url='/admin/login/')),
+    # Custom admin panel
+    path('admin/', include('adminpanel.urls')),  # your custom panel
 
     # Other apps
     path('seeds/', include('products.urls')),
@@ -29,7 +26,3 @@ urlpatterns = [
     path('phonepe/webhook/', phonepe_webhook, name='phonepe_webhook'),
     path('payment/response/', phonepe_webhook, name='phonepe_webhook'),
 ]
-
-# Serve media files during development
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
