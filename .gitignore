@@ -2,6 +2,7 @@
 .env
 seedstore/settings.py
 seedstore/settings.py.save
+hasaorganicseeds
 
 # Media uploads
 media/
