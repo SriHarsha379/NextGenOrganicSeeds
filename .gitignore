@@ -1,6 +1,16 @@
+# Django secrets
+.env
+seedstore/settings.py
+seedstore/settings.py.save
 
-*.pyc
+# Media uploads
+media/
+
+# Backups
+*.dump
+
+# Python
 __pycache__/
-db.sqlite3
+*.pyc
 venv/
-venv/
+.venv/
