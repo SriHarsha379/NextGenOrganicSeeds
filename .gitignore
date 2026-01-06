@@ -1,6 +1,6 @@
 # Django secrets
 .env
-seedstore/settings.py
+*.env
 seedstore/settings.py.save
 hasaorganicseeds
 
