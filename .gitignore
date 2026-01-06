@@ -1,17 +1,36 @@
+# ======================
 # Django secrets
+# ======================
 .env
 *.env
 seedstore/settings.py.save
 hasaorganicseeds
 
+# ======================
+# Local databases
+# ======================
+db.sqlite3
+
+# ======================
 # Media uploads
+# ======================
 media/
 
+# ======================
 # Backups
+# ======================
 *.dump
 
+# ======================
 # Python
+# ======================
 __pycache__/
 *.pyc
 venv/
 .venv/
+
+# ======================
+# IDE / Editor
+# ======================
+.idea/
+*.iml

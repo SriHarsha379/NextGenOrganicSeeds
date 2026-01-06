@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order #{{ order.id }}</title>
+    <style>
+        @media print {
+            .no-print { display: none; }
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<button class="no-print" onclick="window.print()">🖨 Print</button>
+<a class="no-print" href="{% url 'adminpanel:order_list' %}">⬅ Back</a>
+
+<h2>Order #{{ order.id }}</h2>
+
+<p>
+<strong>Name:</strong> {{ order.full_name }}<br>
+<strong>Email:</strong> {{ order.email }}<br>
+<strong>Phone:</strong> {{ order.phone }}<br>
+<strong>Address:</strong> {{ order.address }}<br>
+<strong>Status:</strong> {{ order.payment_status }}<br>
+<strong>Date:</strong> {{ order.created_at }}
+</p>
+
+<h3>Items</h3>
+<table>
+<tr>
+    <th>Item</th>
+    <th>Quantity</th>
+    <th>Price</th>
+</tr>
+
+{% for item in order.cart_items %}
+<tr>
+    <td>{{ item.name }}</td>
+    <td>{{ item.quantity }}</td>
+    <td>₹{{ item.price }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<p><strong>Total Quantity:</strong> {{ order.total_quantity }}</p>
+<p><strong>Postal Charge:</strong> ₹{{ order.postal_charge }}</p>
+<p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+
+</body>
+</html>

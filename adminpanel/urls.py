@@ -13,4 +13,6 @@ urlpatterns = [
     path('seeds/<int:id>/edit/', views.seed_edit, name='seed_edit'),
     path('seeds/<int:id>/delete/', views.seed_delete, name='seed_delete'),
     path('inventory/', views.seed_inventory, name='seed_inventory'),
+    path('orders/', views.order_list, name='order_list'),
+    path('orders/<int:order_id>/', views.order_detail, name='order_detail'),
 ]

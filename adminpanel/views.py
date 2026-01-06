@@ -3,6 +3,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.shortcuts import redirect
+
+from orders.models import Order
 from products.models import Seed, Category
 from django.contrib.auth.decorators import login_required, user_passes_test
 
@@ -135,3 +137,24 @@ def seed_inventory(request):
         'recent_seeds': recent_seeds,
     }
     return render(request, 'adminpanel/seed_inventory.html', context)
+
+@admin_required
+def order_list(request):
+    orders = Order.objects.all().order_by('-created_at')
+
+    # Optional filters
+    status = request.GET.get('status')
+    if status:
+        orders = orders.filter(payment_status=status)
+
+    return render(request, 'adminpanel/order_list.html', {
+        'orders': orders,
+        'status': status,
+    })
+
+@admin_required
+def order_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    return render(request, 'adminpanel/order_detail.html', {
+        'order': order
+    })
