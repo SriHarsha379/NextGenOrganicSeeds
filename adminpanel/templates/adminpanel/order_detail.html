@@ -2,72 +2,64 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Order #{{ order.id }}</title>
+    <title>Bulk Address Labels</title>
 
     <style>
         body {
             font-family: Arial, sans-serif;
             font-size: 12px;
             margin: 0;
-            padding: 6px;
-            width: 80mm; /* change to 58mm if needed */
+            padding: 5mm;
         }
 
         @media print {
             .no-print { display: none; }
+
+            body {
+                width: 210mm; /* A4 width */
+            }
+
+            .label-page {
+                display: grid;
+                grid-template-columns: 1fr 1fr; /* 2 per row */
+                gap: 6mm;
+            }
+
+            .label {
+                border: 1px dashed #000;
+                padding: 6mm;
+                box-sizing: border-box;
+                page-break-inside: avoid;
+            }
         }
 
         .center {
             text-align: center;
         }
 
+        .bold {
+            font-weight: bold;
+        }
+
         .logo img {
-            max-height: 70px;
-            margin-bottom: 6px;
+            max-height: 50px;
+            margin-bottom: 4px;
         }
 
         .divider {
             border-top: 1px dashed #000;
-            margin: 6px 0;
+            margin: 5px 0;
         }
 
         .section-title {
             font-weight: bold;
             text-transform: uppercase;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
+            font-size: 11px;
         }
 
         .address {
             line-height: 1.4;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            text-align: left;
-            border-bottom: 1px solid #000;
-            padding-bottom: 3px;
-        }
-
-        td {
-            padding: 3px 0;
-        }
-
-        .right {
-            text-align: right;
-        }
-
-        .totals p {
-            margin: 2px 0;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .bold {
-            font-weight: bold;
         }
     </style>
 </head>
@@ -75,86 +67,48 @@
 
 <button class="no-print" onclick="window.print()">🖨 Print</button>
 
-<!-- LOGO -->
-<div class="logo center">
-    <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="HASA Organic Seeds">
+<div class="label-page">
+
+{% for order in orders %}
+<div class="label">
+
+    <!-- LOGO -->
+    <div class="logo center">
+        <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="HASA Organic Seeds">
+    </div>
+
+    <div class="center bold">
+        HASA ORGANIC SEEDS
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- FROM ADDRESS -->
+    <div class="section-title">From</div>
+    <div class="address">
+        HASA ORGANIC SEEDS<br>
+        #14, 1st B Cross<br>
+        Shivapura, Baglur Main Road<br>
+        Yelahanka<br>
+        Bengaluru – 560063<br>
+        Phone: 7483847243<br>
+        FSSAI: 212250008001765
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- TO ADDRESS -->
+    <div class="section-title">To</div>
+    <div class="address">
+        <strong>{{ order.full_name }}</strong><br>
+        {{ order.address }}<br>
+        Phone: {{ order.phone }}<br>
+        {{ order.email }}
+    </div>
+
 </div>
+{% endfor %}
 
-
-<div class="center bold">
-    HASA ORGANIC SEEDS
-</div>
-
-<div class="center">
-    Phone: 7483847243<br>
-    FSSAI: 212250008001765
-</div>
-
-<div class="divider"></div>
-
-<!-- FROM ADDRESS -->
-<div class="section-title">From</div>
-<div class="address">
-    #14, 1st B Cross<br>
-    Shivapura, Baglur Main Road<br>
-    Yelahanka<br>
-    Bengaluru – 560063
-</div>
-
-<div class="divider"></div>
-
-<!-- TO ADDRESS -->
-<div class="section-title">To</div>
-<div class="address">
-    <strong>{{ order.full_name }}</strong><br>
-    {{ order.address }}<br>
-    Phone: {{ order.phone }}<br>
-    {{ order.email }}
-</div>
-
-<div class="divider"></div>
-
-<!-- ORDER INFO -->
-<!--<div>-->
-<!--    Order #: {{ order.id }}<br>-->
-<!--    Date: {{ order.created_at|date:"d M Y H:i" }}<br>-->
-<!--    Payment: {{ order.payment_status }}-->
-<!--</div>-->
-
-<div class="divider"></div>
-
-<!-- ITEMS -->
-<div class="section-title">Items</div>
-
-<table>
-    <tr>
-        <th>Item</th>
-        <th class="right">Qty</th>
-        <th class="right">₹</th>
-    </tr>
-
-    {% for item in order.cart_items %}
-    <tr>
-        <td>{{ item.name }}</td>
-        <td class="right">{{ item.quantity }}</td>
-        <td class="right">{{ item.price }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
-<div class="divider"></div>
-
-<!-- TOTALS -->
-<div class="totals">
-    <p><span>Total Qty</span><span>{{ order.total_quantity }}</span></p>
-    <p><span>Postal</span><span>₹{{ order.postal_charge }}</span></p>
-    <p class="bold"><span>Total</span><span>₹{{ order.total_amount }}</span></p>
-</div>
-
-<div class="divider"></div>
-
-<div class="center">
-    Thank you for your order 🌱
 </div>
 
 </body>
