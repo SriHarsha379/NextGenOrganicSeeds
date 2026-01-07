@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -76,8 +77,9 @@
 
 <!-- LOGO -->
 <div class="logo center">
-    <img src="C:\Users\VISHAL\NextGenOrganicSeeds\static\images\hasa_organic_seeds.png" alt="HASA Organic Seeds">
+    <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="HASA Organic Seeds">
 </div>
+
 
 <div class="center bold">
     HASA ORGANIC SEEDS
@@ -113,11 +115,11 @@
 <div class="divider"></div>
 
 <!-- ORDER INFO -->
-<div>
-    Order #: {{ order.id }}<br>
-    Date: {{ order.created_at|date:"d M Y H:i" }}<br>
-    Payment: {{ order.payment_status }}
-</div>
+<!--<div>-->
+<!--    Order #: {{ order.id }}<br>-->
+<!--    Date: {{ order.created_at|date:"d M Y H:i" }}<br>-->
+<!--    Payment: {{ order.payment_status }}-->
+<!--</div>-->
 
 <div class="divider"></div>
 
