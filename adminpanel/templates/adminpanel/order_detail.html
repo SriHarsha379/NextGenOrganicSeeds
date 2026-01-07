@@ -2,13 +2,42 @@
 <html>
 <head>
     <title>Order #{{ order.id }}</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
+            font-size: 12px;
+            margin: 0;
+            padding: 6px;
+            width: 80mm; /* change to 58mm if needed */
         }
 
         @media print {
             .no-print { display: none; }
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .logo img {
+            max-height: 70px;
+            margin-bottom: 6px;
+        }
+
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 6px 0;
+        }
+
+        .section-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        .address {
+            line-height: 1.4;
         }
 
         table {
@@ -16,83 +45,115 @@
             border-collapse: collapse;
         }
 
-        th, td {
-            border: 1px solid #000;
-            padding: 6px;
+        th {
             text-align: left;
+            border-bottom: 1px solid #000;
+            padding-bottom: 3px;
         }
 
-        .address-box {
-            width: 48%;
-            border: 1px solid #000;
-            padding: 10px;
-            box-sizing: border-box;
+        td {
+            padding: 3px 0;
         }
 
-        .address-row {
+        .right {
+            text-align: right;
+        }
+
+        .totals p {
+            margin: 2px 0;
             display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
         }
 
-        .address-title {
+        .bold {
             font-weight: bold;
-            margin-bottom: 5px;
-            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
 <button class="no-print" onclick="window.print()">🖨 Print</button>
-<a class="no-print" href="{% url 'adminpanel:order_list' %}">⬅ Back</a>
 
-<h2>Order #{{ order.id }}</h2>
-
-<!-- FROM & TO ADDRESS -->
-<div class="address-row">
-    <div class="address-box">
-        <div class="address-title">From Address</div>
-        #14, 1st B Cross<br>
-        Shivapura, Baglur Main Road<br>
-        Yelahanka<br>
-        Bengaluru – 560063
-    </div>
-
-    <div class="address-box">
-        <div class="address-title">To Address</div>
-        <strong>{{ order.full_name }}</strong><br>
-        {{ order.address }}<br>
-        Phone: {{ order.phone }}<br>
-        Email: {{ order.email }}
-    </div>
+<!-- LOGO -->
+<div class="logo center">
+    <img src="C:\Users\VISHAL\NextGenOrganicSeeds\static\images\hasa_organic_seeds.png" alt="HASA Organic Seeds">
 </div>
 
-<p>
-<strong>Payment Status:</strong> {{ order.payment_status }}<br>
-<strong>Order Date:</strong> {{ order.created_at|date:"d M Y, H:i" }}
-</p>
+<div class="center bold">
+    HASA ORGANIC SEEDS
+</div>
 
-<h3>Items</h3>
+<div class="center">
+    Phone: 7483847243<br>
+    FSSAI: 212250008001765
+</div>
+
+<div class="divider"></div>
+
+<!-- FROM ADDRESS -->
+<div class="section-title">From</div>
+<div class="address">
+    #14, 1st B Cross<br>
+    Shivapura, Baglur Main Road<br>
+    Yelahanka<br>
+    Bengaluru – 560063
+</div>
+
+<div class="divider"></div>
+
+<!-- TO ADDRESS -->
+<div class="section-title">To</div>
+<div class="address">
+    <strong>{{ order.full_name }}</strong><br>
+    {{ order.address }}<br>
+    Phone: {{ order.phone }}<br>
+    {{ order.email }}
+</div>
+
+<div class="divider"></div>
+
+<!-- ORDER INFO -->
+<div>
+    Order #: {{ order.id }}<br>
+    Date: {{ order.created_at|date:"d M Y H:i" }}<br>
+    Payment: {{ order.payment_status }}
+</div>
+
+<div class="divider"></div>
+
+<!-- ITEMS -->
+<div class="section-title">Items</div>
+
 <table>
-<tr>
-    <th>Item</th>
-    <th>Quantity</th>
-    <th>Price</th>
-</tr>
+    <tr>
+        <th>Item</th>
+        <th class="right">Qty</th>
+        <th class="right">₹</th>
+    </tr>
 
-{% for item in order.cart_items %}
-<tr>
-    <td>{{ item.name }}</td>
-    <td>{{ item.quantity }}</td>
-    <td>₹{{ item.price }}</td>
-</tr>
-{% endfor %}
+    {% for item in order.cart_items %}
+    <tr>
+        <td>{{ item.name }}</td>
+        <td class="right">{{ item.quantity }}</td>
+        <td class="right">{{ item.price }}</td>
+    </tr>
+    {% endfor %}
 </table>
 
-<p><strong>Total Quantity:</strong> {{ order.total_quantity }}</p>
-<p><strong>Postal Charge:</strong> ₹{{ order.postal_charge }}</p>
-<p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+<div class="divider"></div>
+
+<!-- TOTALS -->
+<div class="totals">
+    <p><span>Total Qty</span><span>{{ order.total_quantity }}</span></p>
+    <p><span>Postal</span><span>₹{{ order.postal_charge }}</span></p>
+    <p class="bold"><span>Total</span><span>₹{{ order.total_amount }}</span></p>
+</div>
+
+<div class="divider"></div>
+
+<div class="center">
+    Thank you for your order 🌱
+</div>
 
 </body>
 </html>
