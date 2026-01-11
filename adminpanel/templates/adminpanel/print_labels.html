@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+<title>Print Address Labels</title>
+
+<style>
+body{
+    font-family: Arial;
+    font-size:12px;
+}
+
+@media print{
+    .no-print{display:none;}
+}
+
+/* PAGE GRID */
+.label-sheet{
+    display:grid;
+    grid-template-columns: 1fr 1fr; /* 2 labels per row */
+    gap:10px;
+}
+
+/* EACH LABEL */
+.label{
+    border:1px dashed #000;
+    padding:10px;
+    height:130px;
+}
+
+/* FORCE PAGE BREAK AFTER 4 LABELS */
+.label:nth-child(4n){
+    page-break-after:always;
+}
+
+.bold{font-weight:bold;}
+</style>
+</head>
+
+<body>
+
+<button class="no-print" onclick="window.print()">🖨 Print</button>
+
+<div class="label-sheet">
+
+{% for order in orders %}
+<div class="label">
+
+    <div class="bold">HASA ORGANIC SEEDS</div>
+    <hr>
+
+    <div><b>To:</b></div>
+    <div class="bold">{{ order.full_name }}</div>
+    <div>{{ order.address }}</div>
+    <div>📞 {{ order.phone }}</div>
+
+</div>
+{% endfor %}
+
+</div>
+
+</body>
+</html>

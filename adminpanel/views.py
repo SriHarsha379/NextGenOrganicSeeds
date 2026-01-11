@@ -158,3 +158,9 @@ def order_detail(request, order_id):
     return render(request, 'adminpanel/order_detail.html', {
         'order': order
     })
+
+def print_labels(request):
+    orders = Order.objects.all().order_by('-id')
+    return render(request,'adminpanel/print_labels.html',{
+        'orders':orders
+    })
