@@ -361,10 +361,10 @@ def order_success(request, phonepe_order_id):
     if session_guest_id != str(order.id):
         return HttpResponseForbidden("Unauthorized access to this guest order.")
 
-    if order.payment_status != "PAID":
+    if order.payment_status != "Paid":
         status_info = get_phonepe_payment_status(phonepe_order_id)
         if status_info["success"]:
-            order.payment_status = "PAID"
+            order.payment_status = "Paid"
             order.payment_id = status_info["payment_id"]
             order.save(update_fields=["payment_status", "payment_id"])
 
@@ -455,14 +455,27 @@ def phonepe_webhook(request):
             logger.warning("❌ Order not found for merchantOrderId: %s", merchant_order_id)
             return JsonResponse({"error": "Order not found"}, status=404)
 
-        new_status = "PAID" if success else "FAILED"
+        new_status = "Paid" if success else "Failed"
         status_changed = (order.payment_status != new_status)
 
+        logger.info("🔍 Order #%s current status: '%s', new status: '%s', changed: %s", 
+                   order.id, order.payment_status, new_status, status_changed)
+
         if status_changed:
-            order.payment_status = new_status
-            order.payment_id = payment_id
-            order.save(update_fields=["payment_status", "payment_id"])
-            logger.info("✅ Order #%s marked as %s", order.id, new_status)
+            try:
+                order.payment_status = new_status
+                if payment_id:
+                    order.payment_id = payment_id
+                order.save(update_fields=["payment_status", "payment_id"])
+                logger.info("✅ Order #%s successfully updated to %s", order.id, new_status)
+                
+                # Refresh from DB to verify
+                order.refresh_from_db()
+                logger.info("🔍 Verified: Order #%s payment_status is now '%s'", order.id, order.payment_status)
+            except Exception as e:
+                logger.error("❌ Failed to update order #%s: %s", order.id, str(e))
+                logger.exception("Full error traceback:")
+                return JsonResponse({"error": "Failed to update order status"}, status=500)
 
             # Email to user
             if order.email:
@@ -485,12 +498,13 @@ def phonepe_webhook(request):
 
             # Email to admin
             try:
+                admin_email = getattr(settings, 'ADMIN_NOTIFICATION_EMAIL', settings.DEFAULT_FROM_EMAIL)
                 send_mail(
                     f"[Admin] Order #{order.id} - {order.payment_status}",
                     f"Order ID: {order.id}\nCustomer: {order.full_name}\n"
                     f"Status: {order.payment_status}\nPhonePe ID: {order.phonepe_order_id}",
                     settings.DEFAULT_FROM_EMAIL,
-                    [settings.ADMIN_EMAIL],
+                    [admin_email],
                     fail_silently=True,
                 )
             except Exception as e:
@@ -516,7 +530,7 @@ def retry_payment(request, phonepe_order_id):
         return HttpResponseForbidden("Unauthorized access to this guest order.")
 
     # ✅ Retry logic
-    if order.payment_status != "PAID":
+    if order.payment_status != "Paid":
         return redirect(order.payment_link or "home")
 
     # Already paid — show success
