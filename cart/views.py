@@ -415,19 +415,34 @@ def get_phonepe_payment_status(order_id):
 logger = logging.getLogger(__name__)
 
 @csrf_exempt
+@require_POST
 def phonepe_webhook(request):
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
-    logger.info("🔑 Header Keys: %s", list(request.headers.keys()))
-    # ✅ Basic Auth check
-    auth_header = request.headers.get("Authorization")
-    expected_auth = "Basic " + base64.b64encode(
-        f"{settings.PHONEPE_WEBHOOK_USER}:{settings.PHONEPE_WEBHOOK_PASSWORD}".encode()
-    ).decode()
+    # Log what we received (no secret values) so we can see what PhonePe sends
+    header_keys = list(request.headers.keys())
+    logger.info("🔑 Header Keys: %s", header_keys)
 
-    if not auth_header or auth_header != expected_auth:
-        logger.warning("Invalid or missing Authorization header")
+    auth_header = (request.headers.get("Authorization") or "").strip()
+
+    if not auth_header:
+        logger.warning("🔑 Authorization header missing")
         return JsonResponse({"error": "Unauthorized"}, status=401)
+
+    if not auth_header.startswith("SHA256 "):
+        logger.warning("🔑 Invalid auth scheme: %s", auth_header[:20])
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+
+    received_hash = auth_header.replace("SHA256 ", "").strip()
+
+    raw = settings.PHONEPE_WEBHOOK_USER + settings.PHONEPE_WEBHOOK_PASSWORD
+    expected_hash = hashlib.sha256(raw.encode()).hexdigest()
+
+    if received_hash != expected_hash:
+        logger.warning("🔑 Authorization hash mismatch")
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+
+    logger.info("🔐 PhonePe webhook authenticated successfully")    
 
     try:
         payload = json.loads(request.body.decode("utf-8"))
@@ -435,7 +450,7 @@ def phonepe_webhook(request):
 
         event_type = payload.get("event", "").lower().strip()
 
-        data = payload.get("payload") or {}
+        data = payload.get("payload") or payload.get("data") or {}
 
         # ✅ Accept only valid events
         if event_type not in ["checkout.order.completed", "checkout.order.failed"]:
@@ -448,15 +463,20 @@ def phonepe_webhook(request):
             or data.get("merchantOrderId")
             or data.get("merchantTransactionId")
         )
-        # transactionId is inside paymentDetails[0] per PhonePe docs
-        payment_details = data.get("paymentDetails") or []
-        first_payment = payment_details[0] if payment_details else {}
-        payment_id = first_payment.get("transactionId")
+     
+        payment_id = None
+        for p in (data.get("paymentDetails") or []):
+            if p.get("transactionId"):
+                payment_id = p["transactionId"]
+                break
         
-        state = (data.get("state") or "").upper()
-        success = (
-            state == "COMPLETED"
-        )
+        if event_type == "checkout.order.completed":
+            new_status = "Paid"
+        elif event_type == "checkout.order.failed":
+            new_status = "Failed"
+        else:
+            return JsonResponse({"message": "Ignored"}, status=200)
+
 
         if not merchant_order_id:
             logger.error("❗ Missing merchant order id in webhook payload. Keys: %s", list(data.keys()))
@@ -468,7 +488,6 @@ def phonepe_webhook(request):
             logger.warning("❌ Order not found for merchantOrderId: %s", merchant_order_id)
             return JsonResponse({"error": "Order not found"}, status=404)
 
-        new_status = "Paid" if success else "Failed"
         status_changed = (order.payment_status != new_status)
 
         logger.info("🔍 Order #%s current status: '%s', new status: '%s', changed: %s", 
