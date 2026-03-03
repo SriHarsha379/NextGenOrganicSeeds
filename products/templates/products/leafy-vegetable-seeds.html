@@ -2,10 +2,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Native Vegetable Seeds - HASA FARM</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- ===== SEO TITLE ===== -->
+<title>Leafy Vegetable Seeds Online in India | Spinach, Lettuce & More | Hasafarm</title>
+
+<!-- ===== META DESCRIPTION ===== -->
+<meta name="description" content="Buy fresh leafy vegetable seeds online in India including spinach, lettuce, fenugreek and more. High germination rate and fast delivery from Hasafarm.">
+
+<!-- ===== Canonical URL ===== -->
+<link rel="canonical" href="https://www.hasafarm.com/seeds/seeds/leafy-vegetable-seeds/">
+
+<!-- ===== Open Graph (Social Sharing) ===== -->
+<meta property="og:title" content="Leafy Vegetable Seeds Online | Hasafarm">
+<meta property="og:description" content="Shop premium leafy vegetable seeds for home garden and farming. Fast delivery across India.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.hasafarm.com/seeds/seeds/leafy-vegetable-seeds/">
+<meta property="og:image" content="https://hasafarm.com/static/images/hasa_organic_seeds.png">
+
+<!-- ===== Google Fonts ===== -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
 /* General Styling */
 body {
@@ -288,9 +305,15 @@ h1 {
     <!-- Navbar -->
     <div class="navbar">
             <a href="{% url 'home' %}">Home</a> <!-- Add this -->
-        <a href="#" class="website-name" style="display: flex; align-items: center; gap: 12px;">
-    <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="HASA Organic Seeds Logo" style="height: 85px;">
-    <span style="font-size: 24px; font-weight: bold;">HASA FARM</span>
+<a href="{% url 'home' %}"
+   class="website-name"
+   style="display: flex; align-items: center; gap: 12px;"
+   aria-label="Hasafarm Home Page">
+
+    <img src="{% static 'images/hasa_organic_seeds.png' %}"
+         alt="Hasafarm Organic Seeds Logo"
+         height="85"
+         width="85">
 </a>
 
         <!-- Dropdown for Vegetable Seeds -->
@@ -314,15 +337,36 @@ h1 {
 </div>
 <!--        <a href="{% url 'farm_crops' %}" class="elementor-item elementor-item-anchor">Farm Crops</a>-->
 <!--        <a href="#">Grow Bags</a>-->
-        <a href="{% url 'view_cart' %}" class="cart-icon">
-            <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png" alt="Cart" style="width: 25px;">
-            <span id="cart-count">{{ cart_count }}</span>
+<a href="{% url 'view_cart' %}"
+   class="cart-icon"
+   aria-label="View Shopping Cart">
+
+    <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png"
+         alt="Shopping Cart Icon"
+         width="25"
+         height="25">
         </a>
     </div>
 
     <!-- Page Heading -->
     <h1>Leafy Vegetable Seeds</h1>
+    <div style="max-width: 900px; margin: 20px auto; text-align: center; padding: 0 20px;">
+    <p>
+        Explore our premium collection of <strong>leafy vegetable seeds</strong>
+        including spinach, lettuce, fenugreek and other fast-growing greens.
+        Perfect for home gardens, terrace gardening and kitchen farming across India.
+    </p>
+
+    <p>
+        Our leafy seeds are carefully selected for high germination rate
+        and healthy growth. Grow fresh, nutritious greens at home
+        with fast nationwide delivery from Hasafarm.
+    </p>
+</div>
 <p id="stock-warning" style="color: red; text-align: center; font-size: 16px;"></p>
+    <h2 style="text-align:center; margin-top:40px;">
+Browse Our Leafy Vegetable Seed Collection
+</h2>
 
 
     <!-- Product List -->
@@ -330,7 +374,9 @@ h1 {
         <!-- Dynamic Product List -->
         {% for seed in seeds %}
 <div class="seed-card">
-    <img src="{{ seed.image.url }}" alt="{{ seed.name }}">
+    <img src="{{ seed.image.url }}"
+     alt="{{ seed.name }} leafy vegetable seeds for home garden in India"
+     loading="lazy">
     <h2>{{ seed.name }}</h2>
     <p>{{ seed.description }}</p>
     <p><strong>Price: ₹{{ seed.price }}</strong></p>
