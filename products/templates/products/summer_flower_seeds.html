@@ -2,476 +2,684 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ===== SEO TITLE ===== -->
-<title>Summer Flower Seeds Online in India | Heat Resistant Blooming Seeds | Hasafarm</title>
+  <title>Buy Summer Flower Seeds Online India | Heat-Resistant Blooms | Hasafarm</title>
+  <meta name="description" content="Buy premium native vegetable seeds online in India. Locally adapted varieties with high germination rate. Perfect for home gardens, terrace & kitchen gardens. Fast delivery from Hasafarm.">
+  <meta name="keywords" content="summer flower seeds india, heat resistant flower seeds, sunflower seeds, portulaca seeds, vinca seeds, buy summer flower seeds online, hasafarm">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Hasafarm">
+  <link rel="canonical" href="https://www.hasafarm.com/seeds/summer-flower-seeds/">
 
-<!-- ===== META DESCRIPTION ===== -->
-<meta name="description" content="Buy summer flower seeds online in India. Grow vibrant heat-resistant flowers for your garden, pots and terrace. High germination rate and fast delivery from Hasafarm.">
+  <meta property="og:title" content="Summer Flower Seeds – Hasafarm">
+  <meta property="og:description" content="Shop locally adapted native vegetable seeds for Indian gardens. High germination, organic, fast delivery.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.hasafarm.com/seeds/summer-flower-seeds/">
+  <meta property="og:image" content="https://hasafarm.com/static/images/hasa_organic_seeds.png">
+  <meta property="og:locale" content="en_IN">
 
-<!-- ===== Canonical URL ===== -->
-<link rel="canonical" href="{{ request.build_absolute_uri }}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Summer Flower Seeds – Hasafarm">
+  <meta name="twitter:description" content="Shop locally adapted native vegetable seeds for Indian gardens.">
+  <meta name="twitter:image" content="https://hasafarm.com/static/images/hasa_organic_seeds.png">
 
-<!-- ===== Open Graph (For Social Sharing) ===== -->
-<meta property="og:title" content="Summer Flower Seeds Online | Hasafarm">
-<meta property="og:description" content="Shop vibrant summer blooming flower seeds with fast delivery across India.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://www.hasafarm.com/seeds/seeds/summer_flower_seeds/">
-<meta property="og:image" content="https://hasafarm.com/static/images/hasa_organic_seeds.png">
+  <link rel="icon" href="{% static 'images/hasa_organic_seeds.png' %}" type="image/png">
+  <link rel="apple-touch-icon" href="{% static 'images/hasa_organic_seeds.png' %}">
 
-<!-- ===== Google Fonts ===== -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-/* General Styling */
-body {
-    background: linear-gradient(to bottom, #e8f5e9, #fff); /* Light green to white */
-    color: #2e3d28; /* Dark greenish text */
-    font-family: 'Poppins', sans-serif;
-    margin: 0;
-    padding: 0;
-}
-
-/* Navbar Styling */
-.navbar {
-    background: #4CAF50;
-    padding: 12px 25px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.navbar a {
-    text-decoration: none;
-    color: white;
-    font-weight: 500;
-    padding: 10px 15px;
-    transition: color 0.3s ease;
-}
-
-.navbar a:hover {
-    color: #ffeb3b;
-}
-
-/* Dropdown Styling */
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #fff;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    min-width: 200px;
-    z-index: 1;
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-.dropdown-content a {
-    display: block;
-    padding: 12px;
-    text-decoration: none;
-    color: #2e3d28;
-    transition: background 0.3s;
-}
-
-.dropdown-content a:hover {
-    background-color: #e8f5e9;
-}
-
-/* Page Heading */
-h1 {
-    text-align: center;
-    margin-top: 30px;
-    color: #388E3C;
-}
-
-/* Product Grid */
-.container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 25px;
-    padding: 30px;
-    justify-content: center;
-    max-width: 1200px;
-    margin: auto;
-}
-
-/* Seed Card Styling */
-.seed-card {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
-    text-align: center;
-    padding: 20px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.seed-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-}
-
-.seed-card img {
-    width: 100%;
-    max-height: 250px;
-    object-fit: contain; /* or 'fill' if you want full container */
-    border-radius: 10px;
-}
-
-
-.seed-card h2 {
-    font-size: 20px;
-    color: #2e3d28;
-    margin-top: 10px;
-}
-
-.seed-card p {
-    font-size: 16px;
-    color: #555;
-    margin: 5px 0;
-}
-
-/* Quantity Input */
-.quantity-input {
-    width: 60px;
-    text-align: center;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 5px;
-}
-
-/* Add to Cart Button */
-.seed-card button {
-    background: #388E3C;
-    color: white;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background 0.3s;
-    margin-top: 10px;
-}
-
-.seed-card button:hover {
-    background: #2E7D32;
-}
-
-/* Footer Styling */
-.footer {
-    background: #2e3d28;
-    color: white;
-    padding: 20px;
-    text-align: center;
-    margin-top: 30px;
-    font-size: 14px;
-}
-.add-to-cart-btn {
-    padding: 12px 30px;
-    background: linear-gradient(45deg, #ff6f61, #ff9a8b); /* Gradient background */
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 50px; /* Rounded corners */
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Shadow effect */
-    transition: all 0.3s ease;
-    letter-spacing: 1px;
-    text-transform: uppercase; /* Uppercase letters for emphasis */
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type":"ListItem","position":1,"name":"Home","item":"https://hasafarm.com/"},
+      {"@type":"ListItem","position":2,"name":"Seeds","item":"https://hasafarm.com/seeds/"},
+      {"@type":"ListItem","position":3,"name":"Summer Flower Seeds","item":"https://hasafarm.com/seeds/summer-flower-seeds/"}
+    ]
   }
+  </script>
 
-  .add-to-cart-btn:hover {
-    transform: translateY(-5px); /* Lift effect on hover */
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Enhanced shadow */
-    background: linear-gradient(45deg, #ff9a8b, #ff6f61); /* Reversed gradient */
-  }
+  <style>
+    :root {
+      --green:       #2e7d32;
+      --green-light: #43a047;
+      --green-pale:  #e8f5e9;
+      --orange:      #f57c00;
+      --orange-light:#ff9800;
+      --text:        #212121;
+      --muted:       #616161;
+      --border:      #e0e0e0;
+      --bg:          #fafafa;
+      --white:       #ffffff;
+      --radius-sm:   6px;
+      --radius-md:   12px;
+      --radius-lg:   20px;
+      --shadow-sm:   0 1px 4px rgba(0,0,0,.08);
+      --shadow-md:   0 4px 16px rgba(0,0,0,.12);
+      --font:        'Segoe UI', Arial, sans-serif;
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+    a { text-decoration: none; color: inherit; }
+    img { display: block; }
 
-  .add-to-cart-btn:active {
-    transform: translateY(0); /* "Pressed" effect */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Light shadow when pressed */
-  }
-        .out-of-stock-msg {
-    color: #d32f2f; /* Red */
-    font-weight: bold;
-    font-size: 16px;
-    margin-top: 10px;
-}
-/* Responsive Design for Mobile */
-@media (max-width: 768px) {
+    /* ANNOUNCEMENT BAR */
+    .announcement-bar {
+      background: var(--green); color: var(--white);
+      text-align: center; padding: 8px 16px; font-size: 13px; letter-spacing: .3px;
+    }
 
+    /* TOP SEARCH */
+    .top-bar {
+      background: var(--white); border-bottom: 1px solid var(--border);
+      padding: 10px 24px; display: flex; justify-content: center;
+    }
+    .search-form {
+      display: flex; border: 1.5px solid var(--border); border-radius: 30px;
+      overflow: hidden; background: var(--white); width: 100%; max-width: 560px;
+      transition: border-color .2s;
+    }
+    .search-form:focus-within { border-color: var(--green-light); }
+    .search-form input {
+      border: none; outline: none; padding: 10px 18px;
+      flex: 1; font-size: 14px; background: transparent;
+    }
+    .search-form button {
+      border: none; background: var(--green); color: var(--white);
+      padding: 10px 18px; cursor: pointer; transition: background .2s;
+    }
+    .search-form button:hover { background: var(--green-light); }
+    .search-form button svg { width:18px; height:18px; fill:none; stroke:#fff; stroke-width:2; }
+
+    /* NAVBAR */
     .navbar {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 10px 15px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--white); padding: 0 24px;
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 1000;
+      box-shadow: var(--shadow-sm); min-height: 64px;
     }
+    .logo-wrap { display: flex; align-items: center; gap: 10px; }
+    .logo-wrap img { height: 44px; }
+    .logo-wrap span { font-size: 20px; font-weight: 800; color: var(--green); letter-spacing: 1px; }
+    .nav-links { display: flex; align-items: center; gap: 8px; }
 
-    .navbar a,
+    .dropdown { position: relative; }
     .dropdown > a {
-        padding: 10px 5px;
-        font-size: 14px;
+      display: flex; align-items: center; gap: 4px;
+      padding: 20px 14px; font-size: 14px; font-weight: 600;
+      color: var(--text); transition: color .2s; white-space: nowrap;
+    }
+    .dropdown > a::after { content: '▾'; font-size: 11px; margin-top: 1px; }
+    .dropdown > a:hover { color: var(--green); }
+    .dropdown-menu {
+      display: none; position: absolute; top: 100%; left: 0;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-md); min-width: 200px;
+      box-shadow: var(--shadow-md); z-index: 200; overflow: hidden;
+    }
+    .dropdown-menu a {
+      display: block; padding: 10px 16px; font-size: 13.5px;
+      color: var(--text); transition: background .15s;
+    }
+    .dropdown-menu a:hover { background: var(--green-pale); color: var(--green); }
+    .dropdown:hover .dropdown-menu { display: block; }
+
+    .cart-btn {
+      position: relative; display: flex; align-items: center;
+      background: var(--green-pale); border-radius: 30px;
+      padding: 8px 16px; gap: 8px; color: var(--green);
+      font-weight: 600; font-size: 14px; transition: background .2s;
+    }
+    .cart-btn:hover { background: var(--green); color: var(--white); }
+    .cart-btn svg { width: 20px; height: 20px; }
+    .cart-count {
+      background: var(--orange); color: #fff;
+      font-size: 11px; font-weight: 700; border-radius: 50%;
+      min-width: 18px; height: 18px;
+      display: flex; align-items: center; justify-content: center;
+      position: absolute; top: -4px; right: -4px;
     }
 
-    .dropdown-content {
-        position: static;
-        box-shadow: none;
-        width: 100%;
+    /* BREADCRUMB */
+    .breadcrumb {
+      background: var(--white); border-bottom: 1px solid var(--border);
+      padding: 10px 24px; font-size: 13px; color: var(--muted);
+    }
+    .breadcrumb a { color: var(--green); }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb span { margin: 0 6px; }
+
+    /* PAGE HERO */
+    .page-hero {
+      background: linear-gradient(135deg, #e65100 0%, #f57c00 40%, #827717 100%);
+      color: var(--white); padding: 48px 24px; text-align: center;
+    }
+    .page-hero-badge {
+      display: inline-block; background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.3); border-radius: 30px;
+      padding: 4px 14px; font-size: 12px; letter-spacing: .5px;
+      margin-bottom: 14px; text-transform: uppercase;
+    }
+    .page-hero h1 { font-size: clamp(1.5rem, 4vw, 2.4rem); font-weight: 800; margin-bottom: 12px; }
+    .page-hero p { font-size: 15px; opacity: .88; max-width: 600px; margin: 0 auto 24px; }
+    .page-hero-stats {
+      display: flex; justify-content: center; gap: 32px; flex-wrap: wrap;
+      margin-top: 28px;
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 24px; font-weight: 800; }
+    .stat-label { font-size: 12px; opacity: .75; text-transform: uppercase; letter-spacing: .5px; }
+
+    /* FILTER / SORT BAR */
+    .filter-bar {
+      background: var(--white); border-bottom: 1px solid var(--border);
+      padding: 12px 24px; display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    .filter-bar-left { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+    .filter-bar-left strong { color: var(--text); }
+    .sort-select {
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 7px 12px; font-size: 13.5px; outline: none;
+      background: var(--white); cursor: pointer;
     }
 
-    .dropdown-content a {
-        padding: 10px;
-        font-size: 14px;
+    /* MAIN LAYOUT */
+    .page-layout {
+      max-width: 1280px; margin: 0 auto; padding: 32px 24px;
     }
 
-    h1 {
-        font-size: 24px;
-        margin: 20px 10px;
+    /* PRODUCT GRID */
+    .seed-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
     }
 
-    .container {
-        grid-template-columns: 1fr;
-        padding: 15px;
-    }
-
+    /* SEED CARD */
     .seed-card {
-        padding: 15px;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-md); overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: transform .2s, box-shadow .2s;
+      display: flex; flex-direction: column;
     }
-
+    .seed-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .seed-card-img-wrap { position: relative; overflow: hidden; }
     .seed-card img {
-        height: 160px;
+      width: 100%; height: 200px; object-fit: cover;
+      transition: transform .3s;
     }
-
-    .seed-card h2 {
-        font-size: 18px;
+    .seed-card:hover img { transform: scale(1.05); }
+    .seed-badge {
+      position: absolute; top: 10px; left: 10px;
+      background: var(--green); color: #fff;
+      font-size: 10px; font-weight: 700; padding: 3px 10px;
+      border-radius: 20px; text-transform: uppercase; letter-spacing: .3px;
     }
+    .seed-card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+    .seed-card h2 { font-size: 15px; font-weight: 700; margin-bottom: 6px; line-height: 1.3; }
+    .seed-desc { font-size: 13px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; flex: 1; }
+    .seed-price { font-weight: 800; color: var(--green); font-size: 18px; margin-bottom: 12px; }
 
-    .seed-card p {
-        font-size: 14px;
+    .qty-row { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+    .qty-btn {
+      width: 28px; height: 28px; background: var(--green-pale);
+      border: none; border-radius: 4px; cursor: pointer;
+      font-size: 16px; font-weight: bold; color: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
     }
-
+    .qty-btn:hover { background: var(--green); color: #fff; }
     .quantity-input {
-        width: 50px;
-        font-size: 14px;
+      width: 48px; height: 28px; text-align: center;
+      border: 1px solid var(--border); border-radius: 4px;
+      font-size: 13px; outline: none;
     }
-
-    .seed-card button {
-        font-size: 14px;
-        padding: 10px 16px;
-    }
-
     .add-to-cart-btn {
-        font-size: 14px;
-        padding: 10px 20px;
-        border-radius: 30px;
+      width: 100%; padding: 10px 0; background: var(--green);
+      color: #fff; border: none; border-radius: var(--radius-sm);
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: background .2s; margin-top: auto;
+      letter-spacing: .3px;
+    }
+    .add-to-cart-btn:hover { background: var(--green-light); }
+    .add-to-cart-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .out-of-stock-label {
+      color: #e53935; font-weight: 700; font-size: 13.5px;
+      padding: 10px 0; text-align: center;
+    }
+    .low-stock { color: #e65100; font-size: 12px; font-weight: 600; margin-top: 4px; }
+    .stock-warning { color: #e53935; text-align: center; font-size: 13.5px; min-height: 20px; margin-bottom: 8px; }
+
+    /* SEO CONTENT SECTION */
+    .seo-section {
+      background: var(--white); border-radius: var(--radius-md);
+      border: 1px solid var(--border); padding: 32px;
+      margin-top: 48px;
+    }
+    .seo-section h2 { font-size: 18px; font-weight: 800; color: var(--green); margin-bottom: 12px; }
+    .seo-section h3 { font-size: 15px; font-weight: 700; margin: 20px 0 8px; }
+    .seo-section p { font-size: 13.5px; color: var(--muted); line-height: 1.8; margin-bottom: 10px; }
+    .seo-faq { margin-top: 24px; }
+    .faq-item { border-bottom: 1px solid var(--border); padding: 14px 0; }
+    .faq-q { font-size: 14px; font-weight: 700; color: var(--text); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .faq-a { font-size: 13.5px; color: var(--muted); line-height: 1.7; margin-top: 8px; display: none; }
+    .faq-item.open .faq-a { display: block; }
+    .faq-item.open .faq-q::after { transform: rotate(180deg); }
+    .faq-q::after { content: '▾'; font-size: 14px; transition: transform .2s; }
+
+    /* FOOTER */
+    .footer { background: #1a1a1a; color: #ccc; padding: 48px 24px 24px; }
+    .footer-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 32px; max-width: 1280px; margin: 0 auto 32px;
+    }
+    .footer-brand img { height: 48px; margin-bottom: 12px; }
+    .footer-brand p { font-size: 13.5px; line-height: 1.7; max-width: 260px; }
+    .footer-col h4 { color: #fff; font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+    .footer-col a { display: block; color: #aaa; font-size: 13.5px; margin-bottom: 8px; transition: color .2s; }
+    .footer-col a:hover { color: var(--green-light); }
+    .social-row { display: flex; gap: 10px; margin-top: 14px; }
+    .social-row a {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #333; display: flex; align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .social-row a:hover { background: var(--green); }
+    .social-row img { width: 18px; height: 18px; filter: brightness(0) invert(1); }
+    .footer-bottom {
+      border-top: 1px solid #333; padding-top: 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 10px; max-width: 1280px; margin: 0 auto;
+      font-size: 13px; color: #777;
     }
 
-    .footer {
-        font-size: 13px;
-        padding: 15px 10px;
+    /* MOBILE */
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+    .hamburger span { display: block; width: 24px; height: 2px; background: var(--text); border-radius: 2px; transition: .3s; }
+    .mobile-menu { display: none; flex-direction: column; background: var(--white); border-top: 1px solid var(--border); padding: 16px 24px; gap: 4px; }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { padding: 10px 0; font-size: 15px; color: var(--text); border-bottom: 1px solid var(--border); }
+    .mobile-menu a:last-child { border-bottom: none; }
+
+    /* LOGIN MODAL */
+    #login-modal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.5); z-index: 9999;
+      align-items: center; justify-content: center;
     }
-
-    .cart-icon img {
-        width: 20px;
+    .modal-box {
+      background: #fff; border-radius: var(--radius-md);
+      padding: 36px 28px; text-align: center; max-width: 360px; width: 90%;
     }
-
-    .website-name span {
-        font-size: 20px;
+    .modal-box h3 { margin-bottom: 10px; font-size: 20px; }
+    .modal-box p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; }
+    .modal-actions a, .modal-actions button {
+      padding: 10px 22px; border-radius: 30px; font-weight: 600;
+      font-size: 14px; cursor: pointer; border: none;
     }
+    .modal-login-btn { background: var(--green); color: #fff; }
+    .modal-close-btn { background: #eee; color: var(--text); }
 
-    .website-name img {
-        height: 65px;
+    @media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .navbar { padding: 0 16px; }
+      .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+      .page-hero { padding: 32px 16px; }
+      .page-layout { padding: 20px 16px; }
+      .seed-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+      .seed-card img { height: 150px; }
+      .filter-bar { flex-direction: column; align-items: flex-start; }
     }
-}
-
-
-    </style>
+  </style>
 </head>
+
 <body>
+  <!-- ANNOUNCEMENT BAR -->
+  <div class="announcement-bar">
+    &nbsp; 🇮🇳 Grown &amp; packed in India &nbsp;|&nbsp; 📦 Dispatched within 24 hours
+  </div>
 
-    <!-- Navbar -->
-    <div class="navbar">
-            <a href="{% url 'home' %}">Home</a> <!-- Add this -->
-<a href="{% url 'home' %}"
-   class="website-name"
-   style="display: flex; align-items: center; gap: 12px;"
-   aria-label="Hasafarm Home Page">
+  <!-- SEARCH BAR -->
+  <div class="top-bar" role="search">
+    <form action="{% url 'search_seeds' %}" method="GET" class="search-form" aria-label="Search for seeds">
+      <input type="search" name="q" placeholder="Search for tomato, spinach, brinjal…" aria-label="Seed search">
+      <button type="submit" aria-label="Submit search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </form>
+  </div>
 
-    <img src="{% static 'images/hasa_organic_seeds.png' %}"
-         alt="Hasafarm Organic Seeds Logo"
-         height="85"
-         width="85">
-</a>
-
-        <!-- Dropdown for Vegetable Seeds -->
-        <div class="dropdown">
-            <a href="#">Vegetable Seeds</a>
-            <div class="dropdown-content">
-                <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
-                <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
-                <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
-<!--                <a href="{% url 'hybrid_vegetable_seeds' %}">Hybrid Vegetable Seeds</a>-->
-            </div>
+  <!-- NAVBAR -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <a href="{% url 'home' %}" class="logo-wrap" aria-label="Hasafarm home">
+      <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Hasafarm logo" width="44" height="44">
+      <span>HASA FARM</span>
+    </a>
+    <div class="nav-links">
+      <div class="dropdown">
+        <a href="#">Vegetable Seeds</a>
+        <div class="dropdown-menu">
+          <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
+          <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
+          <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
         </div>
-<div class="dropdown">
-    <a class="elementor-item elementor-item-anchor has-submenu">Flower Seeds</a>
-    <div class="dropdown-content">
-        <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
-        <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
-        <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+      </div>
+      <div class="dropdown">
+        <a href="#">Flower Seeds</a>
+        <div class="dropdown-menu">
+          <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
+          <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
+          <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+        </div>
+      </div>
+      <a href="{% url 'view_cart' %}" id="cart-link" class="cart-btn" aria-label="View cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        Cart
+        <span id="cart-count" class="cart-count" aria-live="polite">0</span>
+      </a>
     </div>
-</div> <!-- ✅ This closing tag was missing in your code -->
-<!--        <a href="{% url 'farm_crops' %}" class="elementor-item elementor-item-anchor">Farm Crops</a>-->
+    <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
 
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
+    <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
+    <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
+    <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
+    <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
+    <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+    <a href="{% url 'view_cart' %}">🛒 Cart</a>
+  </div>
 
-<!--        <a href="#">Flower Seeds</a>-->
-<!--        <a href="#">Grow Bags</a>-->
-<a href="{% url 'view_cart' %}"
-   class="cart-icon"
-   aria-label="View Shopping Cart">
+  <!-- BREADCRUMB -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="{% url 'home' %}">Home</a>
+    <span>›</span>
+    <a href="{% url 'seed_list' %}">Seeds</a>
+    <span>›</span>
+    <span aria-current="page">Summer Flower Seeds</span>
+  </nav>
 
-    <img src="https://cdn.pixabay.com/photo/2014/06/19/00/59/shopping-cart-371982_640.png"
-         alt="Shopping Cart Icon"
-         width="25"
-         height="25">
-</a>
-</div>
+  <!-- PAGE HERO -->
+  <section class="page-hero" aria-labelledby="page-title">
+    <div class="page-hero-badge">☀️ Heat-Resistant Varieties</div>
+    <h1 id="page-title">Summer Flower Seeds</h1>
+    <p>Bring bold colour to your garden even in the hottest months — heat-resistant sunflower, portulaca, vinca, gaillardia and more, thriving in Indian summer conditions.</p>
+    <div class="page-hero-stats">
+      <div class="stat"><div class="stat-num">25+</div><div class="stat-label">Varieties</div></div>
+      <div class="stat"><div class="stat-num">93%+</div><div class="stat-label">Germination</div></div>
+      <div class="stat"><div class="stat-num">24hr</div><div class="stat-label">Dispatch</div></div>
+      <div class="stat"><div class="stat-num">🇮🇳</div><div class="stat-label">Pan India Delivery</div></div>
+    </div>
+  </section>
 
-    <!-- Page Heading -->
-    <h1>Summer Flower Seeds</h1>
-<div style="max-width: 900px; margin: 20px auto; text-align: center; padding: 0 20px;">
-    <p>
-        Discover our premium collection of <strong>summer flower seeds</strong>
-        specially selected for heat-resistant and vibrant blooming.
-        Perfect for pots, terrace gardening and garden landscapes across India.
-    </p>
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <div class="filter-bar-left">
+      Showing <strong>{{ seeds|length }} products</strong> in Summer Flower Seeds
+    </div>
+    <div>
+      <label for="sort-select" style="font-size:13.5px; color:var(--muted); margin-right:6px;">Sort by:</label>
+      <select id="sort-select" class="sort-select" aria-label="Sort products">
+        <option value="default">Featured</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="name-asc">Name: A–Z</option>
+      </select>
+    </div>
+  </div>
 
-    <p>
-        These summer flowering varieties offer high germination rate
-        and thrive in warm climate conditions.
-        Shop summer flower seeds online at Hasafarm with fast nationwide delivery.
-    </p>
-</div>
-<h2 style="text-align:center; margin-top:40px;">
-Browse Our Summer Flower Seed Collection
-</h2>
-    <!-- Product List -->
-    <div class="container">
+  <!-- MAIN CONTENT -->
+  <main id="main-content">
+    <div class="page-layout">
+      <p id="stock-warning" class="stock-warning" aria-live="polite"></p>
 
-        <!-- Dynamic Product List -->
+      <div class="seed-grid" id="seed-grid" role="list" aria-label="Native vegetable seed products">
         {% for seed in seeds %}
-<div class="seed-card">
-    <img src="{{ seed.image.url }}"
-     alt="{{ seed.name }} summer flower seeds for home garden in India"
-     loading="lazy">
-    <h2>{{ seed.name }}</h2>
-    <p>{{ seed.description }}</p>
-    <p><strong>Price: ₹{{ seed.price }}</strong></p>
+          <article class="seed-card" role="listitem"
+                   data-name="{{ seed.name|lower }}"
+                   data-price="{{ seed.price }}"
+                   itemscope itemtype="https://schema.org/Product">
+            <div class="seed-card-img-wrap">
+              <img src="{{ seed.image.url }}"
+                   alt="{{ seed.name }} – summer flower seeds for home garden in India"
+                   loading="lazy" width="240" height="200"
+                   itemprop="image">
+              <span class="seed-badge">Organic</span>
+            </div>
+            <div class="seed-card-body">
+              <h2 itemprop="name">{{ seed.name }}</h2>
+              {% if seed.description %}
+                <p class="seed-desc" itemprop="description">{{ seed.description }}</p>
+              {% endif %}
+              <p class="seed-price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                <span itemprop="priceCurrency" content="INR">₹</span><span itemprop="price" content="{{ seed.price }}">{{ seed.price }}</span>
+              </p>
 
-<!-- Show Out of Stock message and hide quantity input for out-of-stock seeds -->
-{% if seed.stock > 0 %}
-    <!-- Quantity Input -->
-    <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}" class="quantity-input" id="quantity-{{ seed.id }}" data-stock="{{ seed.stock }}">
-
-    <!-- Add to Cart Button -->
-    <button class="add-to-cart-btn" data-seed-id="{{ seed.id }}">Add to Cart</button>
-{% else %}
-    <p style="color: red; font-weight: bold;">Out of Stock</p>
-{% endif %}
-</div>
-
+              {% if seed.stock > 0 %}
+                <div class="qty-row">
+                  <button type="button" class="qty-btn qty-minus" aria-label="Decrease quantity">−</button>
+                  <input type="number" name="quantity" value="1" min="1" max="{{ seed.stock }}"
+                         class="quantity-input" id="quantity-{{ seed.id }}"
+                         data-stock="{{ seed.stock }}" aria-label="Quantity">
+                  <button type="button" class="qty-btn qty-plus" aria-label="Increase quantity">+</button>
+                </div>
+                <button class="add-to-cart-btn" data-seed-id="{{ seed.id }}" aria-label="Add {{ seed.name }} to cart">
+                  Add to Cart
+                </button>
+              {% else %}
+                <div class="out-of-stock-label">Out of Stock</div>
+                <button class="add-to-cart-btn" disabled>Out of Stock</button>
+              {% endif %}
+            </div>
+          </article>
+        {% empty %}
+          <p style="color:var(--muted); grid-column:1/-1; padding: 32px 0;">No seeds available in this category yet. Check back soon!</p>
         {% endfor %}
-    </div>
+      </div>
 
-    <!-- Footer -->
-    <div class="footer">
-        <p>&copy; 2025 HASA FARM. All Rights Reserved.</p>
+      <!-- SEO CONTENT -->
+      <div class="seo-section" itemscope itemtype="https://schema.org/FAQPage">
+        <h2>About Summer Flower Seeds</h2>
+        <p>Summer gardening in India can be challenging with high temperatures and intense sunlight, but the right flower seeds thrive in these conditions. Our summer flower seed collection is carefully selected for heat tolerance, drought resistance, and vibrant blooming.</p>
+        <p>Hasafarm's summer flower collection includes sunflower, portulaca, gaillardia, vinca (periwinkle), celosia, balsam, and many more — all proven performers in Indian summer conditions.</p>
+
+        <h3>Tips for Growing Summer Flowers in India</h3>
+        <p>Sow summer flower seeds from February to April for the best results. Water in the early morning or evening to reduce evaporation. Mulching around the base helps retain soil moisture during peak summer heat.</p>
+
+        <div class="seo-faq" style="margin-top:24px;">
+          <div class="faq-item"><div class="faq-q">Which flowers grow best in Indian summers?</div><div class="faq-a">Sunflower, portulaca (moss rose), vinca (periwinkle), celosia, gaillardia, and balsam are excellent choices. These varieties are heat-tolerant and bloom even above 35°C.</div></div>
+<div class="faq-item"><div class="faq-q">When should I sow summer flower seeds in India?</div><div class="faq-a">The ideal time is February to April. This allows plants to establish before peak summer heat and ensures continuous blooming from April through July.</div></div>
+<div class="faq-item"><div class="faq-q">How often should I water summer flower plants?</div><div class="faq-a">Most summer flowers need watering once daily — ideally in the early morning. Portulaca needs less water. Ensure good drainage to prevent root rot.</div></div>
+<div class="faq-item"><div class="faq-q">Can summer flowers be grown in pots on a terrace?</div><div class="faq-a">Absolutely! Sunflower, portulaca, vinca, and celosia are excellent for terrace and balcony pots. Use light-coloured pots to reduce heat absorption and ensure 4–5 hours of direct sunlight daily.</div></div>
+        </div>
+      </div>
     </div>
-<script>
-    // Function to get CSRF token from cookies
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Hasafarm Logo" width="48" height="48">
+        <p>Hasafarm brings you the finest organic seeds for your garden. Grown with love, delivered with care across India.</p>
+        <div class="social-row">
+          <a href="https://www.facebook.com/profile.php?id=61577475895648" target="_blank" rel="noopener noreferrer" aria-label="Hasafarm on Facebook">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook">
+          </a>
+          <a href="https://www.instagram.com/hasafarm88/" target="_blank" rel="noopener noreferrer" aria-label="Hasafarm on Instagram">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram">
+          </a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Vegetable Seeds</h4>
+        <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
+        <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
+        <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
+      </div>
+      <div class="footer-col">
+        <h4>Flower Seeds</h4>
+        <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
+        <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flowers</a>
+        <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+        <a href="{% url 'terms_conditions' %}">Terms &amp; Conditions</a>
+        <a href="{% url 'disclaimer' %}">Disclaimer</a>
+        <a href="{% url 'refund' %}">Refund Policy</a>
+        <a href="{% url 'shipping' %}">Shipping Policy</a>
+        <a href="mailto:contact@hasafarm.com">📧 contact@hasafarm.com</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Hasa Farm. All Rights Reserved.</span>
+      <span>Made with 🌿 in India</span>
+    </div>
+  </footer>
+
+  <!-- LOGIN MODAL -->
+  <div id="login-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+      <h3 id="modal-title">Sign in to Continue</h3>
+      <p>Please log in to add items to your cart and place orders.</p>
+      <div class="modal-actions">
+        <a href="/login/" class="modal-login-btn">Log In</a>
+        <button id="close-modal" class="modal-close-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ── Hamburger ── */
+    const hamburger = document.getElementById('hamburger-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    hamburger.addEventListener('click', () => {
+      const open = mobileMenu.classList.toggle('open');
+      hamburger.setAttribute('aria-expanded', open);
+    });
+
+    /* ── Qty +/- ── */
+    document.querySelectorAll('.seed-card').forEach(card => {
+      const minus = card.querySelector('.qty-minus');
+      const plus  = card.querySelector('.qty-plus');
+      const input = card.querySelector('.quantity-input');
+      if (!minus || !plus || !input) return;
+      minus.addEventListener('click', () => { input.value = Math.max(1, parseInt(input.value) - 1); });
+      plus.addEventListener('click',  () => { input.value = Math.min(parseInt(input.max), parseInt(input.value) + 1); });
+      input.addEventListener('change', () => {
+        input.value = Math.max(1, Math.min(parseInt(input.max), parseInt(input.value) || 1));
+      });
+    });
+
+    /* ── Add to Cart ── */
     function getCSRFToken() {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.startsWith('csrftoken=')) {
-                    cookieValue = cookie.substring('csrftoken='.length, cookie.length);
-                    break;
-                }
-            }
-        }
-        return cookieValue;
+      const c = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
+      return c ? c.trim().split('=')[1] : '';
     }
 
-document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const seedId = this.getAttribute('data-seed-id');
-        const quantityInput = document.getElementById(`quantity-${seedId}`);
-        const quantity = parseInt(quantityInput.value, 10); // Get user-entered quantity
+    document.querySelectorAll('.add-to-cart-btn:not([disabled])').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const seedId   = this.getAttribute('data-seed-id');
+        const input    = document.getElementById(`quantity-${seedId}`);
+        const maxStock = parseInt(input.getAttribute('data-stock'), 10);
+        let quantity   = parseInt(input.value, 10);
+        const warning  = document.getElementById('stock-warning');
+
+        if (quantity < 1)         { quantity = 1; input.value = 1; warning.textContent = 'Minimum quantity is 1.'; return; }
+        if (quantity > maxStock)  { quantity = maxStock; input.value = maxStock; warning.textContent = `Only ${maxStock} left in stock!`; return; }
+        warning.textContent = '';
+
+        this.textContent = 'Adding…';
+        this.disabled = true;
+        const self = this;
 
         fetch(`/cart/add/${seedId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ quantity: quantity }) // Send the correct quantity
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCSRFToken(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantity })
         })
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
-            if (!data.error) {
-                document.getElementById('cart-count').textContent = data.cart_count;
+          if (data.error) {
+            document.getElementById('login-modal').style.display = 'flex';
+            self.textContent = 'Add to Cart';
+            self.disabled = false;
+          } else {
+            document.getElementById('cart-count').textContent = data.cart_count;
+            self.textContent = '✓ Added!';
+            setTimeout(() => { self.textContent = 'Add to Cart'; self.disabled = false; }, 1500);
+
+            const newMax = maxStock - quantity;
+            input.setAttribute('max', newMax);
+            input.setAttribute('data-stock', newMax);
+            if (newMax <= 0) {
+              self.closest('.seed-card-body').innerHTML += `<div class="out-of-stock-label">Out of Stock</div>`;
+              self.remove();
+            } else if (newMax <= 5) {
+              let lm = self.closest('.seed-card-body').querySelector('.low-stock');
+              if (!lm) {
+                lm = document.createElement('p');
+                lm.className = 'low-stock';
+                self.closest('.seed-card-body').insertBefore(lm, self);
+              }
+              lm.textContent = `Only ${newMax} left!`;
             }
+          }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(() => { self.textContent = 'Add to Cart'; self.disabled = false; });
+      });
     });
-});
 
-
-document.querySelectorAll('.quantity-input').forEach(input => {
-    input.addEventListener('input', function () {
-        let maxStock = parseInt(this.getAttribute("max"), 10);
-        let quantity = parseInt(this.value, 10);
-        let warningText = document.getElementById("stock-warning");
-
-        if (isNaN(quantity) || quantity < 1) {
-            this.value = 1; // Prevent negative or non-numeric input
-            warningText.textContent = "Quantity must be at least 1.";
-
-            // Hide the warning after 2 seconds (or any duration you prefer)
-            setTimeout(() => {
-                warningText.textContent = "";
-            }, 2000); // 2000 milliseconds = 2 seconds
-        } else if (quantity > maxStock) {
-            this.value = maxStock; // Restrict to max stock
-            warningText.textContent = `Only ${maxStock} items available in stock!`;
-        } else {
-            warningText.textContent = ""; // Clear the warning if valid input
-        }
+    /* ── Modal close ── */
+    document.getElementById('close-modal').addEventListener('click', () => {
+      document.getElementById('login-modal').style.display = 'none';
     });
-});
-window.addEventListener('pageshow', function(event) {
-    if (event.persisted) {
-        // This condition checks if the page was loaded from cache (back button).
-        location.reload();
-    }
-});
+    document.getElementById('login-modal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+    });
 
-</script>
+    /* ── Live cart count ── */
+    fetch('/get-cart-count/')
+      .then(r => r.json())
+      .then(d => { document.getElementById('cart-count').textContent = d.cart_count; })
+      .catch(() => {});
 
+    /* ── Back button reload ── */
+    window.addEventListener('pageshow', e => { if (e.persisted) window.location.reload(); });
 
+    /* ── Sort ── */
+    document.getElementById('sort-select').addEventListener('change', function() {
+      const grid  = document.getElementById('seed-grid');
+      const cards = Array.from(grid.querySelectorAll('.seed-card'));
+      cards.sort((a, b) => {
+        if (this.value === 'price-asc')  return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+        if (this.value === 'price-desc') return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+        if (this.value === 'name-asc')   return a.dataset.name.localeCompare(b.dataset.name);
+        return 0;
+      });
+      cards.forEach(c => grid.appendChild(c));
+    });
+
+    /* ── FAQ accordion ── */
+    document.querySelectorAll('.faq-q').forEach(q => {
+      q.addEventListener('click', () => q.closest('.faq-item').classList.toggle('open'));
+    });
+  </script>
 </body>
 </html>

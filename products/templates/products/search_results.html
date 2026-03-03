@@ -329,7 +329,7 @@ h1 {
     <img src="/media/{{ seed.image }}" alt="{{ seed.name }}">
     <h2>{{ seed.name }}</h2>
     <p>Price: ₹{{ seed.price }}</p>
-    
+
     {% if seed.stock > 0 %}
         <form class="add-to-cart-form" data-seed-id="{{ seed.id }}">
             {% csrf_token %}
