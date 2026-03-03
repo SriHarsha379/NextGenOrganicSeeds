@@ -1,18 +1,22 @@
-from django.contrib import admin  # <-- import this
+from django.contrib import admin
 from django.urls import path, include
 
 from cart.views import order_success, phonepe_webhook
 from orders.views import parse_raw_order_data
 from users.views import home_redirect
 
+# 👇 ADD THESE TWO IMPORTS
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
     path('', home_redirect, name='home'),
 
     # Built-in Django admin
-    path('django-admin/', admin.site.urls),   # keeps namespace 'admin'
+    path('django-admin/', admin.site.urls),
 
     # Custom admin panel
-    path('admin/', include('adminpanel.urls')),  # your custom panel
+    path('admin/', include('adminpanel.urls')),
 
     # Other apps
     path('seeds/', include('products.urls')),
@@ -26,3 +30,7 @@ urlpatterns = [
     path('phonepe/webhook/', phonepe_webhook, name='phonepe_webhook'),
     path('payment/response/', phonepe_webhook, name='phonepe_webhook'),
 ]
+
+# 👇 ADD THIS BLOCK AT THE VERY BOTTOM
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
