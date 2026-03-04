@@ -1,76 +1,296 @@
-{% extends 'base.html' %}
-{% block content %}
-<style>
-    .terms-container {
-        max-width: 800px;
-        margin: 50px auto;
-        padding: 30px;
-        background-color: #f9f9f9;
-        border-radius: 16px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        font-family: "Segoe UI", sans-serif;
-        color: #333;
-    }
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms & Conditions | Hasafarm</title>
+  <meta name="description" content="Read Hasafarm's terms and conditions for using our website and purchasing seeds online. Governing law: Karnataka, India.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.hasafarm.com/terms-conditions/">
+  <link rel="icon" href="{% static 'images/hasa_organic_seeds.png' %}" type="image/png">
 
-    .terms-container h1 {
-        font-size: 2rem;
-        margin-bottom: 20px;
-        text-align: center;
-        color: #2d3748;
-    }
+  <meta property="og:title" content="Terms & Conditions | Hasafarm">
+  <meta property="og:description" content="Read Hasafarm's terms and conditions for using our website and purchasing seeds online. Governing law: Karnataka, India.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.hasafarm.com/terms-conditions/">
 
-    .terms-container h2 {
-        font-size: 1.2rem;
-        margin-top: 25px;
-        margin-bottom: 10px;
-        color: #2c5282;
+  <style>
+    :root {
+      --green:       #2e7d32;
+      --green-light: #43a047;
+      --green-pale:  #e8f5e9;
+      --orange:      #f57c00;
+      --text:        #212121;
+      --muted:       #616161;
+      --border:      #e0e0e0;
+      --bg:          #fafafa;
+      --white:       #ffffff;
+      --radius-sm:   6px;
+      --radius-md:   12px;
+      --shadow-sm:   0 1px 4px rgba(0,0,0,.08);
+      --shadow-md:   0 4px 16px rgba(0,0,0,.12);
+      --font:        'Segoe UI', Arial, sans-serif;
     }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+    a { text-decoration: none; color: inherit; }
+    img { display: block; }
 
-    .terms-container p {
-        line-height: 1.6;
-        margin-bottom: 12px;
-    }
+    .announcement-bar { background: var(--green); color: var(--white); text-align: center; padding: 8px 16px; font-size: 13px; }
+    .top-bar { background: var(--white); border-bottom: 1px solid var(--border); padding: 10px 24px; display: flex; justify-content: center; }
+    .search-form { display: flex; border: 1.5px solid var(--border); border-radius: 30px; overflow: hidden; background: var(--white); width: 100%; max-width: 560px; transition: border-color .2s; }
+    .search-form:focus-within { border-color: var(--green-light); }
+    .search-form input { border: none; outline: none; padding: 10px 18px; flex: 1; font-size: 14px; background: transparent; }
+    .search-form button { border: none; background: var(--green); color: var(--white); padding: 10px 18px; cursor: pointer; transition: background .2s; }
+    .search-form button:hover { background: var(--green-light); }
+    .search-form button svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; }
 
-    @media (max-width: 600px) {
-        .terms-container {
-            padding: 20px;
-        }
-        .terms-container h1 {
-            font-size: 1.5rem;
-        }
+    .navbar { display: flex; align-items: center; justify-content: space-between; background: var(--white); padding: 0 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; box-shadow: var(--shadow-sm); min-height: 64px; }
+    .logo-wrap { display: flex; align-items: center; gap: 10px; }
+    .logo-wrap img { height: 44px; }
+    .logo-wrap span { font-size: 20px; font-weight: 800; color: var(--green); letter-spacing: 1px; }
+    .nav-links { display: flex; align-items: center; gap: 8px; }
+    .dropdown { position: relative; }
+    .dropdown > a { display: flex; align-items: center; gap: 4px; padding: 20px 14px; font-size: 14px; font-weight: 600; color: var(--text); transition: color .2s; white-space: nowrap; cursor: pointer; }
+    .dropdown > a::after { content: '▾'; font-size: 11px; margin-top: 1px; }
+    .dropdown > a:hover { color: var(--green); }
+    .dropdown-menu { display: none; position: absolute; top: 100%; left: 0; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); min-width: 200px; box-shadow: var(--shadow-md); z-index: 200; overflow: hidden; }
+    .dropdown-menu a { display: block; padding: 10px 16px; font-size: 13.5px; color: var(--text); transition: background .15s; }
+    .dropdown-menu a:hover { background: var(--green-pale); color: var(--green); }
+    .dropdown:hover .dropdown-menu { display: block; }
+    .cart-btn { position: relative; display: flex; align-items: center; background: var(--green-pale); border-radius: 30px; padding: 8px 16px; gap: 8px; color: var(--green); font-weight: 600; font-size: 14px; transition: background .2s; }
+    .cart-btn:hover { background: var(--green); color: var(--white); }
+    .cart-btn svg { width: 20px; height: 20px; }
+    .cart-count { background: var(--orange); color: #fff; font-size: 11px; font-weight: 700; border-radius: 50%; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; position: absolute; top: -4px; right: -4px; }
+
+    /* BREADCRUMB */
+    .breadcrumb { background: var(--white); border-bottom: 1px solid var(--border); padding: 10px 24px; font-size: 13px; color: var(--muted); }
+    .breadcrumb a { color: var(--green); }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb span { margin: 0 6px; }
+
+    /* PAGE HERO */
+    .page-hero { color: var(--white); padding: 48px 24px; text-align: center; }
+    .page-hero-badge { display: inline-block; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); border-radius: 30px; padding: 4px 14px; font-size: 12px; letter-spacing: .5px; margin-bottom: 14px; text-transform: uppercase; }
+    .page-hero h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 800; margin-bottom: 10px; }
+    .page-hero p { font-size: 15px; opacity: .88; max-width: 540px; margin: 0 auto; }
+
+    /* POLICY CONTENT */
+    .policy-wrap { max-width: 860px; margin: 0 auto; padding: 48px 24px; }
+    .policy-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 36px 40px; box-shadow: var(--shadow-sm); }
+    .policy-card h2 { font-size: 17px; font-weight: 800; color: var(--green); margin: 28px 0 10px; padding-bottom: 8px; border-bottom: 2px solid var(--green-pale); }
+    .policy-card h2:first-child { margin-top: 0; }
+    .policy-card p { font-size: 14px; color: var(--muted); line-height: 1.8; margin-bottom: 8px; }
+    .policy-card a { color: var(--green); font-weight: 600; }
+    .policy-card a:hover { text-decoration: underline; }
+
+    /* POLICY LIST */
+    .policy-list { list-style: none; padding: 0; margin: 0; }
+    .policy-list li { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px; font-size: 14px; color: var(--text); line-height: 1.6; transition: background .2s; }
+    .policy-list li:hover { background: var(--green-pale); }
+    .policy-list li::before { content: '✔'; color: var(--green); font-weight: 700; font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+    .policy-list li a { color: var(--green); font-weight: 600; }
+
+    /* INFO BOX */
+    .info-box { background: var(--green-pale); border-left: 4px solid var(--green); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 18px; margin-top: 24px; font-size: 13.5px; color: var(--text); }
+    .info-box strong { color: var(--green); }
+
+    /* FOOTER */
+    .footer { background: #1a1a1a; color: #ccc; padding: 48px 24px 24px; margin-top: 0; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; max-width: 1280px; margin: 0 auto 32px; }
+    .footer-brand img { height: 48px; margin-bottom: 12px; }
+    .footer-brand p { font-size: 13.5px; line-height: 1.7; max-width: 260px; }
+    .footer-col h4 { color: #fff; font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+    .footer-col a { display: block; color: #aaa; font-size: 13.5px; margin-bottom: 8px; transition: color .2s; }
+    .footer-col a:hover { color: var(--green-light); }
+    .social-row { display: flex; gap: 10px; margin-top: 14px; }
+    .social-row a { width: 36px; height: 36px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+    .social-row a:hover { background: var(--green); }
+    .social-row img { width: 18px; height: 18px; filter: brightness(0) invert(1); }
+    .footer-bottom { border-top: 1px solid #333; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; max-width: 1280px; margin: 0 auto; font-size: 13px; color: #777; }
+
+    /* MOBILE */
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+    .hamburger span { display: block; width: 24px; height: 2px; background: var(--text); border-radius: 2px; }
+    .mobile-menu { display: none; flex-direction: column; background: var(--white); border-top: 1px solid var(--border); padding: 16px 24px; gap: 4px; }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { padding: 10px 0; font-size: 15px; color: var(--text); border-bottom: 1px solid var(--border); }
+    .mobile-menu a:last-child { border-bottom: none; }
+
+    @media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .navbar { padding: 0 16px; }
+      .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+      .policy-wrap { padding: 24px 16px; }
+      .policy-card { padding: 24px 20px; }
     }
 </style>
+</head>
+<body>
 
-<div class="terms-container">
-    <h1>Terms & Conditions</h1>
+  <div class="announcement-bar">
+    &nbsp; 🇮🇳 Grown &amp; packed in India &nbsp;|&nbsp; 📦 Dispatched within 24 hours
+  </div>
 
-    <p>Welcome to HASA FARM. By using our website (<a href="https://www.hasafarm.com">www.hasafarm.com</a>), you agree to the following terms:</p>
+  <div class="top-bar" role="search">
+    <form action="{% url 'search_seeds' %}" method="GET" class="search-form" aria-label="Search for seeds">
+      <input type="search" name="q" placeholder="Search for seeds…" aria-label="Seed search">
+      <button type="submit" aria-label="Submit search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </form>
+  </div>
 
-    <h2>Use of Products</h2>
-    <p>Our products are intended for personal and agricultural use only. Reselling without permission is prohibited.</p>
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <a href="{% url 'home' %}" class="logo-wrap" aria-label="Hasafarm home">
+      <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Hasafarm logo" width="44" height="44">
+      <span>HASA FARM</span>
+    </a>
+    <div class="nav-links">
+      <div class="dropdown">
+        <a>Vegetable Seeds</a>
+        <div class="dropdown-menu">
+          <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
+          <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
+          <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
+        </div>
+      </div>
+      <div class="dropdown">
+        <a>Flower Seeds</a>
+        <div class="dropdown-menu">
+          <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
+          <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
+          <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+        </div>
+      </div>
+      <a href="{% url 'view_cart' %}" id="cart-link" class="cart-btn" aria-label="View cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        Cart
+        <span id="cart-count" class="cart-count" aria-live="polite">0</span>
+      </a>
+    </div>
+    <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
 
-    <h2>Orders & Cancellations</h2>
-    <p>We reserve the right to cancel or refuse any order. Orders cannot be cancelled once shipped.</p>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
+    <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
+    <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
+    <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
+    <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
+    <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+    <a href="{% url 'view_cart' %}">🛒 Cart</a>
+  </div>
 
-    <h2>Pricing</h2>
-    <p>All prices are in INR and may change without prior notice. We strive for accuracy but are not liable for pricing errors.</p>
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="{% url 'home' %}">Home</a>
+    <span>›</span>
+    <span aria-current="page">Terms & Conditions</span>
+  </nav>
 
-    <h2>Shipping & Delivery</h2>
-    <p>Delivery timelines are estimates. We are not responsible for delays due to external factors.</p>
+  <div class="page-hero" style="background: linear-gradient(135deg, #1a237e 0%, #283593 60%, #1b5e20 100%);" aria-labelledby="page-title">
+    <div class="page-hero-badge">📄 Legal Agreement</div>
+    <h1 id="page-title">Terms & Conditions</h1>
+    <p>By using the Hasafarm website and purchasing our products, you agree to the following terms and conditions. Please read them carefully.</p>
+  </div>
 
-<!--    <h2>Returns & Refunds</h2>-->
-<!--    <p>Returns are accepted only for defective or wrong items, reported within 48 hours of delivery.</p>-->
+  <main id="main-content">
+    <div class="policy-wrap">
+      <div class="policy-card">
 
-    <h2>Intellectual Property</h2>
-    <p>All content on this website is the property of HASA FARM and may not be reused without permission.</p>
+        <p>Welcome to HASA FARM. By using our website (<a href="https://www.hasafarm.com">www.hasafarm.com</a>), you agree to be bound by the following terms and conditions. If you do not agree with any part of these terms, please do not use our site.</p>
 
-    <h2>Limitation of Liability</h2>
-    <p>We are not liable for indirect damages resulting from the use of our products or website.</p>
+        <h2>Use of Products</h2>
+        <p>Our products are intended for personal and agricultural use only. Reselling Hasafarm products without prior written permission is strictly prohibited. Bulk commercial use requires a separate agreement.</p>
 
-    <h2>Governing Law</h2>
-    <p>These terms are governed by the laws of Karnataka, India.</p>
+        <h2>Orders &amp; Cancellations</h2>
+        <p>We reserve the right to cancel or refuse any order at our discretion without prior notice. Orders cannot be cancelled once they have been dispatched. Please refer to our Refund &amp; Cancellation Policy for further details.</p>
 
-    <h2>Contact</h2>
-    <p>For any queries, email us at <a href="mailto:contact@hasafarm.com">contact@hasafarm.com</a></p>
-</div>
-{% endblock %}
+        <h2>Pricing</h2>
+        <p>All prices displayed on the website are in Indian Rupees (INR) and are inclusive of applicable taxes. Prices are subject to change without prior notice. While we strive for accuracy, we are not liable for pricing errors and reserve the right to cancel orders placed at incorrect prices.</p>
+
+        <h2>Shipping &amp; Delivery</h2>
+        <p>Delivery timelines mentioned on the website are estimates only. We are not responsible for delays caused by courier partners, natural events, or other factors outside our control. Please refer to our Shipping Policy for complete details.</p>
+
+        <h2>Intellectual Property</h2>
+        <p>All content on this website including text, images, logos, product descriptions, and graphics is the property of HASA FARM and is protected by applicable intellectual property laws. This content may not be reproduced, distributed, or used without our express written permission.</p>
+
+        <h2>Limitation of Liability</h2>
+        <p>Hasafarm shall not be liable for any indirect, incidental, or consequential damages arising from the use of our products or website. Our maximum liability shall not exceed the value of the order placed by the customer.</p>
+
+        <h2>Governing Law</h2>
+        <p>These terms and conditions are governed by and construed in accordance with the laws of Karnataka, India. Any disputes arising from these terms shall be subject to the exclusive jurisdiction of courts in Karnataka.</p>
+
+        <h2>Contact</h2>
+        <p>For any queries about these terms, email us at <a href="mailto:contact@hasafarm.com">contact@hasafarm.com</a>. We aim to respond within 2–3 working days.</p>
+
+        <div class="info-box">
+          <strong>Last updated:</strong> January 2025. We may revise these terms periodically. Continued use of our website constitutes acceptance of the revised terms.
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer" role="contentinfo">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Hasafarm Logo" width="48" height="48">
+        <p>Hasafarm brings you the finest organic seeds for your garden. Grown with love, delivered with care across India.</p>
+        <div class="social-row">
+          <a href="https://www.facebook.com/profile.php?id=61577475895648" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook">
+          </a>
+          <a href="https://www.instagram.com/hasafarm88/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram">
+          </a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Vegetable Seeds</h4>
+        <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
+        <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
+        <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
+      </div>
+      <div class="footer-col">
+        <h4>Flower Seeds</h4>
+        <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
+        <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flowers</a>
+        <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+        <a href="{% url 'terms_conditions' %}">Terms &amp; Conditions</a>
+        <a href="{% url 'disclaimer' %}">Disclaimer</a>
+        <a href="{% url 'refund' %}">Refund Policy</a>
+        <a href="{% url 'shipping' %}">Shipping Policy</a>
+        <a href="mailto:contact@hasafarm.com">📧 contact@hasafarm.com</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Hasa Farm. All Rights Reserved.</span>
+      <span>Made with 🌿 in India</span>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('hamburger-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    hamburger.addEventListener('click', () => {
+      const open = mobileMenu.classList.toggle('open');
+      hamburger.setAttribute('aria-expanded', open);
+    });
+    fetch('/get-cart-count/').then(r => r.json()).then(d => { document.getElementById('cart-count').textContent = d.cart_count; }).catch(() => {});
+  </script>
+</body>
+</html>
