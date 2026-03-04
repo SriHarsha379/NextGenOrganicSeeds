@@ -2,62 +2,195 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Print Address Labels</title>
-
+<title>Print Address Labels - Hasa Organic Seeds</title>
 <style>
-body{
-    font-family: Arial;
-    font-size:12px;
-}
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
 
-@media print{
-    .no-print{display:none;}
-}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* PAGE GRID */
-.label-sheet{
-    display:grid;
-    grid-template-columns: 1fr 1fr; /* 2 labels per row */
-    gap:10px;
-}
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 11px;
+    background: #f0ede8;
+    padding: 20px;
+  }
 
-/* EACH LABEL */
-.label{
-    border:1px dashed #000;
-    padding:10px;
-    height:130px;
-}
+  /* ── CONTROLS (hidden on print) ── */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
 
-/* FORCE PAGE BREAK AFTER 4 LABELS */
-.label:nth-child(4n){
-    page-break-after:always;
-}
+  .controls select {
+    padding: 8px 12px;
+    border: 2px solid #222;
+    background: #fff;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+  }
 
-.bold{font-weight:bold;}
+  .btn-print {
+    padding: 10px 24px;
+    background: #1a4a1a;
+    color: #fff;
+    border: none;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-print:hover { background: #2d6e2d; }
+
+  .order-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: #666;
+  }
+
+  /* ── LABEL GRID ── */
+  .label-sheet {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* ── SINGLE LABEL ── */
+  .label {
+    border: 1.5px dashed #555;
+    padding: 10px 12px;
+    background: #fff;
+    min-height: 145px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    page-break-inside: avoid;
+  }
+
+  .label-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+  }
+
+  .from-block { font-size: 9px; color: #555; line-height: 1.4; }
+  .from-block strong { font-size: 10px; color: #111; display: block; }
+
+  .order-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    background: #1a4a1a;
+    color: #fff;
+    padding: 2px 6px;
+    white-space: nowrap;
+  }
+
+  .to-label {
+    font-size: 9px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 3px;
+  }
+
+  .recipient-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 3px;
+    line-height: 1.2;
+  }
+
+  .recipient-address {
+    font-size: 10px;
+    color: #333;
+    line-height: 1.4;
+    margin-bottom: 4px;
+  }
+
+  .recipient-phone {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: #1a4a1a;
+    font-weight: 600;
+  }
+
+  /* ── PAGE BREAK EVERY 8 LABELS (4 rows × 2 cols) ── */
+  .label:nth-child(8n) { page-break-after: always; }
+
+  /* ── PRINT STYLES ── */
+  @media print {
+    body { background: #fff; padding: 5mm; }
+    .controls { display: none; }
+    .label { border: 1px dashed #000; }
+    .order-badge { background: #000; }
+  }
 </style>
 </head>
-
 <body>
 
-<button class="no-print" onclick="window.print()">🖨 Print</button>
-
-<div class="label-sheet">
-
-{% for order in orders %}
-<div class="label">
-
-    <div class="bold">HASA ORGANIC SEEDS</div>
-    <hr>
-
-    <div><b>To:</b></div>
-    <div class="bold">{{ order.full_name }}</div>
-    <div>{{ order.address }}</div>
-    <div>📞 {{ order.phone }}</div>
-
+<!-- Controls -->
+<div class="controls no-print">
+  <select id="statusFilter" onchange="filterLabels()">
+    <option value="all">All Orders</option>
+    <option value="Paid" selected>Paid Only</option>
+    <option value="Pending">Pending Only</option>
+  </select>
+  <button class="btn-print" onclick="window.print()">🖨 Print All Labels</button>
+  <span class="order-count" id="labelCount"></span>
 </div>
-{% endfor %}
 
+<!-- Label Sheet -->
+<div class="label-sheet" id="labelSheet">
+  {% for order in orders %}
+  <div class="label" data-status="{{ order.payment_status }}">
+
+    <!-- Header: From + Order ID -->
+    <div class="label-header">
+      <div class="from-block">
+        <strong>HASA ORGANIC SEEDS</strong>
+        #14, 1st B Cross, Shivapura<br>
+        Baglur Main Road, Yelahanka<br>
+        Bengaluru – 560063 | 📞 7483847243
+      </div>
+      <div class="order-badge">#{{ order.id }}</div>
+    </div>
+
+    <!-- To -->
+    <div>
+      <div class="to-label">Ship To</div>
+      <div class="recipient-name">{{ order.full_name }}</div>
+      <div class="recipient-address">{{ order.address }}</div>
+      <div class="recipient-phone">📞 {{ order.phone }}</div>
+    </div>
+
+  </div>
+  {% endfor %}
 </div>
+
+<script>
+  function filterLabels() {
+    const val = document.getElementById('statusFilter').value;
+    const labels = document.querySelectorAll('.label');
+    let visible = 0;
+    labels.forEach(label => {
+      const show = val === 'all' || label.dataset.status === val;
+      label.style.display = show ? 'flex' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('labelCount').textContent = visible + ' labels ready to print';
+  }
+  // Run on load — default shows Paid only
+  filterLabels();
+</script>
 
 </body>
 </html>
