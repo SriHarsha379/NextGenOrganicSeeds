@@ -1,8 +1,18 @@
 <h2>Orders</h2>
-<a href="{% url 'adminpanel:print_labels' %}"
-   target="_blank"
-   style="padding:8px 15px;background:#000;color:#fff;text-decoration:none;">
-🖨 Print Address Labels
+<!-- Export All Orders -->
+<a href="{% url 'adminpanel:export_orders' %}">
+    Export All CSV
+</a>
+
+<!-- Export Filtered (keeps your current status filter) -->
+<a href="{% url 'adminpanel:export_orders' %}?status={{ status }}">
+    Export Filtered CSV
+</a>
+
+<!-- ADD THIS 👇 -->
+<a href="{% url 'adminpanel:export_orders' %}"
+   style="padding:8px 15px;background:#2e7d32;color:#fff;text-decoration:none;margin-left:10px;">
+📥 Download Orders CSV
 </a>
 
 <br><br>

@@ -3,7 +3,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.shortcuts import redirect
-
+import csv
+from django.http import HttpResponse
 from orders.models import Order
 from products.models import Seed, Category
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -164,3 +165,52 @@ def print_labels(request):
     return render(request,'adminpanel/print_labels.html',{
         'orders':orders
     })
+
+
+@admin_required
+def export_orders_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="hasafarm_orders.csv"'
+
+    writer = csv.writer(response)
+
+    # Header row
+    writer.writerow([
+        'Order ID', 'Full Name', 'Email', 'Phone', 'Address',
+        'Items Ordered', 'Total Quantity', 'Postal Charge',
+        'Total Amount', 'Payment Status', 'Payment ID',
+        'PhonePe Order ID', 'Order Date'
+    ])
+
+    orders = Order.objects.all().order_by('-created_at')
+
+    # Reuse your existing status filter
+    status = request.GET.get('status')
+    if status:
+        orders = orders.filter(payment_status=status)
+
+    for order in orders:
+        # Format cart_items JSON into readable text
+        # e.g. "Tomato Seeds x2, Chili Seeds x1"
+        items_text = ', '.join(
+            f"{item.get('name', 'Item')} x{item.get('quantity', 1)}"
+            for item in order.cart_items
+        )
+
+        writer.writerow([
+            order.id,
+            order.full_name,
+            order.email,
+            order.phone,
+            order.address.replace('\n', ' '),  # flatten multiline address
+            items_text,
+            order.total_quantity,
+            order.postal_charge,
+            order.total_amount,
+            order.payment_status,
+            order.payment_id or '',
+            order.phonepe_order_id or '',
+            order.created_at.strftime('%d-%m-%Y %H:%M'),
+        ])
+
+    return response
