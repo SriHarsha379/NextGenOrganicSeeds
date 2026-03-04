@@ -500,45 +500,86 @@ def phonepe_webhook(request):
                     order.payment_id = payment_id
                 order.save(update_fields=["payment_status", "payment_id"])
                 logger.info("✅ Order #%s successfully updated to %s", order.id, new_status)
-                
-                # Refresh from DB to verify
                 order.refresh_from_db()
                 logger.info("🔍 Verified: Order #%s payment_status is now '%s'", order.id, order.payment_status)
             except Exception as e:
                 logger.error("❌ Failed to update order #%s: %s", order.id, str(e))
-                logger.exception("Full error traceback:")
                 return JsonResponse({"error": "Failed to update order status"}, status=500)
 
-            # Email to user
+            is_paid = (new_status == "Paid")  # 👈 FIX: was using undefined 'success' variable
+
+            # ── Email to Customer ──
             if order.email:
-                subject = f"Your Hasafarm Order #{order.id} - {'Confirmed' if success else 'Payment Failed'}"
-                message = (
-                    f"Dear {order.full_name},\n\n"
-                    f"Thank you for ordering from Hasafarm.\n"
-                    f"Your order #{order.id} has been {'successfully paid and confirmed' if success else 'not completed due to a payment failure'}.\n\n"
-                    f"Details:\n"
-                    f"- Amount: ₹{order.total_amount}\n"
-                    f"- Payment ID: {order.payment_id or 'N/A'}\n"
-                    f"- Order Status: {order.payment_status}\n\n"
-                    f"We will notify you once your order is shipped.\n\n"
-                    f"Regards,\nHasafarm Team"
+                # Format cart items nicely
+                items_text = "\n".join(
+                    f"  • {item.get('name', 'Item')} x{item.get('quantity', 1)} — ₹{float(item.get('price', 0)) * int(item.get('quantity', 1)):.2f}"
+                    for item in order.cart_items
                 )
+
+                if is_paid:
+                    subject = f"✅ Order Confirmed! Hasa Organic Seeds Order #{order.id}"
+                    message = (
+                        f"Dear {order.full_name},\n\n"
+                        f"Thank you for shopping with Hasa Organic Seeds! 🌱\n"
+                        f"Your payment was successful and your order is confirmed.\n\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"ORDER SUMMARY — #{order.id}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"{items_text}\n\n"
+                        f"Postal Charge : ₹{order.postal_charge}\n"
+                        f"Total Amount  : ₹{order.total_amount}\n"
+                        f"Payment ID    : {order.payment_id or 'N/A'}\n\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"SHIPPING TO\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"{order.full_name}\n"
+                        f"{order.address}\n"
+                        f"📞 {order.phone}\n\n"
+                        f"We will notify you once your order is shipped.\n\n"
+                        f"Regards,\n"
+                        f"Hasa Organic Seeds\n"
+                        f"📞 7483847243 | hasafarm.com"
+                    )
+                else:
+                    subject = f"❌ Payment Failed — Hasa Organic Seeds Order #{order.id}"
+                    message = (
+                        f"Dear {order.full_name},\n\n"
+                        f"Unfortunately your payment for Order #{order.id} could not be completed.\n\n"
+                        f"Total Amount : ₹{order.total_amount}\n\n"
+                        f"Please try again at:\n"
+                        f"https://hasafarm.com/cart/\n\n"
+                        f"If you were charged, the amount will be refunded within 5-7 business days.\n\n"
+                        f"Need help? Reply to this email or call 7483847243.\n\n"
+                        f"Regards,\n"
+                        f"Hasa Organic Seeds"
+                    )
+
                 try:
                     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [order.email])
+                    logger.info("📧 Customer email sent to %s", order.email)
                 except Exception as e:
-                    logger.error("📧 Failed to send user email: %s", e)
+                    logger.error("📧 Failed to send customer email: %s", e)
 
-            # Email to admin
+            # ── Email to Admin ──
             try:
                 admin_email = getattr(settings, 'ADMIN_NOTIFICATION_EMAIL', settings.DEFAULT_FROM_EMAIL)
+                admin_message = (
+                    f"Order #{order.id} — {order.payment_status}\n\n"
+                    f"Customer : {order.full_name}\n"
+                    f"Email    : {order.email}\n"
+                    f"Phone    : {order.phone}\n"
+                    f"Amount   : ₹{order.total_amount}\n"
+                    f"PhonePe  : {order.phonepe_order_id}\n\n"
+                    f"Address:\n{order.address}"
+                )
                 send_mail(
-                    f"[Admin] Order #{order.id} - {order.payment_status}",
-                    f"Order ID: {order.id}\nCustomer: {order.full_name}\n"
-                    f"Status: {order.payment_status}\nPhonePe ID: {order.phonepe_order_id}",
+                    f"[Hasafarm] Order #{order.id} — {order.payment_status}",
+                    admin_message,
                     settings.DEFAULT_FROM_EMAIL,
                     [admin_email],
                     fail_silently=True,
                 )
+                logger.info("📧 Admin email sent")
             except Exception as e:
                 logger.error("📧 Failed to send admin email: %s", e)
         else:
