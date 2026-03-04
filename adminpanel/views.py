@@ -161,9 +161,22 @@ def order_detail(request, order_id):
     })
 
 def print_labels(request):
-    orders = Order.objects.all().order_by('-id')
-    return render(request,'adminpanel/print_labels.html',{
-        'orders':orders
+    # Only show Paid + not yet printed
+    orders = Order.objects.filter(
+        payment_status='Paid',
+        is_printed=False
+    ).order_by('-id')
+
+    if request.method == 'POST':
+        # Mark all as printed
+        Order.objects.filter(
+            payment_status='Paid',
+            is_printed=False
+        ).update(is_printed=True)
+        return redirect('adminpanel:print_labels')
+
+    return render(request, 'adminpanel/print_labels.html', {
+        'orders': orders
     })
 
 

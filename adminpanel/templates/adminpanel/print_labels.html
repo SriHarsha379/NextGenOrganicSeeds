@@ -15,22 +15,12 @@
     padding: 20px;
   }
 
-  /* ── CONTROLS (hidden on print) ── */
   .controls {
     display: flex;
     align-items: center;
     gap: 12px;
     margin-bottom: 20px;
     flex-wrap: wrap;
-  }
-
-  .controls select {
-    padding: 8px 12px;
-    border: 2px solid #222;
-    background: #fff;
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
   }
 
   .btn-print {
@@ -42,10 +32,21 @@
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    letter-spacing: 0.5px;
+  }
+
+  .btn-mark {
+    padding: 10px 24px;
+    background: #b85c00;
+    color: #fff;
+    border: none;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
   }
 
   .btn-print:hover { background: #2d6e2d; }
+  .btn-mark:hover { background: #d46a00; }
 
   .order-count {
     font-family: 'IBM Plex Mono', monospace;
@@ -53,19 +54,17 @@
     color: #666;
   }
 
-  /* ── LABEL GRID ── */
   .label-sheet {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
 
-  /* ── SINGLE LABEL ── */
   .label {
     border: 1.5px dashed #555;
     padding: 10px 12px;
     background: #fff;
-    min-height: 145px;
+    min-height: 160px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -78,11 +77,11 @@
     align-items: flex-start;
     border-bottom: 1px solid #ddd;
     padding-bottom: 6px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
 
-  .from-block { font-size: 9px; color: #555; line-height: 1.4; }
-  .from-block strong { font-size: 10px; color: #111; display: block; }
+  .from-block { font-size: 9px; color: #555; line-height: 1.5; }
+  .from-block strong { font-size: 10px; color: #111; display: block; margin-bottom: 2px; }
 
   .order-badge {
     font-family: 'IBM Plex Mono', monospace;
@@ -106,7 +105,6 @@
     font-weight: 700;
     color: #111;
     margin-bottom: 3px;
-    line-height: 1.2;
   }
 
   .recipient-address {
@@ -123,48 +121,45 @@
     font-weight: 600;
   }
 
-  /* ── PAGE BREAK EVERY 8 LABELS (4 rows × 2 cols) ── */
   .label:nth-child(8n) { page-break-after: always; }
 
-  /* ── PRINT STYLES ── */
   @media print {
     body { background: #fff; padding: 5mm; }
     .controls { display: none; }
     .label { border: 1px dashed #000; }
-    .order-badge { background: #000; }
+    .order-badge { background: #000; -webkit-print-color-adjust: exact; }
   }
 </style>
 </head>
 <body>
 
-<!-- Controls -->
-<div class="controls no-print">
-  <select id="statusFilter" onchange="filterLabels()">
-    <option value="all">All Orders</option>
-    <option value="Paid" selected>Paid Only</option>
-    <option value="Pending">Pending Only</option>
-  </select>
+<div class="controls">
   <button class="btn-print" onclick="window.print()">🖨 Print All Labels</button>
-  <span class="order-count" id="labelCount"></span>
+
+  <!-- Mark as Printed button — submits POST to mark all printed -->
+  <form method="POST" style="margin:0;" onsubmit="return confirm('Mark all {{ orders|length }} orders as printed?')">
+    {% csrf_token %}
+    <button type="submit" class="btn-mark">✅ Mark All as Printed</button>
+  </form>
+
+  <span class="order-count">{{ orders|length }} new orders ready to print</span>
 </div>
 
-<!-- Label Sheet -->
-<div class="label-sheet" id="labelSheet">
+{% if orders %}
+<div class="label-sheet">
   {% for order in orders %}
-  <div class="label" data-status="{{ order.payment_status }}">
+  <div class="label">
 
-    <!-- Header: From + Order ID -->
     <div class="label-header">
       <div class="from-block">
-        <strong>HASA ORGANIC SEEDS</strong>
-        #14, 1st B Cross, Shivapura<br>
-        Baglur Main Road, Yelahanka<br>
-        Bengaluru – 560063 | 📞 7483847243
+        <strong>FROM: HASA ORGANIC SEEDS</strong>
+        #14, 1st B Cross, Shivapura, Baglur Main Road<br>
+        Yelahanka, Bengaluru – 560063<br>
+        📞 7483847243 | FSSAI: 21225008001765
       </div>
       <div class="order-badge">#{{ order.id }}</div>
     </div>
 
-    <!-- To -->
     <div>
       <div class="to-label">Ship To</div>
       <div class="recipient-name">{{ order.full_name }}</div>
@@ -176,21 +171,11 @@
   {% endfor %}
 </div>
 
-<script>
-  function filterLabels() {
-    const val = document.getElementById('statusFilter').value;
-    const labels = document.querySelectorAll('.label');
-    let visible = 0;
-    labels.forEach(label => {
-      const show = val === 'all' || label.dataset.status === val;
-      label.style.display = show ? 'flex' : 'none';
-      if (show) visible++;
-    });
-    document.getElementById('labelCount').textContent = visible + ' labels ready to print';
-  }
-  // Run on load — default shows Paid only
-  filterLabels();
-</script>
+{% else %}
+<div style="text-align:center; padding:60px; color:#888; font-size:16px;">
+  ✅ No new orders to print. All caught up!
+</div>
+{% endif %}
 
 </body>
 </html>
