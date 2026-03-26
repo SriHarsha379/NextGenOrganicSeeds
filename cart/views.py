@@ -368,6 +368,64 @@ def order_success(request, phonepe_order_id):
             order.payment_id = status_info["payment_id"]
             order.save(update_fields=["payment_status", "payment_id"])
 
+            # Send confirmation email to customer
+            if order.email:
+                items_text = "\n".join(
+                    f"  • {item.get('name', 'Item')} x{item.get('quantity', 1)} — ₹{float(item.get('price', 0)) * int(item.get('quantity', 1)):.2f}"
+                    for item in order.cart_items
+                )
+                subject = f"✅ Order Confirmed! Hasa Organic Seeds Order #{order.id}"
+                message = (
+                    f"Dear {order.full_name},\n\n"
+                    f"Thank you for shopping with Hasa Organic Seeds! 🌱\n"
+                    f"Your payment was successful and your order is confirmed.\n\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"ORDER SUMMARY — #{order.id}\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"{items_text}\n\n"
+                    f"Postal Charge : ₹{order.postal_charge}\n"
+                    f"Total Amount  : ₹{order.total_amount}\n"
+                    f"Payment ID    : {order.payment_id or 'N/A'}\n\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"SHIPPING TO\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"{order.full_name}\n"
+                    f"{order.address}\n"
+                    f"📞 {order.phone}\n\n"
+                    f"We will notify you once your order is shipped.\n\n"
+                    f"Regards,\n"
+                    f"Hasa Organic Seeds\n"
+                    f"📞 7483847243 | hasafarm.com"
+                )
+                try:
+                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [order.email])
+                    logger.info("📧 Confirmation email sent to %s for order #%s", order.email, order.id)
+                except Exception as e:
+                    logger.error("📧 Failed to send confirmation email for order #%s: %s", order.id, e)
+
+            # Notify admin
+            try:
+                admin_email = getattr(settings, 'ADMIN_NOTIFICATION_EMAIL', settings.DEFAULT_FROM_EMAIL)
+                admin_message = (
+                    f"Order #{order.id} — Paid\n\n"
+                    f"Customer : {order.full_name}\n"
+                    f"Email    : {order.email}\n"
+                    f"Phone    : {order.phone}\n"
+                    f"Amount   : ₹{order.total_amount}\n"
+                    f"PhonePe  : {order.phonepe_order_id}\n\n"
+                    f"Address:\n{order.address}"
+                )
+                send_mail(
+                    f"[Hasafarm] Order #{order.id} — Paid",
+                    admin_message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [admin_email],
+                    fail_silently=True,
+                )
+                logger.info("📧 Admin notification sent for order #%s", order.id)
+            except Exception as e:
+                logger.error("📧 Failed to send admin email for order #%s: %s", order.id, e)
+
     return render(request, "cart/order_success.html", {"order": order})
 
 def get_phonepe_payment_status(order_id):
