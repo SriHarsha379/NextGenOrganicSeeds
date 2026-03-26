@@ -360,7 +360,7 @@ def order_success(request, phonepe_order_id):
         return HttpResponseForbidden("Unauthorized access to this guest order.")
 
     if order.payment_status != "Paid":
-        status_info = get_phonepe_payment_status(phonepe_order_id)
+        status_info = _check_phonepe_payment_status(phonepe_order_id)
         if status_info["success"]:
             order.payment_status = "Paid"
             order.payment_id = status_info["payment_id"]
@@ -429,7 +429,16 @@ def order_success(request, phonepe_order_id):
         "pending": order.payment_status != "Paid",
     })
 
-def get_phonepe_payment_status(order_id):
+def _check_phonepe_payment_status(order_id):
+    """Internal helper: calls PhonePe status API and returns a plain dict.
+
+    Returns:
+        dict with keys:
+            success (bool)   – True when PhonePe state is COMPLETED
+            state   (str)    – raw state string from PhonePe
+            payment_id (str) – first transaction_id found, or None
+            error   (str)    – set only on exception
+    """
     try:
         status_response = client.get_order_status(order_id)
         state = getattr(status_response, 'state', None)
@@ -443,214 +452,255 @@ def get_phonepe_payment_status(order_id):
                 payment_id = txn_id
                 break
 
-        return {
-            "success": success,
-            "payment_id": payment_id,
-            "raw": status_response,
-        }
+        return {"success": success, "state": state, "payment_id": payment_id, "error": None}
 
     except Exception as e:
         logger.error("PhonePe status check error for order %s: %s", order_id, e)
-        return {"success": False, "error": str(e), "raw": {}}
+        return {"success": False, "state": None, "error": str(e)}
 
-logger = logging.getLogger(__name__)
+
+def get_phonepe_payment_status(request, order_id):
+    """HTTP view: returns the current PhonePe payment status for an order.
+
+    Accessible to:
+      - the authenticated user who owns the order, OR
+      - a guest whose session holds the matching guest_order_id.
+
+    Also updates the order to Paid if PhonePe confirms COMPLETED.
+    """
+    try:
+        order = Order.objects.get(phonepe_order_id__iexact=order_id)
+    except Order.DoesNotExist:
+        return JsonResponse({"error": "Order not found"}, status=404)
+
+    # Authorization: logged-in owner OR guest session holder
+    if request.user.is_authenticated:
+        if order.user and order.user != request.user:
+            return JsonResponse({"error": "Unauthorized"}, status=403)
+    else:
+        session_guest_id = str(request.session.get("guest_order_id", ""))
+        if session_guest_id != str(order.id):
+            return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    # If already in a terminal state, return immediately without hitting PhonePe
+    if order.payment_status == "Paid":
+        return JsonResponse({
+            "order_id": order_id,
+            "payment_status": "Paid",
+            "state": "COMPLETED",
+            "success": True,
+        })
+
+    status_info = _check_phonepe_payment_status(order_id)
+
+    if status_info.get("success") and order.payment_status != "Paid":
+        order.payment_status = "Paid"
+        if status_info.get("payment_id"):
+            order.payment_id = status_info["payment_id"]
+        order.save(update_fields=["payment_status", "payment_id"])
+        logger.info("✅ Order #%s marked Paid via status-check view", order.id)
+
+    return JsonResponse({
+        "order_id": order_id,
+        "payment_status": order.payment_status,
+        "state": status_info.get("state"),
+        "success": status_info.get("success", False),
+    })
+
+
+def _verify_phonepe_webhook_auth(auth_header):
+    """Verify the Authorization header sent by PhonePe on webhook delivery.
+
+    PhonePe sends:  Authorization: SHA256 <sha256(username + password)>
+    Returns True if the received hash matches the configured credentials.
+    """
+    if not auth_header or not auth_header.startswith("SHA256 "):
+        return False
+    received_hash = auth_header[len("SHA256 "):].strip()
+    raw = settings.PHONEPE_WEBHOOK_USER + settings.PHONEPE_WEBHOOK_PASSWORD
+    expected_hash = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    return received_hash == expected_hash
+
 
 @csrf_exempt
 @require_POST
 def phonepe_webhook(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST allowed"}, status=405)
-    # Log what we received (no secret values) so we can see what PhonePe sends
-    header_keys = list(request.headers.keys())
-    logger.info("🔑 Header Keys: %s", header_keys)
+    """PhonePe Standard Checkout v2 webhook handler.
 
+    Registered events: checkout.order.completed / checkout.order.failed / checkout.order.cancelled
+    """
+    # ── 1. Authenticate ──────────────────────────────────────────────────────
     auth_header = (request.headers.get("Authorization") or "").strip()
-
-    if not auth_header:
-        logger.warning("🔑 Authorization header missing")
+    if not _verify_phonepe_webhook_auth(auth_header):
+        logger.warning("🔑 Webhook auth failed. Header prefix: %s", auth_header[:30])
         return JsonResponse({"error": "Unauthorized"}, status=401)
 
-    if not auth_header.startswith("SHA256 "):
-        logger.warning("🔑 Invalid auth scheme: %s", auth_header[:20])
-        return JsonResponse({"error": "Unauthorized"}, status=401)
+    logger.info("🔐 PhonePe webhook authenticated")
 
-    received_hash = auth_header.replace("SHA256 ", "").strip()
-
-    raw = settings.PHONEPE_WEBHOOK_USER + settings.PHONEPE_WEBHOOK_PASSWORD
-    expected_hash = hashlib.sha256(raw.encode()).hexdigest()
-
-    if received_hash != expected_hash:
-        logger.warning("🔑 Authorization hash mismatch")
-        return JsonResponse({"error": "Unauthorized"}, status=401)
-
-    logger.info("🔐 PhonePe webhook authenticated successfully")    
-
+    # ── 2. Parse payload ─────────────────────────────────────────────────────
     try:
         payload = json.loads(request.body.decode("utf-8"))
-        logger.info("📥 Webhook received:\n%s", json.dumps(payload, indent=2))
-
-        event_type = payload.get("event", "").lower().strip()
-
-        data = payload.get("payload") or payload.get("data") or {}
-
-        # ✅ Accept only valid events
-        if event_type not in ["checkout.order.completed", "checkout.order.failed", "checkout.order.cancelled"]:
-            logger.info("🔁 Ignored event: %s", event_type)
-            return JsonResponse({"message": "Ignored event"}, status=200)
-
-        # Docs: originalMerchantOrderId = "Order ID generated by you"; also support merchantOrderId / merchantTransactionId
-        merchant_order_id = (
-            data.get("originalMerchantOrderId")
-            or data.get("merchantOrderId")
-            or data.get("merchantTransactionId")
-        )
-     
-        payment_id = None
-        for p in (data.get("paymentDetails") or []):
-            if p.get("transactionId"):
-                payment_id = p["transactionId"]
-                break
-        
-        if event_type == "checkout.order.completed":
-            new_status = "Paid"
-        elif event_type == "checkout.order.failed":
-            new_status = "Failed"
-        elif event_type == "checkout.order.cancelled":
-            new_status = "Cancelled"
-        else:
-            return JsonResponse({"message": "Ignored"}, status=200)
-
-
-        if not merchant_order_id:
-            logger.error("❗ Missing merchant order id in webhook payload. Keys: %s", list(data.keys()))
-            return JsonResponse({"error": "Missing merchantOrderId"}, status=400)
-
-        try:
-            order = Order.objects.get(phonepe_order_id__iexact=merchant_order_id)
-        except Order.DoesNotExist:
-            logger.warning("❌ Order not found for merchantOrderId: %s", merchant_order_id)
-            return JsonResponse({"error": "Order not found"}, status=404)
-
-        status_changed = (order.payment_status != new_status)
-
-        logger.info("🔍 Order #%s current status: '%s', new status: '%s', changed: %s", 
-                   order.id, order.payment_status, new_status, status_changed)
-
-        if status_changed:
-            try:
-                order.payment_status = new_status
-                if payment_id:
-                    order.payment_id = payment_id
-                order.save(update_fields=["payment_status", "payment_id"])
-                logger.info("✅ Order #%s successfully updated to %s", order.id, new_status)
-                order.refresh_from_db()
-                logger.info("🔍 Verified: Order #%s payment_status is now '%s'", order.id, order.payment_status)
-            except Exception as e:
-                logger.error("❌ Failed to update order #%s: %s", order.id, str(e))
-                return JsonResponse({"error": "Failed to update order status"}, status=500)
-
-            is_paid = (new_status == "Paid")
-            is_cancelled = (new_status == "Cancelled")
-
-            # ── Email to Customer ──
-            if order.email:
-                # Format cart items nicely
-                items_text = "\n".join(
-                    f"  • {item.get('name', 'Item')} x{item.get('quantity', 1)} — ₹{float(item.get('price', 0)) * int(item.get('quantity', 1)):.2f}"
-                    for item in order.cart_items
-                )
-
-                if is_paid:
-                    subject = f"✅ Order Confirmed! Hasa Organic Seeds Order #{order.id}"
-                    message = (
-                        f"Dear {order.full_name},\n\n"
-                        f"Thank you for shopping with Hasa Organic Seeds! 🌱\n"
-                        f"Your payment was successful and your order is confirmed.\n\n"
-                        f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                        f"ORDER SUMMARY — #{order.id}\n"
-                        f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                        f"{items_text}\n\n"
-                        f"Postal Charge : ₹{order.postal_charge}\n"
-                        f"Total Amount  : ₹{order.total_amount}\n"
-                        f"Payment ID    : {order.payment_id or 'N/A'}\n\n"
-                        f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                        f"SHIPPING TO\n"
-                        f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                        f"{order.full_name}\n"
-                        f"{order.address}\n"
-                        f"📞 {order.phone}\n\n"
-                        f"We will notify you once your order is shipped.\n\n"
-                        f"Regards,\n"
-                        f"Hasa Organic Seeds\n"
-                        f"📞 7483847243 | hasafarm.com"
-                    )
-                elif is_cancelled:
-                    subject = f"🚫 Payment Cancelled — Hasa Organic Seeds Order #{order.id}"
-                    message = (
-                        f"Dear {order.full_name},\n\n"
-                        f"Your payment for Order #{order.id} was cancelled.\n\n"
-                        f"Total Amount : ₹{order.total_amount}\n\n"
-                        f"If this was a mistake, you can place a new order at:\n"
-                        f"https://hasafarm.com/cart/\n\n"
-                        f"No amount has been deducted. If you see any charge, "
-                        f"it will be refunded within 5-7 business days.\n\n"
-                        f"Need help? Reply to this email or call 7483847243.\n\n"
-                        f"Regards,\n"
-                        f"Hasa Organic Seeds"
-                    )
-                else:
-                    subject = f"❌ Payment Failed — Hasa Organic Seeds Order #{order.id}"
-                    message = (
-                        f"Dear {order.full_name},\n\n"
-                        f"Unfortunately your payment for Order #{order.id} could not be completed.\n\n"
-                        f"Total Amount : ₹{order.total_amount}\n\n"
-                        f"Please try again at:\n"
-                        f"https://hasafarm.com/cart/\n\n"
-                        f"If you were charged, the amount will be refunded within 5-7 business days.\n\n"
-                        f"Need help? Reply to this email or call 7483847243.\n\n"
-                        f"Regards,\n"
-                        f"Hasa Organic Seeds"
-                    )
-
-                try:
-                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [order.email])
-                    logger.info("📧 Customer email sent to %s", order.email)
-                except Exception as e:
-                    logger.error("📧 Failed to send customer email: %s", e)
-
-            # ── Email to Admin ──
-            try:
-                admin_email = getattr(settings, 'ADMIN_NOTIFICATION_EMAIL', settings.DEFAULT_FROM_EMAIL)
-                admin_message = (
-                    f"Order #{order.id} — {order.payment_status}\n\n"
-                    f"Customer : {order.full_name}\n"
-                    f"Email    : {order.email}\n"
-                    f"Phone    : {order.phone}\n"
-                    f"Amount   : ₹{order.total_amount}\n"
-                    f"PhonePe  : {order.phonepe_order_id}\n\n"
-                    f"Address:\n{order.address}"
-                )
-                send_mail(
-                    f"[Hasafarm] Order #{order.id} — {order.payment_status}",
-                    admin_message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [admin_email],
-                    fail_silently=True,
-                )
-                logger.info("📧 Admin email sent")
-            except Exception as e:
-                logger.error("📧 Failed to send admin email: %s", e)
-        else:
-            logger.info("ℹ️ Order #%s already marked as %s — no change", order.id, order.payment_status)
-
-        return JsonResponse({"message": "Webhook handled"}, status=200)
-
     except json.JSONDecodeError:
-        logger.error("❌ Invalid JSON payload in webhook")
+        logger.error("❌ Invalid JSON in webhook body")
         return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    logger.info("📥 Webhook payload:\n%s", json.dumps(payload, indent=2))
+
+    event_type = payload.get("event", "").lower().strip()
+    data = payload.get("payload") or payload.get("data") or {}
+
+    # ── 3. Filter to recognised events ───────────────────────────────────────
+    VALID_EVENTS = {
+        "checkout.order.completed": "Paid",
+        "checkout.order.failed": "Failed",
+        "checkout.order.cancelled": "Cancelled",
+    }
+    if event_type not in VALID_EVENTS:
+        logger.info("🔁 Ignored unknown event: %s", event_type)
+        return JsonResponse({"message": "Ignored event"}, status=200)
+
+    new_status = VALID_EVENTS[event_type]
+
+    # ── 4. Extract merchant order ID ─────────────────────────────────────────
+    merchant_order_id = (
+        data.get("originalMerchantOrderId")
+        or data.get("merchantOrderId")
+        or data.get("merchantTransactionId")
+    )
+    if not merchant_order_id:
+        logger.error("❗ merchantOrderId missing. Payload keys: %s", list(data.keys()))
+        return JsonResponse({"error": "Missing merchantOrderId"}, status=400)
+
+    # ── 5. Extract payment transaction ID from webhook payload ───────────────
+    payment_id = None
+    for p in (data.get("paymentDetails") or []):
+        if p.get("transactionId"):
+            payment_id = p["transactionId"]
+            break
+
+    # ── 6. Look up order ─────────────────────────────────────────────────────
+    try:
+        order = Order.objects.get(phonepe_order_id__iexact=merchant_order_id)
+    except Order.DoesNotExist:
+        logger.warning("❌ No order found for merchantOrderId: %s", merchant_order_id)
+        return JsonResponse({"error": "Order not found"}, status=404)
+
+    logger.info("🔍 Order #%s — current: '%s', incoming: '%s'",
+                order.id, order.payment_status, new_status)
+
+    # ── 7. Idempotency: skip if already in target state ──────────────────────
+    if order.payment_status == new_status:
+        logger.info("ℹ️ Order #%s already '%s' — no change", order.id, new_status)
+        return JsonResponse({"message": "No change needed"}, status=200)
+
+    # ── 8. For a Completed event cross-verify with PhonePe status API ────────
+    if new_status == "Paid":
+        status_info = _check_phonepe_payment_status(merchant_order_id)
+        if not status_info.get("success"):
+            logger.warning(
+                "⚠️ Webhook says Completed but status API returned state=%s for order #%s — skipping Paid update",
+                status_info.get("state"), order.id,
+            )
+            return JsonResponse({"message": "Status mismatch — not updated"}, status=200)
+        # Prefer the transaction ID returned by the status API
+        payment_id = status_info.get("payment_id") or payment_id
+
+    # ── 9. Persist status update ─────────────────────────────────────────────
+    try:
+        order.payment_status = new_status
+        if payment_id:
+            order.payment_id = payment_id
+        order.save(update_fields=["payment_status", "payment_id"])
+        order.refresh_from_db()
+        logger.info("✅ Order #%s updated to '%s' (payment_id=%s)", order.id, order.payment_status, order.payment_id)
     except Exception as e:
-        logger.exception("💥 Unexpected error during webhook processing")
-        return JsonResponse({"error": "Internal server error"}, status=500)
+        logger.error("❌ DB update failed for order #%s: %s", order.id, e)
+        return JsonResponse({"error": "Failed to update order status"}, status=500)
+
+    # ── 10. Send notification emails ─────────────────────────────────────────
+    is_paid = (new_status == "Paid")
+    is_cancelled = (new_status == "Cancelled")
+
+    if order.email:
+        items_text = "\n".join(
+            f"  • {item.get('name', 'Item')} x{item.get('quantity', 1)} "
+            f"— ₹{float(item.get('price', 0)) * int(item.get('quantity', 1)):.2f}"
+            for item in order.cart_items
+        )
+        if is_paid:
+            subject = f"✅ Order Confirmed! Hasa Organic Seeds Order #{order.id}"
+            message = (
+                f"Dear {order.full_name},\n\n"
+                f"Thank you for shopping with Hasa Organic Seeds! 🌱\n"
+                f"Your payment was successful and your order is confirmed.\n\n"
+                f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"ORDER SUMMARY — #{order.id}\n"
+                f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"{items_text}\n\n"
+                f"Postal Charge : ₹{order.postal_charge}\n"
+                f"Total Amount  : ₹{order.total_amount}\n"
+                f"Payment ID    : {order.payment_id or 'N/A'}\n\n"
+                f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"SHIPPING TO\n"
+                f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"{order.full_name}\n"
+                f"{order.address}\n"
+                f"📞 {order.phone}\n\n"
+                f"We will notify you once your order is shipped.\n\n"
+                f"Regards,\nHasa Organic Seeds\n📞 7483847243 | hasafarm.com"
+            )
+        elif is_cancelled:
+            subject = f"🚫 Payment Cancelled — Hasa Organic Seeds Order #{order.id}"
+            message = (
+                f"Dear {order.full_name},\n\n"
+                f"Your payment for Order #{order.id} was cancelled.\n\n"
+                f"Total Amount : ₹{order.total_amount}\n\n"
+                f"If this was a mistake, you can place a new order at:\n"
+                f"https://hasafarm.com/cart/\n\n"
+                f"No amount has been deducted. If you see any charge, "
+                f"it will be refunded within 5-7 business days.\n\n"
+                f"Need help? Reply to this email or call 7483847243.\n\n"
+                f"Regards,\nHasa Organic Seeds"
+            )
+        else:
+            subject = f"❌ Payment Failed — Hasa Organic Seeds Order #{order.id}"
+            message = (
+                f"Dear {order.full_name},\n\n"
+                f"Unfortunately your payment for Order #{order.id} could not be completed.\n\n"
+                f"Total Amount : ₹{order.total_amount}\n\n"
+                f"Please try again at:\nhttps://hasafarm.com/cart/\n\n"
+                f"If you were charged, the amount will be refunded within 5-7 business days.\n\n"
+                f"Need help? Reply to this email or call 7483847243.\n\n"
+                f"Regards,\nHasa Organic Seeds"
+            )
+        try:
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [order.email])
+            logger.info("📧 Customer email sent to %s", order.email)
+        except Exception as e:
+            logger.error("📧 Failed to send customer email: %s", e)
+
+    try:
+        admin_email = getattr(settings, 'ADMIN_NOTIFICATION_EMAIL', settings.DEFAULT_FROM_EMAIL)
+        send_mail(
+            f"[Hasafarm] Order #{order.id} — {order.payment_status}",
+            (
+                f"Order #{order.id} — {order.payment_status}\n\n"
+                f"Customer : {order.full_name}\n"
+                f"Email    : {order.email}\n"
+                f"Phone    : {order.phone}\n"
+                f"Amount   : ₹{order.total_amount}\n"
+                f"PhonePe  : {order.phonepe_order_id}\n\n"
+                f"Address:\n{order.address}"
+            ),
+            settings.DEFAULT_FROM_EMAIL,
+            [admin_email],
+            fail_silently=True,
+        )
+        logger.info("📧 Admin email sent for order #%s", order.id)
+    except Exception as e:
+        logger.error("📧 Failed to send admin email: %s", e)
+
+    return JsonResponse({"message": "Webhook handled"}, status=200)
 
 def retry_payment(request, phonepe_order_id):
     order = get_object_or_404(Order, phonepe_order_id__iexact=phonepe_order_id)
