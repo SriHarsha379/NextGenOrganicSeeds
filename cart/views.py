@@ -453,7 +453,7 @@ def phonepe_webhook(request):
         data = payload.get("payload") or payload.get("data") or {}
 
         # ✅ Accept only valid events
-        if event_type not in ["checkout.order.completed", "checkout.order.failed"]:
+        if event_type not in ["checkout.order.completed", "checkout.order.failed", "checkout.order.cancelled"]:
             logger.info("🔁 Ignored event: %s", event_type)
             return JsonResponse({"message": "Ignored event"}, status=200)
 
@@ -474,6 +474,8 @@ def phonepe_webhook(request):
             new_status = "Paid"
         elif event_type == "checkout.order.failed":
             new_status = "Failed"
+        elif event_type == "checkout.order.cancelled":
+            new_status = "Cancelled"
         else:
             return JsonResponse({"message": "Ignored"}, status=200)
 
@@ -506,7 +508,8 @@ def phonepe_webhook(request):
                 logger.error("❌ Failed to update order #%s: %s", order.id, str(e))
                 return JsonResponse({"error": "Failed to update order status"}, status=500)
 
-            is_paid = (new_status == "Paid")  # 👈 FIX: was using undefined 'success' variable
+            is_paid = (new_status == "Paid")
+            is_cancelled = (new_status == "Cancelled")
 
             # ── Email to Customer ──
             if order.email:
@@ -539,6 +542,20 @@ def phonepe_webhook(request):
                         f"Regards,\n"
                         f"Hasa Organic Seeds\n"
                         f"📞 7483847243 | hasafarm.com"
+                    )
+                elif is_cancelled:
+                    subject = f"🚫 Payment Cancelled — Hasa Organic Seeds Order #{order.id}"
+                    message = (
+                        f"Dear {order.full_name},\n\n"
+                        f"Your payment for Order #{order.id} was cancelled.\n\n"
+                        f"Total Amount : ₹{order.total_amount}\n\n"
+                        f"If this was a mistake, you can place a new order at:\n"
+                        f"https://hasafarm.com/cart/\n\n"
+                        f"No amount has been deducted. If you see any charge, "
+                        f"it will be refunded within 5-7 business days.\n\n"
+                        f"Need help? Reply to this email or call 7483847243.\n\n"
+                        f"Regards,\n"
+                        f"Hasa Organic Seeds"
                     )
                 else:
                     subject = f"❌ Payment Failed — Hasa Organic Seeds Order #{order.id}"
