@@ -7,14 +7,12 @@ from decouple import config
 from django.conf import settings
 from django.views.decorators.http import require_POST
 import hashlib
-import hmac
 from decimal import Decimal
-import requests
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
-import json, hmac, hashlib, base64, traceback
+import json, hashlib, base64, traceback
 
 from phonepe.sdk.pg.payments.v2.models.request.standard_checkout_pay_request import StandardCheckoutPayRequest
 
@@ -426,48 +424,33 @@ def order_success(request, phonepe_order_id):
             except Exception as e:
                 logger.error("📧 Failed to send admin email for order #%s: %s", order.id, e)
 
-    return render(request, "cart/order_success.html", {"order": order})
+    return render(request, "cart/order_success.html", {
+        "order": order,
+        "pending": order.payment_status != "Paid",
+    })
 
 def get_phonepe_payment_status(order_id):
     try:
-        merchant_id = settings.PHONEPE_CLIENT_ID
-        client_secret = settings.PHONEPE_CLIENT_SECRET
-        env = settings.PHONEPE_ENV
+        status_response = client.get_order_status(order_id)
+        state = getattr(status_response, 'state', None)
+        success = (state == "COMPLETED")
 
-        base_url = (
-            "https://api.phonepe.com" if env == "PRODUCTION"
-            else "https://api-preprod.phonepe.com"
-        )
-        url_path = f"/pg/v1/status/{order_id}"
-        full_url = base_url + url_path
-
-        string_to_sign = url_path.encode()
-        hmac_hash = hmac.new(
-            client_secret.encode(),
-            string_to_sign,
-            hashlib.sha256
-        ).hexdigest()
-
-        headers = {
-            "Content-Type": "application/json",
-            "X-VERIFY": hmac_hash,
-            "X-MERCHANT-ID": merchant_id,
-        }
-
-        response = requests.get(full_url, headers=headers, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-
-        code = data.get("code")
-        success = code == "PAYMENT_SUCCESS"
+        payment_id = None
+        payment_details = getattr(status_response, 'payment_details', None) or []
+        for pd in payment_details:
+            txn_id = getattr(pd, 'transaction_id', None)
+            if txn_id:
+                payment_id = txn_id
+                break
 
         return {
             "success": success,
-            "payment_id": data.get("data", {}).get("transactionId"),
-            "raw": data,
+            "payment_id": payment_id,
+            "raw": status_response,
         }
 
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
+        logger.error("PhonePe status check error for order %s: %s", order_id, e)
         return {"success": False, "error": str(e), "raw": {}}
 
 logger = logging.getLogger(__name__)
