@@ -192,14 +192,14 @@ SESSION_SAVE_EVERY_REQUEST = True  # Extend session on activity
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.hostinger.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True           # ✅ use TLS
-EMAIL_USE_SSL = False          # ✅ disable SSL
-EMAIL_HOST_USER = 'contact@hasafarm.com'
-EMAIL_HOST_PASSWORD = '8Hasa@seeds'
-DEFAULT_FROM_EMAIL = 'Hasa Farm <contact@hasafarm.com>'
-ADMIN_NOTIFICATION_EMAIL = 'contact@hasafarm.com'  # Receive order notifications here
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.hostinger.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='contact@hasafarm.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Hasa Farm <contact@hasafarm.com>')
+ADMIN_NOTIFICATION_EMAIL = config('ADMIN_NOTIFICATION_EMAIL', default='contact@hasafarm.com')
 
 
 CSRF_TRUSTED_ORIGINS = [
