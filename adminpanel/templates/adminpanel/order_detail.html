@@ -10,11 +10,34 @@
             font-size: 12px;
             margin: 0;
             padding: 6px;
-            width: 80mm; /* change to 58mm if needed */
+            width: 80mm; /* thermal-receipt width for screen preview */
         }
 
         @media print {
+            /* A4 portrait, 15mm margins — usable area ~180mm × 267mm */
+            @page {
+                size: A4 portrait;
+                margin: 15mm;
+            }
+
+            /* Remove the 80mm thermal constraint; centre the receipt on A4 */
+            body {
+                width: 100%;
+                max-width: 160mm;  /* comfortable reading width on A4 */
+                margin: 0 auto;
+                padding: 0;
+                font-size: 14px;   /* slightly larger for A4 legibility */
+            }
+
             .no-print { display: none; }
+
+            /* Give the recipient address more visual weight on A4 */
+            .address { font-size: 15px; line-height: 1.6; }
+            .section-title { font-size: 13px; margin-top: 4mm; }
+            .divider { margin: 5mm 0; }
+
+            /* Totals table */
+            table { font-size: 13px; }
         }
 
         .center {

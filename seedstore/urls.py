@@ -28,7 +28,7 @@ urlpatterns = [
     path('parse-order-data/', parse_raw_order_data, name='parse_order_data'),
     path('order/success/<str:phonepe_order_id>/', order_success, name='order_success'),
     path('phonepe/webhook/', phonepe_webhook, name='phonepe_webhook'),
-    path('payment/response/', phonepe_webhook, name='phonepe_webhook'),
+    path('payment/response/', phonepe_webhook, name='phonepe_payment_response'),
 ]
 
 # 👇 ADD THIS BLOCK AT THE VERY BOTTOM

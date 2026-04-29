@@ -3,6 +3,7 @@
 # ======================
 .env
 *.env
+seedstore/.env
 seedstore/settings.py.save
 hasaorganicseeds
 

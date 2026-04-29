@@ -1,13 +1,14 @@
 # adminpanel/views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from django.shortcuts import redirect
-import csv
-from django.http import HttpResponse
-from orders.models import Order
-from products.models import Seed, Category
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.paginator import Paginator
+from django.db.models import Q, Sum
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+import csv
+
+from orders.models import Order
+from products.models import Category, Seed
 
 
 
@@ -100,8 +101,6 @@ def admin_logout(request):
     logout(request)
     return redirect('accounts:login')  # replace with your login page URL name
 
-from django.db.models import Q
-
 @admin_required
 def seed_inventory(request):
     seeds = Seed.objects.all().order_by('-id')
@@ -139,18 +138,48 @@ def seed_inventory(request):
     }
     return render(request, 'adminpanel/seed_inventory.html', context)
 
+
 @admin_required
 def order_list(request):
     orders = Order.objects.all().order_by('-created_at')
 
-    # Optional filters
-    status = request.GET.get('status')
+    # --- Filters ---
+    status = request.GET.get('status', '')
+    search = request.GET.get('q', '').strip()
+
     if status:
         orders = orders.filter(payment_status=status)
 
+    if search:
+        orders = orders.filter(
+            Q(full_name__icontains=search)
+            | Q(phone__icontains=search)
+            | Q(id__icontains=search)
+            | Q(phonepe_order_id__icontains=search)
+        )
+
+    # --- Summary stats (always over all orders, ignoring current filters) ---
+    all_orders = Order.objects.all()
+    stats = {
+        'total':     all_orders.count(),
+        'paid':      all_orders.filter(payment_status='Paid').count(),
+        'pending':   all_orders.filter(payment_status='Pending').count(),
+        'failed':    all_orders.filter(payment_status__in=['Failed', 'Cancelled']).count(),
+        'revenue':   all_orders.filter(payment_status='Paid').aggregate(s=Sum('total_amount'))['s'] or 0,
+    }
+
+    # --- Pagination ---
+    paginator = Paginator(orders, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'adminpanel/order_list.html', {
-        'orders': orders,
+        'page_obj': page_obj,
+        'orders': page_obj,
         'status': status,
+        'search': search,
+        'stats': stats,
+        'status_choices': Order.PAYMENT_STATUS_CHOICES,
     })
 
 @admin_required
@@ -160,6 +189,7 @@ def order_detail(request, order_id):
         'order': order
     })
 
+@admin_required
 def print_labels(request):
     # Only show Paid + not yet printed
     orders = Order.objects.filter(
