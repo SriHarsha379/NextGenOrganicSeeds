@@ -1,44 +1,220 @@
-<h2>Orders</h2>
-<!-- Export All Orders -->
-<a href="{% url 'adminpanel:export_orders' %}">
-    Export All CSV
-</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders — HasaFarm Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
 
-<!-- Export Filtered (keeps your current status filter) -->
-<a href="{% url 'adminpanel:export_orders' %}?status={{ status }}">
-    Export Filtered CSV
-</a>
+<!-- Navbar -->
+<nav class="bg-green-700 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-6">
+            <span class="text-xl font-bold tracking-tight">HasaFarm Admin</span>
+            <div class="hidden md:flex items-center gap-1 text-sm font-medium">
+                <a href="{% url 'adminpanel:dashboard' %}"
+                   class="px-3 py-1.5 rounded hover:bg-green-600 transition">Dashboard</a>
+                <a href="{% url 'adminpanel:seed_list' %}"
+                   class="px-3 py-1.5 rounded hover:bg-green-600 transition">Seeds</a>
+                <a href="{% url 'adminpanel:seed_inventory' %}"
+                   class="px-3 py-1.5 rounded hover:bg-green-600 transition">Inventory</a>
+                <a href="{% url 'adminpanel:order_list' %}"
+                   class="px-3 py-1.5 rounded bg-green-900 font-semibold">Orders</a>
+                <a href="{% url 'adminpanel:print_labels' %}"
+                   class="px-3 py-1.5 rounded hover:bg-green-600 transition">Print Labels</a>
+            </div>
+        </div>
+        <a href="{% url 'adminpanel:logout' %}"
+           class="bg-red-500 hover:bg-red-600 px-4 py-1.5 rounded text-sm font-medium transition">
+            Logout
+        </a>
+    </div>
+</nav>
 
-<!-- ADD THIS 👇 -->
-<a href="{% url 'adminpanel:export_orders' %}"
-   style="padding:8px 15px;background:#2e7d32;color:#fff;text-decoration:none;margin-left:10px;">
-📥 Download Orders CSV
-</a>
+<main class="max-w-7xl mx-auto px-4 py-6">
 
-<br><br>
+    <!-- Page Heading -->
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Orders</h1>
+        <a href="{% url 'adminpanel:export_orders' %}{% if status %}?status={{ status }}{% endif %}{% if search %}&q={{ search }}{% endif %}"
+           class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow text-sm font-medium transition">
+            📥 Export CSV
+        </a>
+    </div>
 
-<table border="1" width="100%" cellpadding="6">
-<tr>
-    <th>ID</th>
-    <th>Name</th>
-    <th>Phone</th>
-    <th>Total</th>
-    <th>Status</th>
-    <th>Date</th>
-    <th>Action</th>
-</tr>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded shadow p-4 hover:shadow-md transition">
+            <p class="text-xs text-gray-500 uppercase font-semibold tracking-wide">Total Orders</p>
+            <p class="text-3xl font-bold text-gray-800 mt-1">{{ stats.total }}</p>
+        </div>
+        <div class="bg-white rounded shadow p-4 hover:shadow-md transition">
+            <p class="text-xs text-gray-500 uppercase font-semibold tracking-wide">Paid</p>
+            <p class="text-3xl font-bold text-green-600 mt-1">{{ stats.paid }}</p>
+            <p class="text-xs text-gray-400 mt-0.5">₹{{ stats.revenue|floatformat:0 }} revenue</p>
+        </div>
+        <div class="bg-white rounded shadow p-4 hover:shadow-md transition">
+            <p class="text-xs text-gray-500 uppercase font-semibold tracking-wide">Pending</p>
+            <p class="text-3xl font-bold text-yellow-500 mt-1">{{ stats.pending }}</p>
+        </div>
+        <div class="bg-white rounded shadow p-4 hover:shadow-md transition">
+            <p class="text-xs text-gray-500 uppercase font-semibold tracking-wide">Failed / Cancelled</p>
+            <p class="text-3xl font-bold text-red-500 mt-1">{{ stats.failed }}</p>
+        </div>
+    </div>
 
-{% for order in orders %}
-<tr>
-    <td>{{ order.id }}</td>
-    <td>{{ order.full_name }}</td>
-    <td>{{ order.phone }}</td>
-    <td>₹{{ order.total_amount }}</td>
-    <td>{{ order.payment_status }}</td>
-    <td>{{ order.created_at|date:"d M Y H:i" }}</td>
-    <td>
-        <a href="{% url 'adminpanel:order_detail' order.id %}">View / Print</a>
-    </td>
-</tr>
-{% endfor %}
-</table>
+    <!-- Filters -->
+    <form method="get" class="bg-white rounded shadow p-4 mb-6 flex flex-wrap gap-3 items-end">
+        <div class="flex-1 min-w-[180px]">
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Search</label>
+            <input type="text" name="q" value="{{ search }}"
+                   placeholder="Name, phone, or order ID…"
+                   class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Status</label>
+            <select name="status"
+                    class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+                <option value="">All Statuses</option>
+                {% for choice_value, choice_label in status_choices %}
+                <option value="{{ choice_value }}" {% if status == choice_value %}selected{% endif %}>
+                    {{ choice_label }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="flex gap-2">
+            <button type="submit"
+                    class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded text-sm font-medium transition shadow">
+                Filter
+            </button>
+            {% if search or status %}
+            <a href="{% url 'adminpanel:order_list' %}"
+               class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded text-sm font-medium transition">
+                Clear
+            </a>
+            {% endif %}
+        </div>
+    </form>
+
+    <!-- Results count -->
+    <p class="text-sm text-gray-500 mb-3">
+        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} order{{ page_obj.paginator.count|pluralize }}
+        {% if search %} matching "<strong>{{ search }}</strong>"{% endif %}
+        {% if status %} with status <strong>{{ status }}</strong>{% endif %}
+    </p>
+
+    <!-- Orders Table -->
+    <div class="bg-white shadow rounded overflow-x-auto">
+        <table class="min-w-full table-auto border-collapse text-sm">
+            <thead class="bg-gray-100 text-gray-600 uppercase text-xs tracking-wide">
+                <tr>
+                    <th class="px-4 py-3 text-left">Order ID</th>
+                    <th class="px-4 py-3 text-left">Customer</th>
+                    <th class="px-4 py-3 text-left">Phone</th>
+                    <th class="px-4 py-3 text-left">Items</th>
+                    <th class="px-4 py-3 text-right">Total</th>
+                    <th class="px-4 py-3 text-center">Status</th>
+                    <th class="px-4 py-3 text-left">Date</th>
+                    <th class="px-4 py-3 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for order in page_obj %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-3 font-mono text-gray-700">
+                        #{{ order.id }}
+                        {% if order.phonepe_order_id %}
+                        <span class="block text-xs text-gray-400">{{ order.phonepe_order_id }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="font-medium text-gray-800">{{ order.full_name }}</span>
+                        <span class="block text-xs text-gray-400">{{ order.email }}</span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-700">{{ order.phone }}</td>
+                    <td class="px-4 py-3 text-gray-600">
+                        {% for item in order.cart_items %}
+                        <span class="inline-block text-xs bg-gray-100 rounded px-1.5 py-0.5 mr-1 mb-0.5">
+                            {{ item.name }} ×{{ item.quantity }}
+                        </span>
+                        {% endfor %}
+                    </td>
+                    <td class="px-4 py-3 text-right font-semibold text-gray-800">₹{{ order.total_amount }}</td>
+                    <td class="px-4 py-3 text-center">
+                        {% if order.payment_status == 'Paid' %}
+                        <span class="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">Paid</span>
+                        {% elif order.payment_status == 'Pending' %}
+                        <span class="inline-block bg-yellow-100 text-yellow-700 text-xs font-semibold px-2.5 py-1 rounded-full">Pending</span>
+                        {% elif order.payment_status == 'Failed' %}
+                        <span class="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">Failed</span>
+                        {% elif order.payment_status == 'Cancelled' %}
+                        <span class="inline-block bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-full">Cancelled</span>
+                        {% elif order.payment_status == 'Refunded' %}
+                        <span class="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-2.5 py-1 rounded-full">Refunded</span>
+                        {% else %}
+                        <span class="inline-block bg-gray-100 text-gray-500 text-xs font-semibold px-2.5 py-1 rounded-full">{{ order.payment_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
+                        {{ order.created_at|date:"d M Y" }}<br>
+                        {{ order.created_at|date:"H:i" }}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <a href="{% url 'adminpanel:order_detail' order.id %}"
+                           class="inline-block bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded shadow transition">
+                            View / Print
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center px-6 py-12 text-gray-400">
+                        <p class="text-4xl mb-2">📦</p>
+                        <p class="font-medium">No orders found.</p>
+                        {% if search or status %}
+                        <a href="{% url 'adminpanel:order_list' %}" class="text-green-600 hover:underline text-sm mt-1 inline-block">
+                            Clear filters
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="flex items-center justify-between mt-5">
+        <p class="text-sm text-gray-500">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </p>
+        <div class="flex items-center gap-1">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if status %}&status={{ status }}{% endif %}{% if search %}&q={{ search }}{% endif %}"
+               class="px-3 py-1.5 bg-white border rounded text-sm hover:bg-gray-50 transition">← Prev</a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="px-3 py-1.5 bg-green-600 text-white rounded text-sm font-semibold">{{ num }}</span>
+                {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                <a href="?page={{ num }}{% if status %}&status={{ status }}{% endif %}{% if search %}&q={{ search }}{% endif %}"
+                   class="px-3 py-1.5 bg-white border rounded text-sm hover:bg-gray-50 transition">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if status %}&status={{ status }}{% endif %}{% if search %}&q={{ search }}{% endif %}"
+               class="px-3 py-1.5 bg-white border rounded text-sm hover:bg-gray-50 transition">Next →</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</main>
+</body>
+</html>
