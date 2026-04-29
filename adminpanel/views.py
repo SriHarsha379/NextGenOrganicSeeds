@@ -138,8 +138,6 @@ def seed_inventory(request):
     }
     return render(request, 'adminpanel/seed_inventory.html', context)
 
-from django.core.paginator import Paginator
-from django.db.models import Count, Q, Sum
 
 @admin_required
 def order_list(request):

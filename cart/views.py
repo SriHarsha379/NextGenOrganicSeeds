@@ -233,7 +233,7 @@ def process_order(request):
             base_amount = Decimal(str(data["total_amount"]))
             if base_amount <= 0:
                 raise ValueError("Invalid total_amount")
-        except Exception:
+        except (ValueError, TypeError, KeyError):
             return JsonResponse({"error": "Invalid amount format"}, status=400)
 
         final_amount = base_amount + postal_charge
@@ -457,11 +457,7 @@ def phonepe_webhook(request):
     verify legitimacy by calling the PhonePe status API for completed events
     before making any DB changes.
     """
-    # ── 0. Health-check for GET (allows testing the URL in a browser) ─────────
-    if request.method == "GET":
-        return JsonResponse({"status": "ok", "message": "PhonePe webhook endpoint is active"})
-
-    if request.method != "POST":
+    if request.method not in ("POST",):
         return JsonResponse({"error": "Method not allowed"}, status=405)
 
     # ── 1. Parse payload ─────────────────────────────────────────────────────
