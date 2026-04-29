@@ -535,7 +535,8 @@ def phonepe_webhook(request):
     if isinstance(data, str):
         try:
             data = json.loads(data)
-        except (json.JSONDecodeError, TypeError):
+        except (json.JSONDecodeError, TypeError) as exc:
+            logger.warning("⚠️ Failed to parse nested payload string: %s", exc)
             data = {}
 
     # ── 2. Filter to recognised events ───────────────────────────────────────
@@ -589,6 +590,9 @@ def phonepe_webhook(request):
     except Order.DoesNotExist:
         logger.warning("❌ No order found for merchantOrderId: %s", merchant_order_id)
         return JsonResponse({"error": "Order not found"}, status=404)
+    except Order.MultipleObjectsReturned:
+        logger.error("❌ Multiple orders found for merchantOrderId: %s — data integrity issue", merchant_order_id)
+        return JsonResponse({"error": "Ambiguous order"}, status=500)
     except Exception as e:
         logger.error("❌ DB error looking up order %s: %s", merchant_order_id, e)
         return JsonResponse({"error": "DB error"}, status=500)
@@ -638,7 +642,8 @@ def _send_order_status_emails(order, new_status):
                 f"— ₹{float(item.get('price', 0)) * int(item.get('quantity', 1)):.2f}"
                 for item in (order.cart_items or [])
             )
-        except Exception:
+        except Exception as exc:
+            logger.warning("⚠️ Could not format cart items for order #%s: %s", order.id, exc)
             items_text = "(item details unavailable)"
 
         if is_paid:
