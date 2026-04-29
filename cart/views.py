@@ -233,7 +233,7 @@ def process_order(request):
             base_amount = Decimal(str(data["total_amount"]))
             if base_amount <= 0:
                 raise ValueError("Invalid total_amount")
-        except (ValueError, Exception):
+        except Exception:
             return JsonResponse({"error": "Invalid amount format"}, status=400)
 
         final_amount = base_amount + postal_charge
@@ -259,9 +259,9 @@ def process_order(request):
                 session_key=request.session.session_key,
             )
 
-            # Assign unique PhonePe order ID in one save
+            # Assign unique PhonePe order ID and save (session_key already set during create)
             order.phonepe_order_id = f"HF{order.id}"
-            order.save(update_fields=["phonepe_order_id", "session_key"])
+            order.save(update_fields=["phonepe_order_id"])
 
             # Step 5: Reserve stock
             for item in data["cart_items"]:
@@ -480,7 +480,7 @@ def phonepe_webhook(request):
     if isinstance(data, str):
         try:
             data = json.loads(data)
-        except (json.JSONDecodeError, TypeError) as exc:
+        except json.JSONDecodeError as exc:
             logger.warning("⚠️ Failed to parse nested payload string: %s", exc)
             data = {}
 

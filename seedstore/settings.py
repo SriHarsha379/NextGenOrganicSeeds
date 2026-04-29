@@ -25,6 +25,9 @@ PHONEPE_CLIENT_SECRET = config("PHONEPE_CLIENT_SECRET")
 PHONEPE_CLIENT_VERSION = config("PHONEPE_CLIENT_VERSION", default="1")
 PHONEPE_ENV = config("PHONEPE_ENV", default="PRODUCTION")
 
+# Deprecated: these credentials were part of a custom webhook auth scheme that
+# PhonePe does not use. Kept as empty defaults so existing deployments with
+# these vars set in .env do not break on startup.
 PHONEPE_WEBHOOK_USER = config("PHONEPE_WEBHOOK_USER", default="")
 PHONEPE_WEBHOOK_PASSWORD = config("PHONEPE_WEBHOOK_PASSWORD", default="")
 
