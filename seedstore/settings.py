@@ -10,23 +10,16 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-from decouple import config
-from decouple import Csv, Config, RepositoryEnv
-
-# This is optional, but you can make sure the path is correct:
-
-
+import os
 from pathlib import Path
-#from decouple import config
-LOGIN_URL = '/accounts/login/'  # or use reverse_lazy('login')
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+from decouple import config
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-LOGIN_URL = '/admin/login/'  # Redirects to admin login if user is not logged in
-import os
-from decouple import config
+LOGIN_URL = '/admin/login/'
 
+# ─────────────────────────── PhonePe ────────────────────────────────────────
 PHONEPE_CLIENT_ID = config("PHONEPE_CLIENT_ID")
 PHONEPE_CLIENT_SECRET = config("PHONEPE_CLIENT_SECRET")
 PHONEPE_CLIENT_VERSION = config("PHONEPE_CLIENT_VERSION", default="1")
@@ -35,17 +28,14 @@ PHONEPE_ENV = config("PHONEPE_ENV", default="PRODUCTION")
 PHONEPE_WEBHOOK_USER = config("PHONEPE_WEBHOOK_USER", default="")
 PHONEPE_WEBHOOK_PASSWORD = config("PHONEPE_WEBHOOK_PASSWORD", default="")
 
-
+# ─────────────────────────── Media ──────────────────────────────────────────
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-config = Config(RepositoryEnv(BASE_DIR / '.env'))  # for custom path
+# ─────────────────────────── Security ───────────────────────────────────────
+SECRET_KEY = config('SECRET_KEY')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+vofv8mk!los^y4r=^^bt86$nk3e(^a$*i4k-_q7ybwpzwg5%c'
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = [
     "hasafarm.com",
@@ -54,17 +44,21 @@ ALLOWED_HOSTS = [
     "www.hasaorganicseeds.com",
     "147.93.28.237",
     "127.0.0.1",
-    "localhost"
+    "localhost",
 ]
-
-# ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# HTTPS/cookie security — active in production (DEBUG=False)
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
 APPEND_SLASH = False
 
 # Application definition
@@ -177,19 +171,11 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Session expires after 1 hour (3600 seconds)
-SESSION_COOKIE_AGE =86400
-
-# Allow session persistence for the given duration
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-
-# Use secure session storage
-SESSION_ENGINE = "django.contrib.sessions.backends.db"  # Store sessions in DB
+# Session settings
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_AGE = 1209600  # 2 weeks (in seconds)
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keep sessions even after closing browser
-SESSION_SAVE_EVERY_REQUEST = True  # Extend session on activity
-
-
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.hostinger.com')
@@ -204,9 +190,44 @@ ADMIN_NOTIFICATION_EMAIL = config('ADMIN_NOTIFICATION_EMAIL', default='contact@h
 
 CSRF_TRUSTED_ORIGINS = [
     "https://hasafarm.com",
-    "http://hasafarm.com",
     "https://www.hasafarm.com",
-    "http://www.hasafarm.com",
     "https://147.93.28.237",
-    "http://147.93.28.237",
 ]
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{asctime} {levelname} {name} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+    "loggers": {
+        "cart": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "orders": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+}
