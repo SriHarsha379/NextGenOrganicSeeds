@@ -32,8 +32,8 @@ PHONEPE_CLIENT_SECRET = config("PHONEPE_CLIENT_SECRET")
 PHONEPE_CLIENT_VERSION = config("PHONEPE_CLIENT_VERSION", default="1")
 PHONEPE_ENV = config("PHONEPE_ENV", default="PRODUCTION")
 
-PHONEPE_WEBHOOK_USER = config("PHONEPE_WEBHOOK_USER", default="olivia19")
-PHONEPE_WEBHOOK_PASSWORD = config("PHONEPE_WEBHOOK_PASSWORD", default="olivia123")
+PHONEPE_WEBHOOK_USER = config("PHONEPE_WEBHOOK_USER", default="")
+PHONEPE_WEBHOOK_PASSWORD = config("PHONEPE_WEBHOOK_PASSWORD", default="")
 
 
 MEDIA_URL = '/media/'
@@ -64,7 +64,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 APPEND_SLASH = False
 
 # Application definition
