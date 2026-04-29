@@ -121,13 +121,58 @@
     font-weight: 600;
   }
 
-  .label:nth-child(8n) { page-break-after: always; }
-
+  /* ── Print styles ──────────────────────────────────────────────────── */
   @media print {
-    body { background: #fff; padding: 5mm; }
+    /* Tell the browser this is an A4 portrait page with 10mm margins.
+       Usable area: 190mm wide × 277mm tall.
+       Layout: 2 columns × 4 rows = 8 labels per page.
+       Each label: ~93mm wide × ~67mm tall (accounts for 4mm gaps). */
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+
+    body {
+      background: #fff;
+      padding: 0;
+      font-size: 10px;
+    }
+
     .controls { display: none; }
-    .label { border: 1px dashed #000; }
-    .order-badge { background: #000; -webkit-print-color-adjust: exact; }
+
+    .label-sheet {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4mm;
+      width: 190mm;   /* A4 width minus 2×10mm margins */
+    }
+
+    .label {
+      /* (277mm tall - 3 row gaps of 4mm each) / 4 rows = ~67mm per label */
+      height: 67mm;
+      min-height: unset;
+      border: 1px dashed #000;
+      padding: 3mm 4mm;
+      box-sizing: border-box;
+      overflow: hidden;
+
+      /* Both old and new page-break properties for maximum browser compat */
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    /* Force a new page after every 8th label (2 cols × 4 rows) */
+    .label:nth-child(8n) {
+      break-after: page;
+      page-break-after: always;
+    }
+
+    .order-badge {
+      background: #000 !important;
+      color: #fff !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
   }
 </style>
 </head>
