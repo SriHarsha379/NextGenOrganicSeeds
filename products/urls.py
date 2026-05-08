@@ -6,7 +6,7 @@ from .views import seed_list, wishlist, search_seeds, privacy_policy, terms_cond
 
 urlpatterns = [
     # path('', homepage, name='homepage'),  # ✅ Make homepage default
-    path('', seed_list, name='seed_list'),  # Keep All Seeds page
+    path('', seed_list, name='seed_list'),
     path('wishlist/', wishlist, name='wishlist'),
     path('native-vegetable-seeds/', views.native_vegetable_seeds, name='native_vegetable_seeds'),
     path('leafy-vegetable-seeds/', views.leafy_vegetable_seeds, name='leafy_vegetable_seeds'),
