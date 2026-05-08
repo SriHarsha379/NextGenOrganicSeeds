@@ -542,7 +542,7 @@
           <a href="{% url 'summer_flower_seeds' %}" role="menuitem">Summer Flower Seeds</a>
         </div>
       </div>
-      <a href="{% url 'seed_list' %}#categories">Foods</a>
+      <a href="{% url 'seed_list' %}#foods-category">Foods</a>
 
       <a href="{% url 'view_cart' %}" id="cart-link" class="cart-btn" aria-label="View cart">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -567,7 +567,7 @@
     <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
     <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
     <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
-    <a href="{% url 'seed_list' %}#categories">Foods</a>
+    <a href="{% url 'seed_list' %}#foods-category">Foods</a>
     <a href="{% url 'view_cart' %}">🛒 Cart</a>
   </div>
 
@@ -602,6 +602,7 @@
         <a href="{% url 'winter_flower_seeds' %}" class="chip">❄️ Winter Flowers</a>
         <a href="{% url 'all_seasonal_flower_seeds' %}" class="chip">🌸 All Season Flowers</a>
         <a href="{% url 'summer_flower_seeds' %}" class="chip">☀️ Summer Flowers</a>
+        <a href="#foods-category" class="chip">🍘 Foods</a>
       </div>
     </div>
   </div>
@@ -609,6 +610,29 @@
   <!-- ─── SEED CATEGORIES ─── -->
   <main id="main-content">
     <div style="max-width:1280px; margin:0 auto;">
+      <section class="section" id="foods-category" aria-labelledby="foods-title">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title" id="foods-title">Foods</h2>
+            <p class="section-sub">Traditional ready-to-cook essentials</p>
+          </div>
+        </div>
+        <div class="seed-list" role="list" aria-label="Foods products">
+          <article class="seed-card" role="listitem" itemscope itemtype="https://schema.org/Product">
+            <div class="seed-card-img-wrap" style="display:flex; align-items:center; justify-content:center; font-size:56px;">
+              🍘
+              <span class="seed-badge">Foods</span>
+            </div>
+            <div class="seed-card-body">
+              <h3 itemprop="name">Papads</h3>
+              <p class="seed-price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                <span itemprop="priceCurrency" content="INR">₹</span><span itemprop="price" content="250">250</span>
+              </p>
+              <p class="seed-desc">10 packets</p>
+            </div>
+          </article>
+        </div>
+      </section>
       {% for category in category_data %}
         <section class="section" aria-labelledby="cat-{{ forloop.counter }}">
           <div class="section-head">
