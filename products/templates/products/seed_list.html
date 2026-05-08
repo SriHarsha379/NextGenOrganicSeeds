@@ -623,7 +623,7 @@
                 src="https://upload.wikimedia.org/wikipedia/commons/7/75/Stack_of_papadums.jpg"
                 alt="Papads (papadum) stack"
                 loading="lazy"
-                onerror="this.onerror=null;this.src='{% static 'images/hasa_organic_seeds.png' %}';">
+                data-fallback-src="{% static 'images/hasa_organic_seeds.png' %}">
               <span class="seed-badge">Foods</span>
             </div>
             <div class="seed-card-body">
@@ -821,6 +821,15 @@
     hamburger.addEventListener('click', () => {
       const open = mobileMenu.classList.toggle('open');
       hamburger.setAttribute('aria-expanded', open);
+    });
+
+    /* ── Image fallback ── */
+    document.querySelectorAll('img[data-fallback-src]').forEach(img => {
+      img.addEventListener('error', () => {
+        if (img.dataset.fallbackSrc && img.src !== img.dataset.fallbackSrc) {
+          img.src = img.dataset.fallbackSrc;
+        }
+      }, { once: true });
     });
 
     /* ── Qty +/- buttons ── */
