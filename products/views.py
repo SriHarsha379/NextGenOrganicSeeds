@@ -4,6 +4,47 @@ from cart.models import Cart  # Import the Cart model
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .utils.phonepe_client import client
+from urllib.parse import quote_plus
+
+SEED_REAL_IMAGE_FALLBACKS = {
+    "celery": "https://source.unsplash.com/600x400/?celery,vegetable",
+    "capsicum bell pepper": "https://source.unsplash.com/600x400/?bell-pepper,capsicum,vegetable",
+    "pak choi": "https://source.unsplash.com/600x400/?pak-choi,bok-choy,vegetable",
+    "curly kale": "https://source.unsplash.com/600x400/?curly-kale,vegetable",
+    "broccoli": "https://source.unsplash.com/600x400/?broccoli,vegetable",
+    "methi": "https://source.unsplash.com/600x400/?fenugreek,leafy,vegetable",
+    "chukka kura": "https://source.unsplash.com/600x400/?sorrel,leafy,greens",
+    "coriander": "https://source.unsplash.com/600x400/?coriander,cilantro,herb",
+    "amaranth green(thotakura)": "https://source.unsplash.com/600x400/?amaranth,leafy,greens",
+    "palak/spinach": "https://source.unsplash.com/600x400/?spinach,leafy,vegetable",
+    "spinach": "https://source.unsplash.com/600x400/?spinach,leafy,vegetable",
+    "radish": "https://source.unsplash.com/600x400/?radish,vegetable",
+    "brinjal": "https://source.unsplash.com/600x400/?eggplant,brinjal,vegetable",
+    "tomato": "https://source.unsplash.com/600x400/?tomato,vegetable",
+    "ladies finger": "https://source.unsplash.com/600x400/?okra,lady-finger,vegetable",
+    "papads": "https://source.unsplash.com/600x400/?papad,papadum,food",
+}
+
+
+def _resolve_seed_image_url(seed):
+    if seed.image:
+        try:
+            return seed.image.url
+        except ValueError:
+            pass
+
+    normalized_name = seed.name.strip().lower()
+    if normalized_name in SEED_REAL_IMAGE_FALLBACKS:
+        return SEED_REAL_IMAGE_FALLBACKS[normalized_name]
+
+    query = quote_plus(f"{seed.name} vegetable")
+    return f"https://source.unsplash.com/600x400/?{query}"
+
+
+def _attach_display_image_url(seeds):
+    for seed in seeds:
+        seed.display_image_url = _resolve_seed_image_url(seed)
+    return seeds
 
 
 
@@ -21,6 +62,7 @@ def seed_list(request):
     category_data = []
     for title, url_name, category_name in categories:
         seeds = Seed.objects.filter(category__name__iexact=category_name).order_by('-id')[:4]
+        _attach_display_image_url(seeds)
         category_data.append({
             "title": title,
             "url_name": url_name,
@@ -73,6 +115,7 @@ def wishlist(request):
 def render_seeds_by_category(request, category_name, template_name):
     category = get_object_or_404(Category, name=category_name)
     seeds = Seed.objects.filter(category=category)
+    _attach_display_image_url(seeds)
 
     cart = request.session.get('cart', {})
     unique_item_count = len(cart)
@@ -113,6 +156,7 @@ def farm_crops(request):
 def search_seeds(request):
     query = request.GET.get('q', '')
     results = Seed.objects.filter(name__icontains=query) if query else Seed.objects.none()
+    _attach_display_image_url(results)
     return render(request, 'products/search_results.html', {
         'results': results,
         'query': query
