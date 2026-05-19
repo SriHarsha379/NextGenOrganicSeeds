@@ -1,11 +1,10 @@
 from django.urls import path
-from accounts.views import user_login
 from . import views
 
 app_name = 'adminpanel'
 
 urlpatterns = [
-    path('login/', user_login, name='login'),  # Reuse accounts login
+    path('login/', views.admin_login, name='login'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('logout/', views.admin_logout, name='logout'),
     path('seeds/', views.seed_list, name='seed_list'),
