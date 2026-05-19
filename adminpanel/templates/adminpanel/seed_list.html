@@ -40,6 +40,18 @@
 
         <!-- Quick Actions -->
         <div class="flex flex-wrap gap-4 mb-6">
+            <form method="get" class="flex flex-wrap gap-2">
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ search_query }}"
+                    placeholder="Search by seed or category"
+                    class="border rounded px-4 py-3 min-w-64"
+                >
+                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded shadow transition transform hover:-translate-y-1">
+                    Search
+                </button>
+            </form>
             <a href="{% url 'adminpanel:seed_add' %}" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded shadow transition transform hover:-translate-y-1">
                 Add New Seed
             </a>
