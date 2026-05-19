@@ -543,6 +543,7 @@
         </div>
       </div>
 
+      <a href="{% url 'food_products' %}">Food</a>
       <a href="{% url 'view_cart' %}" id="cart-link" class="cart-btn" aria-label="View cart">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
@@ -566,6 +567,7 @@
     <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
     <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
     <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+    <a href="{% url 'food_products' %}">Food Products</a>
     <a href="{% url 'view_cart' %}">🛒 Cart</a>
   </div>
 
@@ -600,6 +602,7 @@
         <a href="{% url 'winter_flower_seeds' %}" class="chip">❄️ Winter Flowers</a>
         <a href="{% url 'all_seasonal_flower_seeds' %}" class="chip">🌸 All Season Flowers</a>
         <a href="{% url 'summer_flower_seeds' %}" class="chip">☀️ Summer Flowers</a>
+        <a href="{% url 'food_products' %}" class="chip">🍃 Food Products</a>
       </div>
     </div>
   </div>
@@ -755,6 +758,10 @@
         <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
         <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flowers</a>
         <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+      </div>
+      <div class="footer-col">
+        <h4>Food</h4>
+        <a href="{% url 'food_products' %}">Food Products</a>
       </div>
       <div class="footer-col">
         <h4>Company</h4>

@@ -2,7 +2,7 @@ from django.urls import path
 
 from . import views
 from .views import seed_list, wishlist, search_seeds, privacy_policy, terms_conditions, disclaimer, refund, \
-    shipping, farm_crops
+    shipping, farm_crops, food_products
 
 urlpatterns = [
     # path('', homepage, name='homepage'),  # ✅ Make homepage default
@@ -17,6 +17,7 @@ urlpatterns = [
     path('seeds/all_seasonal_flower_seeds/', views.all_seasonal_flower_seeds, name='all_seasonal_flower_seeds'),
     path('seeds/summer_flower_seeds/', views.summer_flower_seeds, name='summer_flower_seeds'),
     path('farm_crops/', farm_crops, name='farm_crops'),
+    path('food-products/', food_products, name='food_products'),
     path('privacy-policy/', privacy_policy, name='privacy_policy'),
     path('terms-conditions/', terms_conditions, name='terms_conditions'),
     path('disclaimer/', disclaimer, name='disclaimer'),

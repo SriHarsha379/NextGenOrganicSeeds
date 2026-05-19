@@ -5,23 +5,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Buy Native Vegetable Seeds Online India | High Germination | Hasafarm</title>
-  <meta name="description" content="Buy premium native vegetable seeds online in India. Locally adapted varieties with high germination rate. Perfect for home gardens, terrace & kitchen gardens. Fast delivery from Hasafarm.">
-  <meta name="keywords" content="native vegetable seeds india, desi vegetable seeds, heirloom seeds india, buy vegetable seeds online, home garden seeds, hasafarm">
+  <title>Buy Organic Food Products Online India | Fresh & Natural | Hasafarm</title>
+  <meta name="description" content="Buy premium organic food products online in India. Naturally grown, chemical-free produce including grains, pulses, spices and more. Fast delivery from Hasafarm.">
+  <meta name="keywords" content="organic food products india, buy organic food online, natural food products, chemical free food, hasafarm food">
   <meta name="robots" content="index, follow">
   <meta name="author" content="Hasafarm">
-  <link rel="canonical" href="https://www.hasafarm.com/seeds/native-vegetable-seeds/">
+  <link rel="canonical" href="https://www.hasafarm.com/food-products/">
 
-  <meta property="og:title" content="Native Vegetable Seeds – Hasafarm">
-  <meta property="og:description" content="Shop locally adapted native vegetable seeds for Indian gardens. High germination, organic, fast delivery.">
+  <meta property="og:title" content="Organic Food Products – Hasafarm">
+  <meta property="og:description" content="Shop organic, chemical-free food products grown in India. Fresh, natural, and delivered fast.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://www.hasafarm.com/seeds/native-vegetable-seeds/">
+  <meta property="og:url" content="https://www.hasafarm.com/food-products/">
   <meta property="og:image" content="https://hasafarm.com/static/images/hasa_organic_seeds.png">
   <meta property="og:locale" content="en_IN">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Native Vegetable Seeds – Hasafarm">
-  <meta name="twitter:description" content="Shop locally adapted native vegetable seeds for Indian gardens.">
+  <meta name="twitter:title" content="Organic Food Products – Hasafarm">
+  <meta name="twitter:description" content="Shop organic, chemical-free food products grown in India.">
   <meta name="twitter:image" content="https://hasafarm.com/static/images/hasa_organic_seeds.png">
 
   <link rel="icon" href="{% static 'images/hasa_organic_seeds.png' %}" type="image/png">
@@ -33,8 +33,7 @@
     "@type": "BreadcrumbList",
     "itemListElement": [
       {"@type":"ListItem","position":1,"name":"Home","item":"https://hasafarm.com/"},
-      {"@type":"ListItem","position":2,"name":"Seeds","item":"https://hasafarm.com/seeds/"},
-      {"@type":"ListItem","position":3,"name":"Native Vegetable Seeds","item":"https://hasafarm.com/seeds/native-vegetable-seeds/"}
+      {"@type":"ListItem","position":2,"name":"Food Products","item":"https://hasafarm.com/food-products/"}
     ]
   }
   </script>
@@ -126,6 +125,12 @@
     .dropdown-menu a:hover { background: var(--green-pale); color: var(--green); }
     .dropdown:hover .dropdown-menu { display: block; }
 
+    .nav-food-link {
+      padding: 20px 14px; font-size: 14px; font-weight: 600;
+      color: var(--green); white-space: nowrap;
+      border-bottom: 2px solid var(--green);
+    }
+
     .cart-btn {
       position: relative; display: flex; align-items: center;
       background: var(--green-pale); border-radius: 30px;
@@ -153,7 +158,7 @@
 
     /* PAGE HERO */
     .page-hero {
-      background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #388e3c 100%);
+      background: linear-gradient(135deg, #e65100 0%, #f57c00 40%, #1b5e20 100%);
       color: var(--white); padding: 48px 24px; text-align: center;
     }
     .page-hero-badge {
@@ -215,7 +220,7 @@
     .seed-card:hover img { transform: scale(1.05); }
     .seed-badge {
       position: absolute; top: 10px; left: 10px;
-      background: var(--green); color: #fff;
+      background: var(--orange); color: #fff;
       font-size: 10px; font-weight: 700; padding: 3px 10px;
       border-radius: 20px; text-transform: uppercase; letter-spacing: .3px;
     }
@@ -343,13 +348,13 @@
 <body>
   <!-- ANNOUNCEMENT BAR -->
   <div class="announcement-bar">
-   &nbsp; 🇮🇳 Grown &amp; packed in India &nbsp;|&nbsp; 📦 Dispatched within 24 hours
+    &nbsp; 🇮🇳 Grown &amp; packed in India &nbsp;|&nbsp; 📦 Dispatched within 24 hours
   </div>
 
   <!-- SEARCH BAR -->
   <div class="top-bar" role="search">
-    <form action="{% url 'search_seeds' %}" method="GET" class="search-form" aria-label="Search for seeds">
-      <input type="search" name="q" placeholder="Search for tomato, spinach, brinjal…" aria-label="Seed search">
+    <form action="{% url 'search_seeds' %}" method="GET" class="search-form" aria-label="Search for products">
+      <input type="search" name="q" placeholder="Search for food products…" aria-label="Product search">
       <button type="submit" aria-label="Submit search">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </button>
@@ -379,7 +384,7 @@
           <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
         </div>
       </div>
-      <a href="{% url 'food_products' %}">Food</a>
+      <a href="{% url 'food_products' %}" class="nav-food-link">Food</a>
       <a href="{% url 'view_cart' %}" id="cart-link" class="cart-btn" aria-label="View cart">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
@@ -410,19 +415,17 @@
   <nav class="breadcrumb" aria-label="Breadcrumb">
     <a href="{% url 'home' %}">Home</a>
     <span>›</span>
-    <a href="{% url 'seed_list' %}">Seeds</a>
-    <span>›</span>
-    <span aria-current="page">Native Vegetable Seeds</span>
+    <span aria-current="page">Food Products</span>
   </nav>
 
   <!-- PAGE HERO -->
   <section class="page-hero" aria-labelledby="page-title">
-    <div class="page-hero-badge">🌿 Locally Adapted Varieties</div>
-    <h1 id="page-title">Native Vegetable Seeds</h1>
-    <p>Traditional desi varieties grown for Indian soil &amp; climate — high yield, rich flavour, and strong germination guaranteed.</p>
+    <div class="page-hero-badge">🍃 Organic &amp; Natural</div>
+    <h1 id="page-title">Food Products</h1>
+    <p>Discover our range of organic, chemical-free food products — fresh grains, pulses, spices and more, sourced directly from Indian farms and delivered to your door.</p>
     <div class="page-hero-stats">
-      <div class="stat"><div class="stat-num">30+</div><div class="stat-label">Varieties</div></div>
-      <div class="stat"><div class="stat-num">95%+</div><div class="stat-label">Germination Rate</div></div>
+      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Organic</div></div>
+      <div class="stat"><div class="stat-num">No</div><div class="stat-label">Chemicals</div></div>
       <div class="stat"><div class="stat-num">24hr</div><div class="stat-label">Dispatch</div></div>
       <div class="stat"><div class="stat-num">🇮🇳</div><div class="stat-label">Pan India Delivery</div></div>
     </div>
@@ -431,7 +434,7 @@
   <!-- FILTER BAR -->
   <div class="filter-bar">
     <div class="filter-bar-left">
-      Showing <strong>{{ seeds|length }} products</strong> in Native Vegetable Seeds
+      Showing <strong>{{ seeds|length }} products</strong> in Food Products
     </div>
     <div>
       <label for="sort-select" style="font-size:13.5px; color:var(--muted); margin-right:6px;">Sort by:</label>
@@ -449,7 +452,7 @@
     <div class="page-layout">
       <p id="stock-warning" class="stock-warning" aria-live="polite"></p>
 
-      <div class="seed-grid" id="seed-grid" role="list" aria-label="Native vegetable seed products">
+      <div class="seed-grid" id="seed-grid" role="list" aria-label="Food products">
         {% for seed in seeds %}
           <article class="seed-card" role="listitem"
                    data-name="{{ seed.name|lower }}"
@@ -457,7 +460,7 @@
                    itemscope itemtype="https://schema.org/Product">
             <div class="seed-card-img-wrap">
               <img src="{{ seed.image.url }}"
-                   alt="{{ seed.name }} – native vegetable seeds for Indian home garden"
+                   alt="{{ seed.name }} – organic food product from Hasafarm"
                    loading="lazy" width="240" height="200"
                    itemprop="image">
               <span class="seed-badge">Organic</span>
@@ -489,44 +492,24 @@
             </div>
           </article>
         {% empty %}
-          <p style="color:var(--muted); grid-column:1/-1; padding: 32px 0;">No seeds available in this category yet. Check back soon!</p>
+          <p style="color:var(--muted); grid-column:1/-1; padding: 32px 0;">No food products available yet. Check back soon!</p>
         {% endfor %}
       </div>
 
       <!-- SEO CONTENT -->
       <div class="seo-section" itemscope itemtype="https://schema.org/FAQPage">
-        <h2>About Native Vegetable Seeds</h2>
-        <p>Native vegetable seeds are traditional, locally adapted varieties that have been cultivated in India for generations. Unlike hybrid varieties, these desi seeds are perfectly suited to Indian soil conditions, monsoon patterns, and temperature ranges — resulting in naturally healthy, flavourful crops.</p>
-        <p>At Hasafarm, our native vegetable seed collection includes popular varieties like brinjal, okra, bitter gourd, bottle gourd, ridge gourd, tomato, chilli, and many more — all sourced responsibly and packed fresh for maximum germination success.</p>
+        <h2>About Our Organic Food Products</h2>
+        <p>At Hasafarm, we believe that what you eat should be as natural as possible. Our food products are sourced from organic farms across India, grown without synthetic pesticides or fertilisers, and packed fresh for delivery to your doorstep.</p>
+        <p>From wholesome grains and pulses to aromatic spices and dried herbs, our food range brings the goodness of farm-fresh organic produce directly to your kitchen.</p>
 
-        <h3>Why Choose Native Vegetable Seeds?</h3>
-        <p>Native seeds are open-pollinated, meaning you can save seeds from your harvest each season. They're also more resilient to local pests and diseases, require less synthetic input, and produce vegetables with richer taste and higher nutritional value compared to modern hybrid varieties.</p>
+        <h3>Why Choose Hasafarm Food Products?</h3>
+        <p>All our food products are naturally grown, minimally processed, and free from artificial additives. We work directly with local farmers to ensure freshness and fair trade practices, supporting sustainable agriculture across India.</p>
 
-        <div class="seo-faq">
-          <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-            <div class="faq-q" itemprop="name">What is the germination rate of Hasafarm native vegetable seeds?</div>
-            <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-              <span itemprop="text">Our native vegetable seeds are lab-tested and maintain a germination rate of 95% or above. Each batch is quality-checked before packing to ensure the best results for your garden.</span>
-            </div>
-          </div>
-          <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-            <div class="faq-q" itemprop="name">Are these seeds suitable for terrace and kitchen gardening?</div>
-            <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-              <span itemprop="text">Yes! Our native vegetable seeds are ideal for terrace gardens, kitchen gardens, balcony pots, and raised beds. We also have compact and container-friendly varieties clearly indicated in each product description.</span>
-            </div>
-          </div>
-          <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-            <div class="faq-q" itemprop="name">How are the seeds packaged and shipped?</div>
-            <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-              <span itemprop="text">Seeds are packed in moisture-proof, sealed packets to preserve freshness and viability. We dispatch all orders within 24 hours across India via trusted courier partners.</span>
-            </div>
-          </div>
-          <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-            <div class="faq-q" itemprop="name">Can I save seeds from native varieties for the next season?</div>
-            <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-              <span itemprop="text">Absolutely. Native (open-pollinated) seeds can be saved and replanted year after year, unlike hybrid seeds. This makes them a sustainable and cost-effective choice for long-term gardening.</span>
-            </div>
-          </div>
+        <div class="seo-faq" style="margin-top:24px;">
+          <div class="faq-item"><div class="faq-q">Are Hasafarm food products certified organic?</div><div class="faq-a">Our food products are naturally grown using traditional farming methods without chemical pesticides or synthetic fertilisers. We source directly from trusted local farmers who follow organic practices.</div></div>
+          <div class="faq-item"><div class="faq-q">How are the food products packaged?</div><div class="faq-a">All food products are packed in food-grade, sealed packaging to maintain freshness and hygiene during transit. Products are dispatched within 24 hours of order placement.</div></div>
+          <div class="faq-item"><div class="faq-q">Do you deliver food products across India?</div><div class="faq-a">Yes! We deliver pan-India. Orders are typically dispatched within 24 hours and reach most locations within 3–7 business days depending on your pin code.</div></div>
+          <div class="faq-item"><div class="faq-q">What types of food products does Hasafarm offer?</div><div class="faq-a">We offer a growing range of organic food products including grains, pulses, spices, dried herbs, and more — all naturally grown and freshly packed from Indian farms.</div></div>
         </div>
       </div>
     </div>
@@ -537,7 +520,7 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Hasafarm Logo" width="48" height="48">
-        <p>Hasafarm brings you the finest organic seeds for your garden. Grown with love, delivered with care across India.</p>
+        <p>Hasafarm brings you the finest organic seeds and food products for your home. Grown with love, delivered with care across India.</p>
         <div class="social-row">
           <a href="https://www.facebook.com/profile.php?id=61577475895648" target="_blank" rel="noopener noreferrer" aria-label="Hasafarm on Facebook">
             <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook">
@@ -560,14 +543,10 @@
         <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
       </div>
       <div class="footer-col">
-        <h4>Food</h4>
+        <h4>Food &amp; More</h4>
         <a href="{% url 'food_products' %}">Food Products</a>
-      </div>
-      <div class="footer-col">
-        <h4>Company</h4>
         <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
         <a href="{% url 'terms_conditions' %}">Terms &amp; Conditions</a>
-        <a href="{% url 'disclaimer' %}">Disclaimer</a>
         <a href="{% url 'refund' %}">Refund Policy</a>
         <a href="{% url 'shipping' %}">Shipping Policy</a>
         <a href="mailto:contact@hasafarm.com">📧 contact@hasafarm.com</a>
