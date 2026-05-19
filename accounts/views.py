@@ -58,6 +58,8 @@ def user_login(request):
 
                     request.session.modified = True
                     print(f"✅ Login successful: {user.username}")
+                    if user.is_superuser:
+                        return redirect("adminpanel:dashboard")
                     return redirect("home")
                 else:
                     messages.error(request, "Invalid password. Please try again.")

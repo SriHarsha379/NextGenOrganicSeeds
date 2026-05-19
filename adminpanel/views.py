@@ -112,10 +112,9 @@ def seed_delete(request, id):
     return redirect('adminpanel:seed_list')
 
 
-@admin_required
 def admin_logout(request):
     logout(request)
-    return redirect('accounts:login')  # replace with your login page URL name
+    return redirect('accounts:login')
 
 @admin_required
 def seed_inventory(request):
