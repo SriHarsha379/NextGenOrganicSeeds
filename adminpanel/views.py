@@ -77,16 +77,15 @@ def admin_login(request):
             if user:
                 if not user.is_superuser:
                     messages.error(request, "Access denied. Admin credentials required.")
-                else:
-                    login(request, user)
-                    return redirect(next_url or 'adminpanel:dashboard')
+                    return render(request, 'adminpanel/login.html', {'next': next_url or ''})
+                login(request, user)
+                return redirect(next_url or 'adminpanel:dashboard')
             else:
                 messages.error(request, "Invalid password. Please try again.")
         else:
             messages.error(request, "No admin account found with those credentials.")
 
-    next_url = _safe_next(request.GET.get('next', ''))
-    return render(request, 'adminpanel/login.html', {'next': next_url or ''})
+        return render(request, 'adminpanel/login.html', {'next': next_url or ''})
 
 
 @admin_required
