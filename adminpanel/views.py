@@ -1,11 +1,10 @@
 # adminpanel/views.py
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.db.models import Q, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib import messages
 import csv
 
 from orders.models import Order
@@ -17,75 +16,11 @@ from products.models import Category, Seed
 def admin_required(view_func):
     """
     Only allow superuser access to adminpanel views.
-    Redirects non-admins to the admin login page.
+    Redirects non-admins to your custom login page.
     """
     return login_required(
-        user_passes_test(lambda u: u.is_superuser, login_url='/admin/login/')(view_func),
-        login_url='/admin/login/',
+        user_passes_test(lambda u: u.is_superuser, login_url='/accounts/login/')(view_func)
     )
-
-
-def admin_login(request):
-    """
-    Dedicated login page for the admin panel.
-    Handles ?next= redirect and enforces superuser access.
-    """
-    from urllib.parse import urlparse
-    from django.utils.http import url_has_allowed_host_and_scheme
-
-    def _safe_next(url):
-        """
-        Validate that url is a safe same-host path and return only the
-        path+query portion (no scheme or host) to prevent open redirects.
-        """
-        if not url:
-            return None
-        if not url_has_allowed_host_and_scheme(url=url, allowed_hosts={request.get_host()}):
-            return None
-        parsed = urlparse(url)
-        safe_path = parsed.path
-        if parsed.query:
-            safe_path += '?' + parsed.query
-        return safe_path or None
-
-    if request.user.is_authenticated and request.user.is_superuser:
-        next_url = _safe_next(request.GET.get('next') or request.POST.get('next'))
-        return redirect(next_url or 'adminpanel:dashboard')
-
-    if request.method == 'POST':
-        from django.contrib.auth.models import User
-
-        username = request.POST.get('username', '').strip()
-        password = request.POST.get('password', '')
-        next_url = _safe_next(request.POST.get('next', '').strip())
-
-        if username.lower().startswith('www.'):
-            messages.error(request, "Please enter a valid username or email without 'www.'")
-            return render(request, 'adminpanel/login.html', {'next': next_url or ''})
-
-        # Allow login by username or email
-        try:
-            user_obj = User.objects.get(username=username)
-        except User.DoesNotExist:
-            try:
-                user_obj = User.objects.get(email__iexact=username)
-            except User.DoesNotExist:
-                user_obj = None
-
-        if user_obj:
-            user = authenticate(request, username=user_obj.username, password=password)
-            if user:
-                if not user.is_superuser:
-                    messages.error(request, "Access denied. Admin credentials required.")
-                    return render(request, 'adminpanel/login.html', {'next': next_url or ''})
-                login(request, user)
-                return redirect(next_url or 'adminpanel:dashboard')
-            else:
-                messages.error(request, "Invalid password. Please try again.")
-        else:
-            messages.error(request, "No admin account found with those credentials.")
-
-        return render(request, 'adminpanel/login.html', {'next': next_url or ''})
 
 
 @admin_required

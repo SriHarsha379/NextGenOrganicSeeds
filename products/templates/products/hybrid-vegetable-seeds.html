@@ -326,7 +326,7 @@ h1 {
         <!-- Dynamic Product List -->
         {% for seed in seeds %}
 <div class="seed-card">
-    <img src="{{ seed.display_image_url }}" alt="{{ seed.name }}">
+    <img src="{{ seed.image.url }}" alt="{{ seed.name }}">
     <h2>{{ seed.name }}</h2>
     <p>{{ seed.description }}</p>
     <p><strong>Price: ₹{{ seed.price }}</strong></p>
