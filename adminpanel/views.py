@@ -11,7 +11,7 @@ from orders.models import Order
 from products.models import Category, Seed
 
 
-def _get_categories_with_food():
+def _get_all_categories_ensuring_food():
     Category.objects.get_or_create(name='Food')
     return Category.objects.all()
 
@@ -64,7 +64,7 @@ def seed_list(request):
 # ----- Add Seed -----
 @admin_required
 def seed_add(request):
-    categories = _get_categories_with_food()
+    categories = _get_all_categories_ensuring_food()
     if request.method == 'POST':
         name = request.POST['name']
         description = request.POST['description']
@@ -90,7 +90,7 @@ def seed_add(request):
 @admin_required
 def seed_edit(request, id):
     seed = Seed.objects.get(id=id)
-    categories = _get_categories_with_food()
+    categories = _get_all_categories_ensuring_food()
     if request.method == 'POST':
         seed.name = request.POST['name']
         seed.description = request.POST['description']
