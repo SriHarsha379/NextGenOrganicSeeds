@@ -25,6 +25,7 @@ urlpatterns = [
     path('shipping/', shipping, name='shipping'),
 
     # Legacy aliases to prevent old shared links from breaking.
+    # Intentionally unnamed to avoid name collisions with primary routes.
     path('seeds/native-vegetable-seeds/', views.native_vegetable_seeds),
     path('seeds/leafy-vegetable-seeds/', views.leafy_vegetable_seeds),
     path('seeds/exotic-vegetable-seeds/', views.exotic_vegetable_seeds),
