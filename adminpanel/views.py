@@ -30,13 +30,23 @@ def admin_login(request):
     Dedicated login page for the admin panel.
     Handles ?next= redirect and enforces superuser access.
     """
+    from urllib.parse import urlparse
     from django.utils.http import url_has_allowed_host_and_scheme
 
     def _safe_next(url):
-        """Return url only if it is a safe same-host relative path."""
-        if url and url_has_allowed_host_and_scheme(url=url, allowed_hosts=request.get_host()):
-            return url
-        return None
+        """
+        Validate that url is a safe same-host path and return only the
+        path+query portion (no scheme or host) to prevent open redirects.
+        """
+        if not url:
+            return None
+        if not url_has_allowed_host_and_scheme(url=url, allowed_hosts={request.get_host()}):
+            return None
+        parsed = urlparse(url)
+        safe_path = parsed.path
+        if parsed.query:
+            safe_path += '?' + parsed.query
+        return safe_path or None
 
     if request.user.is_authenticated and request.user.is_superuser:
         next_url = _safe_next(request.GET.get('next') or request.POST.get('next'))
