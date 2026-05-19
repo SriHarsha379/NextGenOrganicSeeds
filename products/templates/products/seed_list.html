@@ -998,25 +998,42 @@
       const plus  = card.querySelector('.qty-plus');
       const input = card.querySelector('.quantity-input');
       if (!minus || !plus || !input) return;
+      const sanitizeQty = () => {
+        const min = parseInt(input.min || '1', 10);
+        const max = parseInt(input.max || '1', 10);
+        let raw = String(input.value || '').replace(/[^\d]/g, '');
+        raw = raw.replace(/^0+(?=\d)/, '');
+        let value = parseInt(raw, 10);
+        if (Number.isNaN(value)) value = min;
+        input.value = Math.max(min, Math.min(max, value));
+      };
       minus.addEventListener('click', () => {
-        const v = parseInt(input.value) - 1;
-        input.value = Math.max(parseInt(input.min || 1), v);
+        const v = parseInt(input.value, 10) - 1;
+        input.value = Math.max(parseInt(input.min || '1', 10), v);
+        sanitizeQty();
       });
       plus.addEventListener('click', () => {
-        const v = parseInt(input.value) + 1;
-        input.value = Math.min(parseInt(input.max), v);
+        const v = parseInt(input.value, 10) + 1;
+        input.value = Math.min(parseInt(input.max || '1', 10), v);
+        sanitizeQty();
       });
-      input.addEventListener('change', () => {
-        input.value = Math.max(parseInt(input.min||1), Math.min(parseInt(input.max), parseInt(input.value)||1));
-      });
+      input.addEventListener('input', sanitizeQty);
+      input.addEventListener('change', sanitizeQty);
+      input.addEventListener('blur', sanitizeQty);
     });
 
     /* ── AJAX Add to Cart ── */
     document.querySelectorAll('.add-to-cart-form').forEach(form => {
       form.addEventListener('submit', function(e) {
         e.preventDefault();
-        const seedId   = this.getAttribute('data-seed-id');
-        const quantity = parseInt(this.querySelector('.quantity-input').value);
+        const seedId = this.getAttribute('data-seed-id');
+        const qtyInput = this.querySelector('.quantity-input');
+        let rawQty = String(qtyInput.value || '').replace(/[^\d]/g, '');
+        rawQty = rawQty.replace(/^0+(?=\d)/, '');
+        let quantity = parseInt(rawQty, 10);
+        if (Number.isNaN(quantity)) quantity = 1;
+        quantity = Math.max(1, Math.min(parseInt(qtyInput.max || '1', 10), quantity));
+        qtyInput.value = quantity;
         const btn      = this.querySelector('.add-to-cart-btn');
 
         btn.textContent = 'Adding…';

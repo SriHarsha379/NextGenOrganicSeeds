@@ -585,11 +585,20 @@
       const plus  = card.querySelector('.qty-plus');
       const input = card.querySelector('.quantity-input');
       if (!minus || !plus || !input) return;
-      minus.addEventListener('click', () => { input.value = Math.max(1, parseInt(input.value) - 1); });
-      plus.addEventListener('click',  () => { input.value = Math.min(parseInt(input.max), parseInt(input.value) + 1); });
-      input.addEventListener('change', () => {
-        input.value = Math.max(1, Math.min(parseInt(input.max), parseInt(input.value) || 1));
-      });
+      const sanitizeQty = () => {
+        const min = 1;
+        const max = parseInt(input.getAttribute('data-stock') || input.max || '1', 10);
+        let raw = String(input.value || '').replace(/[^\d]/g, '');
+        raw = raw.replace(/^0+(?=\d)/, '');
+        let value = parseInt(raw, 10);
+        if (Number.isNaN(value)) value = min;
+        input.value = Math.max(min, Math.min(max, value));
+      };
+      minus.addEventListener('click', () => { input.value = Math.max(1, parseInt(input.value, 10) - 1); sanitizeQty(); });
+      plus.addEventListener('click',  () => { input.value = Math.min(parseInt(input.max, 10), parseInt(input.value, 10) + 1); sanitizeQty(); });
+      input.addEventListener('input', sanitizeQty);
+      input.addEventListener('change', sanitizeQty);
+      input.addEventListener('blur', sanitizeQty);
     });
 
     /* ── Add to Cart ── */
@@ -603,7 +612,9 @@
         const seedId   = this.getAttribute('data-seed-id');
         const input    = document.getElementById(`quantity-${seedId}`);
         const maxStock = parseInt(input.getAttribute('data-stock'), 10);
-        let quantity   = parseInt(input.value, 10);
+        let rawQty     = String(input.value || '').replace(/[^\d]/g, '');
+        rawQty         = rawQty.replace(/^0+(?=\d)/, '');
+        let quantity   = parseInt(rawQty, 10);
         const warning  = document.getElementById('stock-warning');
 
         if (quantity < 1)         { quantity = 1; input.value = 1; warning.textContent = 'Minimum quantity is 1.'; return; }
