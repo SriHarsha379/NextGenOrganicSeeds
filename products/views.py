@@ -16,6 +16,7 @@ def seed_list(request):
         ("Winter Flower Seeds", "winter_flower_seeds", "Winter"),
         ("All Seasonal Flower Seeds", "all_seasonal_flower_seeds", "All seasonal"),
         ("Summer Flower Seeds", "summer_flower_seeds", "Summer"),
+        ("Food Products", "food_products", "Food"),
     ]
 
     category_data = []
@@ -107,6 +108,9 @@ def summer_flower_seeds(request):
 
 def farm_crops(request):
     return render_seeds_by_category(request, "Farmcrops", 'products/farm_crops.html')
+
+def food_products(request):
+    return render_seeds_by_category(request, "Food", 'products/food_products.html')
 
 
 # Search stays separate:

@@ -11,6 +11,11 @@ from orders.models import Order
 from products.models import Category, Seed
 
 
+def _get_all_categories_ensuring_food():
+    Category.objects.get_or_create(name='Food')
+    return Category.objects.all()
+
+
 
 # ----- Dashboard -----
 def admin_required(view_func):
@@ -42,13 +47,24 @@ def dashboard_view(request):
 # ----- Seed List -----
 @admin_required
 def seed_list(request):
+    search_query = request.GET.get('q', '').strip()
     seeds = Seed.objects.all().order_by('-id')
-    return render(request, 'adminpanel/seed_list.html', {'seeds': seeds})
+    if search_query:
+        seeds = seeds.filter(
+            Q(name__icontains=search_query) |
+            Q(category__name__icontains=search_query)
+        )
+    low_stock_count = seeds.filter(stock__lte=10).count()
+    return render(request, 'adminpanel/seed_list.html', {
+        'seeds': seeds,
+        'search_query': search_query,
+        'low_stock_count': low_stock_count,
+    })
 
 # ----- Add Seed -----
 @admin_required
 def seed_add(request):
-    categories = Category.objects.all()
+    categories = _get_all_categories_ensuring_food()
     if request.method == 'POST':
         name = request.POST['name']
         description = request.POST['description']
@@ -74,7 +90,7 @@ def seed_add(request):
 @admin_required
 def seed_edit(request, id):
     seed = Seed.objects.get(id=id)
-    categories = Category.objects.all()
+    categories = _get_all_categories_ensuring_food()
     if request.method == 'POST':
         seed.name = request.POST['name']
         seed.description = request.POST['description']
@@ -96,10 +112,9 @@ def seed_delete(request, id):
     return redirect('adminpanel:seed_list')
 
 
-@admin_required
 def admin_logout(request):
     logout(request)
-    return redirect('accounts:login')  # replace with your login page URL name
+    return redirect('accounts:login')
 
 @admin_required
 def seed_inventory(request):
