@@ -240,7 +240,7 @@
 
     <div class="order-items">
       <strong>Items</strong><br>
-      {% for item in order.cart_items %}{{ item.name }} ×{{ item.quantity }}{% if not forloop.last %}, {% endif %}{% endfor %}
+      {% for item in order.cart_items %}{{ item.name }} ×{{ item.quantity }}<br>{% endfor %}
     </div>
 
     <div class="order-total">Total: ₹{{ order.total_amount }}</div>
