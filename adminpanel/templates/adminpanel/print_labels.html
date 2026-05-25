@@ -119,31 +119,6 @@
     font-weight: 600;
   }
 
-  .order-items {
-    border-top: 1px solid #eee;
-    padding-top: 5px;
-    font-size: 9px;
-    color: #555;
-    line-height: 1.5;
-  }
-
-  .order-items strong {
-    font-size: 9px;
-    color: #111;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .order-total {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    font-weight: 600;
-    color: #1a4a1a;
-    text-align: right;
-    border-top: 1px solid #eee;
-    padding-top: 4px;
-  }
-
   /* ── Print styles ──────────────────────────────────────────────────── */
   @media print {
     /* A4 portrait, 10mm margins.
@@ -237,13 +212,6 @@
       <div class="recipient-address">{{ order.address }}</div>
       <div class="recipient-phone">📞 {{ order.phone }}</div>
     </div>
-
-    <div class="order-items">
-      <strong>Items</strong><br>
-      {% for item in order.cart_items %}{{ item.name }} ×{{ item.quantity }}<br>{% endfor %}
-    </div>
-
-    <div class="order-total">Total: ₹{{ order.total_amount }}</div>
 
   </div>
   {% endfor %}
