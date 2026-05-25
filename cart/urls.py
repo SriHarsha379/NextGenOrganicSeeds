@@ -20,6 +20,4 @@ urlpatterns = [
     path("order/success/<str:phonepe_order_id>/", views.order_success, name="order_success"),
     path('get-phonepe-payment-status/<str:order_id>/', get_phonepe_payment_status, name='get_phonepe_payment_status'),
     path("order/retry/<str:phonepe_order_id>/", views.retry_payment, name="retry_payment"),
-     # ✅ KEEP ONLY THIS version (with trailing slash)
-    path("phonepe/webhook/", views.phonepe_webhook, name="phonepe_webhook"),
 ]
