@@ -339,10 +339,10 @@ def order_success(request, phonepe_order_id):
     #  • Guest orders (order.user is None): the unguessable phonepe_order_id acts as
     #    the access token — any holder of the link can view the page.
     if order.user is not None:
-        session_guest_id = str(request.session.get("guest_order_id", ""))
+        session_guest_id = request.session.get("guest_order_id")
         is_owner = (
             (request.user.is_authenticated and order.user == request.user)
-            or session_guest_id == str(order.id)
+            or (session_guest_id is not None and str(session_guest_id) == str(order.id))
         )
         if not is_owner:
             return HttpResponseForbidden("Unauthorized access to this order.")
@@ -472,8 +472,10 @@ def _verify_webhook_request(request):
 
     Returns True when the request is considered authentic, False otherwise.
     """
-    webhook_user = getattr(settings, "PHONEPE_WEBHOOK_USER", "").strip()
-    webhook_password = getattr(settings, "PHONEPE_WEBHOOK_PASSWORD", "").strip()
+    webhook_user = getattr(settings, "PHONEPE_WEBHOOK_USER", None) or ""
+    webhook_password = getattr(settings, "PHONEPE_WEBHOOK_PASSWORD", None) or ""
+    webhook_user = webhook_user.strip()
+    webhook_password = webhook_password.strip()
 
     if not webhook_user or not webhook_password:
         logger.warning(
@@ -581,6 +583,7 @@ def phonepe_webhook(request):
             # Status API hasn't caught up yet (propagation delay / timing race).
             # PhonePe only fires checkout.order.completed for genuine payments,
             # so we trust the webhook and proceed with the DB update.
+            # Execution intentionally continues here — webhook is the trusted source.
             logger.warning(
                 "⚠️ Status API returned state=%s for %s, but webhook says Completed — "
                 "proceeding with DB update (propagation delay / timing race)",
