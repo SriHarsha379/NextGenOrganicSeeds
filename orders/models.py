@@ -31,7 +31,10 @@ class Order(models.Model):
     phonepe_order_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
 
     def save(self, *args, **kwargs):
-        self.total_quantity = sum(item.get("quantity", 1) for item in self.cart_items)
+        # Only recompute total_quantity on full saves, not on partial update_fields saves
+        # (partial saves are used by the webhook to update payment_status only).
+        if not kwargs.get("update_fields"):
+            self.total_quantity = sum(item.get("quantity", 1) for item in self.cart_items)
         super().save(*args, **kwargs)
 
     def __str__(self):

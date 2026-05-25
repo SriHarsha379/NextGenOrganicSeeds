@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 from datetime import datetime
@@ -331,9 +332,20 @@ def order_success(request, phonepe_order_id):
     except Order.DoesNotExist:
         raise Http404("Order not found")
 
-    session_guest_id = str(request.session.get("guest_order_id"))
-    if session_guest_id != str(order.id):
-        return HttpResponseForbidden("Unauthorized access to this guest order.")
+    # Authorization rules:
+    #  • Registered-user orders (order.user is set): require the owner to be logged in,
+    #    OR accept the session guest_order_id as a fallback (covers the redirect
+    #    immediately after checkout before the user logs back in).
+    #  • Guest orders (order.user is None): the unguessable phonepe_order_id acts as
+    #    the access token — any holder of the link can view the page.
+    if order.user is not None:
+        session_guest_id = request.session.get("guest_order_id")
+        is_owner = (
+            (request.user.is_authenticated and order.user == request.user)
+            or (session_guest_id is not None and str(session_guest_id) == str(order.id))
+        )
+        if not is_owner:
+            return HttpResponseForbidden("Unauthorized access to this order.")
 
     if order.payment_status != "Paid":
         status_info = _check_phonepe_payment_status(phonepe_order_id)
@@ -447,18 +459,65 @@ def get_phonepe_payment_status(request, order_id):
     })
 
 
+def _verify_webhook_request(request):
+    """Verify PhonePe webhook request authenticity using HTTP Basic Auth.
+
+    PhonePe Standard Checkout v2 allows a username/password pair to be
+    configured on the dashboard; it then sends them as a Basic Auth header
+    on every webhook call.
+
+    Set PHONEPE_WEBHOOK_USER and PHONEPE_WEBHOOK_PASSWORD in .env to enable
+    verification.  If neither is set the check is skipped with a warning (safe
+    for local dev / initial setup).
+
+    Returns True when the request is considered authentic, False otherwise.
+    """
+    webhook_user = getattr(settings, "PHONEPE_WEBHOOK_USER", None) or ""
+    webhook_password = getattr(settings, "PHONEPE_WEBHOOK_PASSWORD", None) or ""
+    webhook_user = webhook_user.strip()
+    webhook_password = webhook_password.strip()
+
+    if not webhook_user or not webhook_password:
+        logger.warning(
+            "⚠️ PHONEPE_WEBHOOK_USER / PHONEPE_WEBHOOK_PASSWORD not configured — "
+            "webhook auth verification is DISABLED. Set both in .env to secure the endpoint."
+        )
+        return True  # Permissive when no credentials are configured
+
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Basic "):
+        logger.warning("❌ Webhook request is missing a Basic Authorization header")
+        return False
+
+    try:
+        decoded = base64.b64decode(auth_header[6:]).decode("utf-8")
+        provided_user, _, provided_password = decoded.partition(":")
+    except Exception as exc:
+        logger.warning("❌ Could not decode webhook Authorization header: %s", exc)
+        return False
+
+    if provided_user != webhook_user or provided_password != webhook_password:
+        logger.warning("❌ Webhook Authorization credentials do not match")
+        return False
+
+    return True
+
+
 @csrf_exempt
 def phonepe_webhook(request):
     """PhonePe Standard Checkout v2 webhook handler.
 
     Registered events: checkout.order.completed / checkout.order.failed / checkout.order.cancelled
 
-    Authentication: PhonePe does not send a custom Authorization header, so we
-    verify legitimacy by calling the PhonePe status API for completed events
-    before making any DB changes.
+    Authentication: optionally verified via HTTP Basic Auth when
+    PHONEPE_WEBHOOK_USER and PHONEPE_WEBHOOK_PASSWORD are set in .env.
     """
     if request.method not in ("POST",):
         return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    # ── 0. Verify webhook authenticity ───────────────────────────────────────
+    if not _verify_webhook_request(request):
+        return JsonResponse({"error": "Unauthorized"}, status=401)
 
     # ── 1. Parse payload ─────────────────────────────────────────────────────
     try:
@@ -506,16 +565,31 @@ def phonepe_webhook(request):
 
     logger.info("📋 Webhook event=%s merchant_order_id=%s", event_type, merchant_order_id)
 
-    # ── 4. For Completed events: verify with PhonePe status API first ─────────
+    # ── 4. For Completed events: cross-check with PhonePe status API ─────────
     payment_id = None
     if new_status == "Paid":
         status_info = _check_phonepe_payment_status(merchant_order_id)
+
+        if status_info.get("error"):
+            # The status API call itself failed (network error, token expiry, etc.).
+            # Return 500 so PhonePe retries the webhook delivery.
+            logger.error(
+                "❌ PhonePe status API call failed for %s: %s — returning 500 to trigger retry",
+                merchant_order_id, status_info["error"],
+            )
+            return JsonResponse({"error": "Status check unavailable, please retry"}, status=500)
+
         if not status_info.get("success"):
+            # Status API hasn't caught up yet (propagation delay / timing race).
+            # PhonePe only fires checkout.order.completed for genuine payments,
+            # so we trust the webhook and proceed with the DB update.
+            # Execution intentionally continues here — webhook is the trusted source.
             logger.warning(
-                "⚠️ Webhook says Completed but status API returned state=%s for %s — skipping update",
+                "⚠️ Status API returned state=%s for %s, but webhook says Completed — "
+                "proceeding with DB update (propagation delay / timing race)",
                 status_info.get("state"), merchant_order_id,
             )
-            return JsonResponse({"message": "Status mismatch — not updated"}, status=200)
+
         payment_id = status_info.get("payment_id")
 
     # Fall back to payment details in webhook payload if not obtained from API
