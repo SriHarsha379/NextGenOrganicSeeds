@@ -38,10 +38,16 @@
     <!-- Page Heading -->
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Orders</h1>
-        <a href="{% url 'adminpanel:export_orders' %}{% if status %}?status={{ status }}{% endif %}{% if search %}&q={{ search }}{% endif %}"
-           class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow text-sm font-medium transition">
-            📥 Export CSV
-        </a>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'adminpanel:print_labels' %}"
+               class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow text-sm font-medium transition">
+                🖨 Print Labels
+            </a>
+            <a href="{% url 'adminpanel:export_orders' %}{% if status %}?status={{ status }}{% endif %}{% if search %}&q={{ search }}{% endif %}"
+               class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow text-sm font-medium transition">
+                📥 Export CSV
+            </a>
+        </div>
     </div>
 
     <!-- Stats Cards -->

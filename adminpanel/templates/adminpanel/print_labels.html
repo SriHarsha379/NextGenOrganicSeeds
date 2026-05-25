@@ -54,21 +54,20 @@
     color: #666;
   }
 
+  /* Screen preview: 2 columns */
   .label-sheet {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 10px;
   }
 
   .label {
     border: 1.5px dashed #555;
     padding: 10px 12px;
     background: #fff;
-    min-height: 160px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    page-break-inside: avoid;
+    gap: 6px;
   }
 
   .label-header {
@@ -77,7 +76,6 @@
     align-items: flex-start;
     border-bottom: 1px solid #ddd;
     padding-bottom: 6px;
-    margin-bottom: 8px;
   }
 
   .from-block { font-size: 9px; color: #555; line-height: 1.5; }
@@ -85,11 +83,12 @@
 
   .order-badge {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
+    font-size: 10px;
     background: #1a4a1a;
     color: #fff;
-    padding: 2px 6px;
+    padding: 3px 7px;
     white-space: nowrap;
+    align-self: flex-start;
   }
 
   .to-label {
@@ -97,36 +96,60 @@
     color: #888;
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
   }
 
   .recipient-name {
     font-size: 13px;
     font-weight: 700;
     color: #111;
-    margin-bottom: 3px;
   }
 
   .recipient-address {
     font-size: 10px;
     color: #333;
-    line-height: 1.4;
-    margin-bottom: 4px;
+    line-height: 1.5;
+    white-space: pre-wrap;
   }
 
   .recipient-phone {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
+    font-size: 11px;
     color: #1a4a1a;
     font-weight: 600;
   }
 
+  .order-items {
+    border-top: 1px solid #eee;
+    padding-top: 5px;
+    font-size: 9px;
+    color: #555;
+    line-height: 1.5;
+  }
+
+  .order-items strong {
+    font-size: 9px;
+    color: #111;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .order-total {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: #1a4a1a;
+    text-align: right;
+    border-top: 1px solid #eee;
+    padding-top: 4px;
+  }
+
   /* ── Print styles ──────────────────────────────────────────────────── */
   @media print {
-    /* Tell the browser this is an A4 portrait page with 10mm margins.
+    /* A4 portrait, 10mm margins.
        Usable area: 190mm wide × 277mm tall.
-       Layout: 2 columns × 4 rows = 8 labels per page.
-       Each label: ~93mm wide × ~67mm tall (accounts for 4mm gaps). */
+       Layout: 2 columns × 2 rows = 4 labels per page.
+       Each label: ~92.5mm wide × ~136mm tall (accounts for 5mm gap). */
     @page {
       size: A4 portrait;
       margin: 10mm;
@@ -143,16 +166,15 @@
     .label-sheet {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 4mm;
+      gap: 5mm;
       width: 190mm;   /* A4 width minus 2×10mm margins */
     }
 
     .label {
-      /* (277mm tall - 3 row gaps of 4mm each) / 4 rows = ~67mm per label */
-      height: 67mm;
-      min-height: unset;
+      /* (277mm tall − 1 row gap of 5mm) / 2 rows = 136mm per label */
+      height: 136mm;
       border: 1px dashed #000;
-      padding: 3mm 4mm;
+      padding: 4mm 5mm;
       box-sizing: border-box;
       overflow: hidden;
 
@@ -161,8 +183,8 @@
       page-break-inside: avoid;
     }
 
-    /* Force a new page after every 8th label (2 cols × 4 rows) */
-    .label:nth-child(8n) {
+    /* Force a new page after every 4th label (2 cols × 2 rows) */
+    .label:nth-child(4n) {
       break-after: page;
       page-break-after: always;
     }
@@ -173,6 +195,10 @@
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
+
+    .recipient-name { font-size: 14px; }
+    .recipient-address { font-size: 10px; }
+    .recipient-phone { font-size: 11px; }
   }
 </style>
 </head>
@@ -211,6 +237,13 @@
       <div class="recipient-address">{{ order.address }}</div>
       <div class="recipient-phone">📞 {{ order.phone }}</div>
     </div>
+
+    <div class="order-items">
+      <strong>Items</strong><br>
+      {% for item in order.cart_items %}{{ item.name }} ×{{ item.quantity }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    </div>
+
+    <div class="order-total">Total: ₹{{ order.total_amount }}</div>
 
   </div>
   {% endfor %}
