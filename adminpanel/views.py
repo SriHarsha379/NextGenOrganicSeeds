@@ -232,9 +232,8 @@ def bulk_print_orders(request):
     if per_page not in (2, 3):
         per_page = 2
 
-    order_positions = {order_id: position for position, order_id in enumerate(selected_order_ids)}
-    orders = list(Order.objects.filter(id__in=selected_order_ids))
-    orders.sort(key=lambda order: order_positions[order.id])
+    orders_by_id = Order.objects.in_bulk(selected_order_ids)
+    orders = [orders_by_id[order_id] for order_id in selected_order_ids if order_id in orders_by_id]
 
     if not orders:
         return redirect('/admin/orders/?bulk_print_error=1')
