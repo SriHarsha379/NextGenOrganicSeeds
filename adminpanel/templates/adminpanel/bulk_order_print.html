@@ -1,0 +1,332 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Order Print</title>
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        .toolbar {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .button {
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .button-primary {
+            background: #15803d;
+            color: #fff;
+        }
+
+        .button-secondary {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+
+        .print-container {
+            padding: 0 0 24px;
+        }
+
+        .sheet {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto 14px;
+            background: #fff;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            padding: 10mm 9mm;
+            display: flex;
+            flex-direction: column;
+            gap: 6mm;
+            page-break-after: always;
+        }
+
+        .sheet:last-child {
+            page-break-after: auto;
+        }
+
+        .order-card {
+            border: 1px dashed #374151;
+            border-radius: 4mm;
+            padding: 4mm 4.5mm;
+            display: flex;
+            flex-direction: column;
+            gap: 3mm;
+            break-inside: avoid;
+        }
+
+        .sheet-2 .order-card {
+            min-height: calc((297mm - 20mm - 6mm) / 2);
+        }
+
+        .sheet-3 .order-card {
+            min-height: calc((297mm - 20mm - 12mm) / 3);
+            font-size: 11px;
+        }
+
+        .card-header,
+        .meta-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand img {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+        }
+
+        .brand-title {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .sheet-3 .brand-title {
+            font-size: 13px;
+        }
+
+        .muted,
+        .meta,
+        .address-block {
+            color: #4b5563;
+        }
+
+        .meta {
+            text-align: right;
+            font-size: 11px;
+        }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .section-title {
+            margin-bottom: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #111827;
+        }
+
+        .address-block {
+            line-height: 1.45;
+            white-space: pre-line;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .items-table th,
+        .items-table td {
+            padding: 4px 0;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+
+        .items-table th {
+            text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #6b7280;
+        }
+
+        .items-table .right {
+            text-align: right;
+        }
+
+        .totals {
+            margin-top: auto;
+            display: grid;
+            gap: 4px;
+            font-size: 11px;
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .totals-row.total {
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .print-container {
+                padding: 0;
+            }
+
+            .sheet {
+                margin: 0;
+                box-shadow: none;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .sheet {
+                width: 100%;
+                min-height: auto;
+                padding: 16px;
+            }
+
+            .section-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar no-print">
+        <div>
+            <strong>{{ selected_count }}</strong> selected order{{ selected_count|pluralize }}
+            · {{ orders_per_page }} per A4 page
+        </div>
+        <div class="toolbar-actions">
+            <a href="{% url 'adminpanel:order_list' %}" class="button button-secondary">← Back to Orders</a>
+            <button type="button" class="button button-primary" onclick="window.print()">🖨 Print</button>
+        </div>
+    </div>
+
+    <div class="print-container">
+        {% for order_page in order_pages %}
+        <section class="sheet sheet-{{ orders_per_page }}">
+            {% for order in order_page %}
+            <article class="order-card">
+                <div class="card-header">
+                    <div class="brand">
+                        <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="HASA Organic Seeds">
+                        <div>
+                            <div class="brand-title">HASA ORGANIC SEEDS</div>
+                            <div class="muted">Phone: 7483847243 · FSSAI: 212250008001765</div>
+                        </div>
+                    </div>
+                    <div class="meta">
+                        <div><strong>Order #{{ order.id }}</strong></div>
+                        <div>{{ order.created_at|date:"d M Y H:i" }}</div>
+                        <div>{{ order.payment_status }}</div>
+                    </div>
+                </div>
+
+                <div class="section-grid">
+                    <div>
+                        <div class="section-title">From</div>
+                        <div class="address-block">#14, 1st B Cross
+Shivapura, Baglur Main Road
+Yelahanka
+Bengaluru – 560063</div>
+                    </div>
+                    <div>
+                        <div class="section-title">To</div>
+                        <div class="address-block"><strong>{{ order.full_name }}</strong>
+{{ order.address }}
+Phone: {{ order.phone }}
+{{ order.email }}</div>
+                    </div>
+                </div>
+
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th class="right">Qty</th>
+                            <th class="right">₹</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.cart_items %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td class="right">{{ item.quantity }}</td>
+                            <td class="right">{{ item.price }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="totals">
+                    <div class="totals-row">
+                        <span>Total Qty</span>
+                        <span>{{ order.total_quantity }}</span>
+                    </div>
+                    <div class="totals-row">
+                        <span>Postal</span>
+                        <span>₹{{ order.postal_charge }}</span>
+                    </div>
+                    <div class="totals-row total">
+                        <span>Total</span>
+                        <span>₹{{ order.total_amount }}</span>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </section>
+        {% endfor %}
+    </div>
+</body>
+</html>

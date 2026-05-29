@@ -2,7 +2,7 @@
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
-from django.db.models import Q, Sum
+from django.db.models import Case, IntegerField, Q, Sum, When
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 import csv
@@ -202,6 +202,49 @@ def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     return render(request, 'adminpanel/order_detail.html', {
         'order': order
+    })
+
+
+@admin_required
+def bulk_print_orders(request):
+    raw_order_ids = request.GET.getlist('order_ids')
+    selected_order_ids = []
+
+    for raw_order_id in raw_order_ids:
+        try:
+            order_id = int(raw_order_id)
+        except (TypeError, ValueError):
+            continue
+
+        if order_id not in selected_order_ids:
+            selected_order_ids.append(order_id)
+
+    if not selected_order_ids:
+        return redirect('/admin/orders/?bulk_print_error=1')
+
+    try:
+        per_page = int(request.GET.get('per_page', 2))
+    except (TypeError, ValueError):
+        per_page = 2
+
+    if per_page not in (2, 3):
+        per_page = 2
+
+    preserved_order = Case(
+        *[When(id=order_id, then=position) for position, order_id in enumerate(selected_order_ids)],
+        output_field=IntegerField(),
+    )
+    orders = list(Order.objects.filter(id__in=selected_order_ids).order_by(preserved_order))
+
+    if not orders:
+        return redirect('/admin/orders/?bulk_print_error=1')
+
+    order_pages = [orders[index:index + per_page] for index in range(0, len(orders), per_page)]
+
+    return render(request, 'adminpanel/bulk_order_print.html', {
+        'order_pages': order_pages,
+        'orders_per_page': per_page,
+        'selected_count': len(orders),
     })
 
 @admin_required

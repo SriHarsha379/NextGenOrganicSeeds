@@ -112,11 +112,42 @@
         {% if status %} with status <strong>{{ status }}</strong>{% endif %}
     </p>
 
-    <!-- Orders Table -->
-    <div class="bg-white shadow rounded overflow-x-auto">
+    {% if request.GET.bulk_print_error %}
+    <div class="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        Select at least one valid order before opening bulk print.
+    </div>
+    {% endif %}
+
+    <form method="get" action="{% url 'adminpanel:bulk_print_orders' %}" id="bulk-print-form">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded bg-white p-4 shadow">
+            <div class="flex flex-wrap items-center gap-3">
+                <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <input type="checkbox" id="select-all-orders" class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500">
+                    Select all on this page
+                </label>
+                <span class="text-sm text-gray-500" id="selected-orders-count">0 selected</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <label for="bulk-per-page" class="text-sm font-medium text-gray-700">Orders per page</label>
+                <select id="bulk-per-page" name="per_page"
+                        class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+                    <option value="2">2 per page</option>
+                    <option value="3">3 per page</option>
+                </select>
+                <button type="submit" id="bulk-print-button"
+                        class="inline-flex items-center gap-2 rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300"
+                        disabled>
+                    🖨 Bulk Print Selected
+                </button>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="bg-white shadow rounded overflow-x-auto">
         <table class="min-w-full table-auto border-collapse text-sm">
             <thead class="bg-gray-100 text-gray-600 uppercase text-xs tracking-wide">
                 <tr>
+                    <th class="px-4 py-3 text-center">Select</th>
                     <th class="px-4 py-3 text-left">Order ID</th>
                     <th class="px-4 py-3 text-left">Customer</th>
                     <th class="px-4 py-3 text-left">Phone</th>
@@ -130,6 +161,12 @@
             <tbody class="divide-y divide-gray-100">
                 {% for order in page_obj %}
                 <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-3 text-center">
+                        <input type="checkbox"
+                               name="order_ids"
+                               value="{{ order.id }}"
+                               class="order-select-checkbox h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500">
+                    </td>
                     <td class="px-4 py-3 font-mono text-gray-700">
                         #{{ order.id }}
                         {% if order.phonepe_order_id %}
@@ -177,7 +214,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="8" class="text-center px-6 py-12 text-gray-400">
+                    <td colspan="9" class="text-center px-6 py-12 text-gray-400">
                         <p class="text-4xl mb-2">📦</p>
                         <p class="font-medium">No orders found.</p>
                         {% if search or status %}
@@ -190,7 +227,8 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>
+        </div>
+    </form>
 
     <!-- Pagination -->
     {% if page_obj.paginator.num_pages > 1 %}
@@ -222,5 +260,37 @@
     {% endif %}
 
 </main>
+<script>
+    const selectAllOrders = document.getElementById('select-all-orders');
+    const orderCheckboxes = Array.from(document.querySelectorAll('.order-select-checkbox'));
+    const bulkPrintButton = document.getElementById('bulk-print-button');
+    const selectedOrdersCount = document.getElementById('selected-orders-count');
+
+    function updateBulkPrintState() {
+        const selectedCount = orderCheckboxes.filter((checkbox) => checkbox.checked).length;
+        selectedOrdersCount.textContent = `${selectedCount} selected`;
+        bulkPrintButton.disabled = selectedCount === 0;
+
+        if (orderCheckboxes.length > 0) {
+            selectAllOrders.checked = selectedCount === orderCheckboxes.length;
+            selectAllOrders.indeterminate = selectedCount > 0 && selectedCount < orderCheckboxes.length;
+        }
+    }
+
+    if (selectAllOrders) {
+        selectAllOrders.addEventListener('change', function () {
+            orderCheckboxes.forEach((checkbox) => {
+                checkbox.checked = selectAllOrders.checked;
+            });
+            updateBulkPrintState();
+        });
+    }
+
+    orderCheckboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', updateBulkPrintState);
+    });
+
+    updateBulkPrintState();
+</script>
 </body>
 </html>
