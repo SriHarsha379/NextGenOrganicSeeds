@@ -209,6 +209,7 @@ def order_detail(request, order_id):
 def bulk_print_orders(request):
     raw_order_ids = request.GET.getlist('order_ids')
     selected_order_ids = []
+    seen_order_ids = set()
 
     for raw_order_id in raw_order_ids:
         try:
@@ -216,7 +217,8 @@ def bulk_print_orders(request):
         except (TypeError, ValueError):
             continue
 
-        if order_id not in selected_order_ids:
+        if order_id not in seen_order_ids:
+            seen_order_ids.add(order_id)
             selected_order_ids.append(order_id)
 
     if not selected_order_ids:

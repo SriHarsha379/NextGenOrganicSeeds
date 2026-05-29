@@ -267,7 +267,12 @@
     const selectedOrdersCount = document.getElementById('selected-orders-count');
 
     function updateBulkPrintState() {
-        const selectedCount = orderCheckboxes.filter((checkbox) => checkbox.checked).length;
+        let selectedCount = 0;
+        orderCheckboxes.forEach((checkbox) => {
+            if (checkbox.checked) {
+                selectedCount += 1;
+            }
+        });
         selectedOrdersCount.textContent = `${selectedCount} selected`;
         bulkPrintButton.disabled = selectedCount === 0;
 
