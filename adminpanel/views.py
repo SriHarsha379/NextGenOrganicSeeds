@@ -204,6 +204,48 @@ def order_detail(request, order_id):
         'order': order
     })
 
+
+@admin_required
+def bulk_print_orders(request):
+    raw_order_ids = request.GET.getlist('order_ids')
+    selected_order_ids = []
+    seen_order_ids = set()
+
+    for raw_order_id in raw_order_ids:
+        try:
+            order_id = int(raw_order_id)
+        except (TypeError, ValueError):
+            continue
+
+        if order_id not in seen_order_ids:
+            seen_order_ids.add(order_id)
+            selected_order_ids.append(order_id)
+
+    if not selected_order_ids:
+        return redirect('/admin/orders/?bulk_print_error=1')
+
+    try:
+        per_page = int(request.GET.get('per_page', 2))
+    except (TypeError, ValueError):
+        per_page = 2
+
+    if per_page not in (2, 3):
+        per_page = 2
+
+    orders_by_id = Order.objects.in_bulk(selected_order_ids)
+    orders = [orders_by_id[order_id] for order_id in selected_order_ids if order_id in orders_by_id]
+
+    if not orders:
+        return redirect('/admin/orders/?bulk_print_error=1')
+
+    order_pages = [orders[index:index + per_page] for index in range(0, len(orders), per_page)]
+
+    return render(request, 'adminpanel/bulk_order_print.html', {
+        'order_pages': order_pages,
+        'orders_per_page': per_page,
+        'selected_count': len(orders),
+    })
+
 @admin_required
 def print_labels(request):
     # Only show Paid + not yet printed
