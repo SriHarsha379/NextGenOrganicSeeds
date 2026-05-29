@@ -51,6 +51,7 @@ class BulkPrintOrdersTests(TestCase):
         self.assertEqual(response.context['orders_per_page'], 2)
         self.assertEqual(response.context['selected_count'], 3)
         self.assertEqual(len(response.context['order_pages']), 2)
+        self.assertEqual(first_order.total_quantity, 3)
         self.assertEqual(response.context['order_pages'][0], [first_order, second_order])
         self.assertEqual(response.context['order_pages'][1], [third_order])
 

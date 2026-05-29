@@ -2,7 +2,7 @@
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
-from django.db.models import Case, IntegerField, Q, Sum, When
+from django.db.models import Q, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 import csv
@@ -232,11 +232,9 @@ def bulk_print_orders(request):
     if per_page not in (2, 3):
         per_page = 2
 
-    preserved_order = Case(
-        *[When(id=order_id, then=position) for position, order_id in enumerate(selected_order_ids)],
-        output_field=IntegerField(),
-    )
-    orders = list(Order.objects.filter(id__in=selected_order_ids).order_by(preserved_order))
+    order_positions = {order_id: position for position, order_id in enumerate(selected_order_ids)}
+    orders = list(Order.objects.filter(id__in=selected_order_ids))
+    orders.sort(key=lambda order: order_positions[order.id])
 
     if not orders:
         return redirect('/admin/orders/?bulk_print_error=1')
