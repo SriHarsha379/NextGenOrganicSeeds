@@ -55,10 +55,10 @@
                 {% for item in order.cart_items %}
                 <tr>
                   <td style="padding:12px 14px;border-bottom:1px solid #e5e7eb;font-size:14px;">
-                    {{ item.name|default:"Item" }} × {{ item.quantity|default:1 }}
+                    {{ item.name }} × {{ item.quantity }}
                   </td>
                   <td style="padding:12px 14px;border-bottom:1px solid #e5e7eb;font-size:14px;text-align:right;">
-                    ₹{{ item.price|default:0 }}
+                    ₹{{ item.price }}
                   </td>
                 </tr>
                 {% endfor %}

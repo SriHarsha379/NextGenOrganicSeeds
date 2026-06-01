@@ -724,7 +724,7 @@ def _send_order_status_emails(order, new_status):
             f"Phone    : {order.phone}\n"
             f"Amount   : ₹{order.total_amount}\n"
             f"PhonePe  : {order.phonepe_order_id}\n"
-            f"Txn ID   : {order.payment_id or 'N/A'}\n\n"
+            f"Txn ID : {order.payment_id or 'N/A'}\n\n"
             f"Address:\n{order.address}"
         )
         admin_html_message = render_to_string(
@@ -763,4 +763,3 @@ def retry_payment(request, phonepe_order_id):
 def my_orders(request):
     orders = Order.objects.filter(user=request.user).order_by("-created_at")
     return render(request, "cart/my_orders.html", {"orders": orders})
-
