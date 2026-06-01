@@ -465,4 +465,6 @@ class EmailContentTests(TestCase):
         admin_mail = outbox[1]
         self.assertIn("admin@hasafarm.com", admin_mail.to)
         self.assertIn("Paid", admin_mail.subject)
-
+        self.assertTrue(admin_mail.alternatives)
+        self.assertIn("text/html", admin_mail.alternatives[0].mimetype)
+        self.assertIn("Order #", admin_mail.alternatives[0].content)

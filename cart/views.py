@@ -6,10 +6,11 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.db import transaction
 from django.http import Http404, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 
 from phonepe.sdk.pg.payments.v2.models.request.standard_checkout_pay_request import StandardCheckoutPayRequest
@@ -715,21 +716,30 @@ def _send_order_status_emails(order, new_status):
 
     try:
         admin_email = getattr(settings, 'ADMIN_NOTIFICATION_EMAIL', settings.DEFAULT_FROM_EMAIL)
-        send_mail(
-            f"[Hasafarm] Order #{order.id} — {order.payment_status}",
-            (
-                f"Order #{order.id} — {order.payment_status}\n\n"
-                f"Customer : {order.full_name}\n"
-                f"Email    : {order.email}\n"
-                f"Phone    : {order.phone}\n"
-                f"Amount   : ₹{order.total_amount}\n"
-                f"PhonePe  : {order.phonepe_order_id}\n\n"
-                f"Address:\n{order.address}"
-            ),
+        admin_subject = f"[Hasafarm] Order #{order.id} — {order.payment_status}"
+        admin_text_message = (
+            f"Order #{order.id} — {order.payment_status}\n\n"
+            f"Customer : {order.full_name}\n"
+            f"Email    : {order.email}\n"
+            f"Phone    : {order.phone}\n"
+            f"Amount   : ₹{order.total_amount}\n"
+            f"PhonePe  : {order.phonepe_order_id}\n"
+            f"Txn ID   : {order.payment_id or 'N/A'}\n\n"
+            f"Address:\n{order.address}"
+        )
+        admin_html_message = render_to_string(
+            "cart/emails/admin_order_status_email.html",
+            {"order": order, "status": order.payment_status},
+        )
+
+        admin_message = EmailMultiAlternatives(
+            admin_subject,
+            admin_text_message,
             settings.DEFAULT_FROM_EMAIL,
             [admin_email],
-            fail_silently=True,
         )
+        admin_message.attach_alternative(admin_html_message, "text/html")
+        admin_message.send(fail_silently=True)
         logger.info("📧 Admin email sent for order #%s", order.id)
     except Exception as e:
         logger.error("📧 Failed to send admin email for order #%s: %s", order.id, e)
@@ -753,5 +763,4 @@ def retry_payment(request, phonepe_order_id):
 def my_orders(request):
     orders = Order.objects.filter(user=request.user).order_by("-created_at")
     return render(request, "cart/my_orders.html", {"orders": orders})
-
 
