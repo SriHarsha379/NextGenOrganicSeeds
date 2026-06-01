@@ -447,18 +447,27 @@ class EmailContentTests(TestCase):
     def test_paid_customer_email_contains_order_details(self):
         outbox = self._run("Paid")
         self.assertEqual(len(outbox), 2)
-        body = outbox[0].body
-        self.assertIn("Order Confirmed", outbox[0].subject)
+        customer_mail = outbox[0]
+        body = customer_mail.body
+        self.assertIn("Order Confirmed", customer_mail.subject)
         self.assertIn("TXN_MAIL", body)
         self.assertIn("Tomato Seeds", body)
+        # Customer email must also carry an HTML alternative
+        self.assertTrue(customer_mail.alternatives)
+        self.assertIn("text/html", customer_mail.alternatives[0][1])
+        self.assertIn("Order #", customer_mail.alternatives[0][0])
 
     def test_cancelled_customer_email(self):
         outbox = self._run("Cancelled")
         self.assertIn("Cancelled", outbox[0].subject)
+        self.assertTrue(outbox[0].alternatives)
+        self.assertIn("text/html", outbox[0].alternatives[0][1])
 
     def test_failed_customer_email(self):
         outbox = self._run("Failed")
         self.assertIn("Failed", outbox[0].subject)
+        self.assertTrue(outbox[0].alternatives)
+        self.assertIn("text/html", outbox[0].alternatives[0][1])
 
     def test_admin_always_notified(self):
         outbox = self._run("Paid")

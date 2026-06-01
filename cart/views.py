@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.mail import EmailMultiAlternatives, send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.http import Http404, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -709,7 +709,18 @@ def _send_order_status_emails(order, new_status):
                 f"Regards,\nHasa Organic Seeds"
             )
         try:
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [order.email])
+            customer_html = render_to_string(
+                "cart/emails/customer_order_email.html",
+                {"order": order, "status": new_status},
+            )
+            customer_message = EmailMultiAlternatives(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [order.email],
+            )
+            customer_message.attach_alternative(customer_html, "text/html")
+            customer_message.send()
             logger.info("📧 Customer email sent to %s for order #%s", order.email, order.id)
         except Exception as e:
             logger.error("📧 Failed to send customer email for order #%s: %s", order.id, e)
