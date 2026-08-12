@@ -263,6 +263,7 @@
                         <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="">
                         <div>
                             <div class="brand-title">HASA ORGANIC SEEDS</div>
+                            <div class="muted">Customer ID: 1245456573</div>
                             <div class="muted">Phone: 7483847243 · FSSAI: 212250008001765</div>
                         </div>
                     </div>
@@ -275,18 +276,19 @@
 
                 <div class="section-grid">
                     <div>
+                        <div class="section-title">To</div>
+                        <div class="address-block"><strong>{{ order.full_name }}</strong>
+{{ order.address }}
+Phone: {{ order.phone }}
+{{ order.email }}
+<br></div>
+                    </div>
+                    <div>
                         <div class="section-title">From</div>
                         <div class="address-block">#14, 1st B Cross
 Shivapura, Baglur Main Road
 Yelahanka
 Bengaluru – 560063</div>
-                    </div>
-                    <div>
-                        <div class="section-title">To</div>
-                        <div class="address-block"><strong>{{ order.full_name }}</strong>
-{{ order.address }}
-Phone: {{ order.phone }}
-{{ order.email }}</div>
                     </div>
                 </div>
 
