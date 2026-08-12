@@ -115,6 +115,17 @@
 
 <div class="divider"></div>
 
+<!-- TO ADDRESS -->
+<div class="section-title">To</div>
+<div class="address">
+    <strong>{{ order.full_name }}</strong><br>
+    {{ order.address|linebreaksbr }}<br>
+    Phone: {{ order.phone }}<br>
+    {{ order.email }}
+</div>
+
+<div class="divider"></div>
+
 <!-- FROM ADDRESS -->
 <div class="section-title">From</div>
 <div class="address">
@@ -122,17 +133,6 @@
     Shivapura, Baglur Main Road<br>
     Yelahanka<br>
     Bengaluru – 560063
-</div>
-
-<div class="divider"></div>
-
-<!-- TO ADDRESS -->
-<div class="section-title">To</div>
-<div class="address">
-    <strong>{{ order.full_name }}</strong><br>
-    {{ order.address }}<br>
-    Phone: {{ order.phone }}<br>
-    {{ order.email }}
 </div>
 
 <div class="divider"></div>
