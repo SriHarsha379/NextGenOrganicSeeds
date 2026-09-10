@@ -5,6 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from django.conf import settings
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
@@ -16,7 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 from phonepe.sdk.pg.payments.v2.models.request.standard_checkout_pay_request import StandardCheckoutPayRequest
 
 from .models import Cart
-from orders.models import Order
+from orders.models import Order, Coupon, CouponRedemption
 from products.models import Seed
 from products.utils.phonepe_client import client
 
@@ -238,7 +239,31 @@ def process_order(request):
         except (ValueError, TypeError, KeyError):
             return JsonResponse({"error": "Invalid amount format"}, status=400)
 
-        final_amount = base_amount + postal_charge
+        # ✅ Step 2b: Coupon validation (server-side is the source of truth — never trust
+        # any discount figure sent from the browser). Discount applies to product subtotal
+        # only, not shipping.
+
+        discount_amount = Decimal("0.00")
+        coupon_code_clean = None
+        raw_coupon_code = (data.get("coupon_code") or "").strip().upper()
+        customer_email = data["email"].strip().lower()
+
+        if raw_coupon_code:
+            try:
+                coupon = Coupon.objects.get(code=raw_coupon_code, active=True)
+            except Coupon.DoesNotExist:
+                return JsonResponse({"error": "Invalid or expired coupon code."}, status=400)
+
+            if coupon.valid_until < timezone.now():
+                return JsonResponse({"error": "This coupon has expired."}, status=400)
+
+            if CouponRedemption.objects.filter(coupon=coupon, email=customer_email).exists():
+                return JsonResponse({"error": "You've already used this coupon."}, status=400)
+
+            discount_amount = (base_amount * coupon.percent_off / Decimal("100")).quantize(Decimal("0.01"))
+            coupon_code_clean = coupon.code
+
+        final_amount = base_amount - discount_amount + postal_charge
 
         with transaction.atomic():
             # Step 3: Ensure session key exists before creating the order
@@ -256,10 +281,15 @@ def process_order(request):
                 total_quantity=int(data["total_quantity"]),
                 total_amount=final_amount,
                 postal_charge=postal_charge,
+                coupon_code=coupon_code_clean,
+                discount_amount=discount_amount,
                 payment_status="Pending",
                 phonepe_order_id=None,
                 session_key=request.session.session_key,
             )
+
+            if coupon_code_clean:
+                CouponRedemption.objects.create(coupon=coupon, email=customer_email, order=order)
 
             # Assign unique PhonePe order ID and save (session_key already set during create)
             order.phonepe_order_id = f"HF{order.id}"
@@ -317,6 +347,48 @@ def process_order(request):
 def get_cart(request):
     cart = request.session.get("cart", {})
     return JsonResponse(cart)
+
+
+@csrf_exempt
+def validate_coupon(request):
+    """Preview-only endpoint: tells the checkout page what a coupon is worth before
+    the order is actually placed. process_order() re-validates everything server-side
+    at submit time — this endpoint never creates a redemption record."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "Invalid request"}, status=400)
+
+    code = (data.get("coupon_code") or "").strip().upper()
+    email = (data.get("email") or "").strip().lower()
+    try:
+        subtotal = Decimal(str(data.get("total_amount", "0")))
+    except (ValueError, TypeError):
+        subtotal = Decimal("0")
+
+    if not code:
+        return JsonResponse({"error": "Enter a coupon code."}, status=400)
+
+    try:
+        coupon = Coupon.objects.get(code=code, active=True)
+    except Coupon.DoesNotExist:
+        return JsonResponse({"error": "Invalid or expired coupon code."}, status=400)
+
+    if coupon.valid_until < timezone.now():
+        return JsonResponse({"error": "This coupon has expired."}, status=400)
+
+    if email and CouponRedemption.objects.filter(coupon=coupon, email=email).exists():
+        return JsonResponse({"error": "You've already used this coupon."}, status=400)
+
+    discount_amount = (subtotal * coupon.percent_off / Decimal("100")).quantize(Decimal("0.01"))
+    return JsonResponse({
+        "valid": True,
+        "code": coupon.code,
+        "percent_off": coupon.percent_off,
+        "discount_amount": float(discount_amount),
+    })
 
 
 

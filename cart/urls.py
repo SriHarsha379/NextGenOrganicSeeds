@@ -17,6 +17,7 @@ urlpatterns = [
     path('process_order/', process_order, name='process_order'),
     path("clear/", clear_cart, name="clear_cart"),
     path('get_cart/', get_cart, name='get_cart'),
+    path('validate_coupon/', views.validate_coupon, name='validate_coupon'),
     path("order/success/<str:phonepe_order_id>/", views.order_success, name="order_success"),
     path('get-phonepe-payment-status/<str:order_id>/', get_phonepe_payment_status, name='get_phonepe_payment_status'),
     path("order/retry/<str:phonepe_order_id>/", views.retry_payment, name="retry_payment"),

@@ -215,8 +215,18 @@
             </ul>
             <p class="total-amount"><strong>Subtotal:</strong> ₹{{ total_amount|floatformat:2 }}</p>
             <p class="total-amount"><strong>Shipping:</strong> ₹{{ postage_charge|floatformat:2 }}</p>
-            <p class="total-amount"><strong>Total:</strong> ₹{{ grand_total|floatformat:2 }}</p>
+            <p class="total-amount" id="discount-line" style="display:none; color:#2e7d32;"><strong>Discount:</strong> <span id="discount-value">-₹0.00</span></p>
+            <p class="total-amount"><strong>Total:</strong> <span id="grand-total-display">₹{{ grand_total|floatformat:2 }}</span></p>
         </div>
+
+        <div class="form-group" style="display:flex; gap:8px; align-items:flex-end;">
+            <div style="flex:1;">
+                <label for="coupon_code">Coupon Code (optional)</label>
+                <input type="text" id="coupon_code" name="coupon_code" placeholder="e.g. COMEBACK10" style="text-transform:uppercase;">
+            </div>
+            <button type="button" id="apply-coupon-btn" onclick="applyCoupon()" style="padding:10px 16px; border:none; border-radius:6px; background:#2e7d32; color:#fff; font-weight:700; cursor:pointer; height:42px;">Apply</button>
+        </div>
+        <p id="coupon-message" style="font-size:13px; margin-top:-6px; margin-bottom:14px;"></p>
 
         <div id="message-box"></div>
 
@@ -314,6 +324,53 @@
 </div>
 
 <script>
+let appliedCoupon = null; // { code, discount_amount } — set by applyCoupon(), sent at submit time
+
+function applyCoupon() {
+    const codeField = document.getElementById("coupon_code");
+    const msgEl = document.getElementById("coupon-message");
+    const code = codeField.value.trim();
+    if (!code) {
+        msgEl.textContent = "Enter a coupon code first.";
+        msgEl.style.color = "#dc3545";
+        return;
+    }
+
+    const subtotal = {{ total_amount|default:0 }};
+    const email = document.getElementById("email").value.trim();
+
+    fetch("/cart/validate_coupon/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+        },
+        body: JSON.stringify({ coupon_code: code, total_amount: subtotal, email: email }),
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.valid) {
+                appliedCoupon = { code: data.code, discount_amount: data.discount_amount };
+                msgEl.textContent = `✅ ${data.code} applied — ${data.percent_off}% off.`;
+                msgEl.style.color = "#2e7d32";
+                document.getElementById("discount-line").style.display = "block";
+                document.getElementById("discount-value").textContent = `-₹${data.discount_amount.toFixed(2)}`;
+                const shipping = {{ postage_charge|default:0 }};
+                const newTotal = (subtotal - data.discount_amount + shipping).toFixed(2);
+                document.getElementById("grand-total-display").textContent = `₹${newTotal}`;
+            } else {
+                appliedCoupon = null;
+                msgEl.textContent = "❌ " + (data.error || "Invalid coupon.");
+                msgEl.style.color = "#dc3545";
+                document.getElementById("discount-line").style.display = "none";
+            }
+        })
+        .catch(() => {
+            msgEl.textContent = "Something went wrong checking that code.";
+            msgEl.style.color = "#dc3545";
+        });
+}
+
 function confirmOrder() {
     const requiredFields = ["full_name", "email", "phone", "address_line1", "city", "state", "postal_code", "country"];
     const messageBox = document.getElementById("message-box");
@@ -416,6 +473,7 @@ function submitOrder() {
                 cart_items: cartItems,
                 total_quantity: totalQuantity,
                 total_amount: totalAmount,
+                coupon_code: appliedCoupon ? appliedCoupon.code : "",
                 payment_status: "Pending",
             };
 
