@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hasafarm</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f6f9fc; display: flex; justify-content: center; padding: 60px 20px; }
+    .box { background: #fff; max-width: 480px; width: 100%; padding: 40px 32px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08); text-align: center; }
+    h1 { color: #2e7d32; font-size: 20px; margin-bottom: 16px; }
+    p { color: #555; line-height: 1.6; }
+    a.btn { display: inline-block; margin-top: 20px; background: #2e7d32; color: #fff; text-decoration: none; padding: 12px 26px; border-radius: 30px; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>This link isn't available anymore</h1>
+    <p>{{ reason|default:"This cart-recovery link has expired or already been used." }}</p>
+    <a class="btn" href="/seeds/">Browse Seeds</a>
+  </div>
+</body>
+</html>

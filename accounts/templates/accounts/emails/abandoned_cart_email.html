@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>You left something in your cart 🌱</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; padding: 20px; background-color: #f9f9f9; }
+    .container { max-width: 600px; background-color: #fff; margin: 0 auto; padding: 28px; border: 1px solid #eee; border-radius: 12px; }
+    h2 { color: #2e7d32; margin-bottom: 8px; }
+    .items { background: #f6f9f6; border-radius: 8px; padding: 14px 18px; margin: 18px 0; }
+    .items ul { margin: 0; padding-left: 20px; }
+    .cta { display: inline-block; margin-top: 20px; background: #2e7d32; color: #fff !important; text-decoration: none; padding: 13px 28px; border-radius: 30px; font-weight: 700; }
+    .footer { margin-top: 30px; font-size: 12px; color: #888; text-align: center; border-top: 1px solid #eee; padding-top: 16px; }
+    .footer a { color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Hi {{ name }}, your cart is still waiting</h2>
+    <p>You started an order with us but didn't finish checking out. Good news — nothing's lost. Your items are ready to go:</p>
+    <div class="items">
+      <ul>
+        {% for item in items %}
+        <li>{{ item.name }} × {{ item.quantity }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <p>Pick up right where you left off — no need to re-add anything.</p>
+    <a href="{{ resume_url }}" class="cta">Resume My Order</a>
+    <div class="footer">
+      <p>Hasa Farm · Grown &amp; packed in India</p>
+      <p><a href="{{ unsubscribe_url }}">Unsubscribe from marketing emails</a></p>
+    </div>
+  </div>
+</body>
+</html>

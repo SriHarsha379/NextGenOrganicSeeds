@@ -17,3 +17,21 @@ class MarketingEmailPreference(models.Model):
     def __str__(self):
         status = "unsubscribed" if self.unsubscribed else "subscribed"
         return f"{self.email} ({status})"
+
+
+class CampaignSend(models.Model):
+    """
+    Per-campaign send tracking (separate from MarketingEmailPreference.last_campaign_sent_at,
+    which only remembers ONE campaign at a time). Lets multiple distinct campaigns
+    (winback, abandoned-cart, etc.) each have their own independent cooldown for the
+    same customer, instead of one campaign's send blocking another's.
+    """
+    email = models.EmailField(db_index=True)
+    campaign = models.CharField(max_length=50)
+    sent_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("email", "campaign")
+
+    def __str__(self):
+        return f"{self.email} — {self.campaign} @ {self.sent_at:%Y-%m-%d}"

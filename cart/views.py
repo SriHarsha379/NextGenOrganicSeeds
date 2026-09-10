@@ -391,6 +391,72 @@ def validate_coupon(request):
     })
 
 
+ABANDONED_CART_SALT = "hasafarm-abandoned-cart-resume"
+
+
+def make_resume_cart_token(order):
+    """Signed token identifying one specific abandoned order, for the 'resume your cart'
+    link in the abandoned-cart email. Doesn't rely on the browser session that created
+    the order, since the email is opened from a different session/device entirely."""
+    from django.core import signing
+    return signing.dumps({"order_id": order.id}, salt=ABANDONED_CART_SALT)
+
+
+def resume_abandoned_cart(request, token):
+    """Rebuilds the session cart from an old unpaid order and sends the customer
+    straight to checkout — re-validating current stock and price rather than trusting
+    the (possibly stale) numbers stored on the old order."""
+    from django.core import signing
+
+    try:
+        data = signing.loads(token, salt=ABANDONED_CART_SALT, max_age=60 * 60 * 24 * 14)  # 14-day link validity
+        order_id = data["order_id"]
+    except signing.BadSignature:
+        return render(request, "cart/resume_cart_invalid.html", status=400)
+
+    order = get_object_or_404(Order, id=order_id)
+
+    if order.payment_status == "Paid":
+        # They already completed this order some other way — just show the confirmation.
+        return redirect("order_success", phonepe_order_id=order.phonepe_order_id)
+
+    new_cart = {}
+    unavailable_items = []
+    for item in order.cart_items:
+        try:
+            seed = Seed.objects.get(id=item["id"])
+        except (Seed.DoesNotExist, KeyError):
+            unavailable_items.append(item.get("name", "an item"))
+            continue
+
+        if seed.stock <= 0:
+            unavailable_items.append(seed.name)
+            continue
+
+        quantity = min(int(item.get("quantity", 1)), seed.stock)
+        new_cart[str(seed.id)] = {
+            "name": seed.name,
+            "price": float(seed.price),  # current price, not the stale price on the old order
+            "quantity": quantity,
+        }
+
+    request.session["cart"] = new_cart
+    request.session.modified = True
+
+    if not new_cart:
+        return render(request, "cart/resume_cart_invalid.html", {
+            "reason": "Everything in that order is currently out of stock.",
+        }, status=200)
+
+    if unavailable_items:
+        request.session["resume_cart_notice"] = (
+            "Some items from your original order are no longer available and were left out: "
+            + ", ".join(unavailable_items)
+        )
+
+    return redirect("checkout")
+
+
 
 @csrf_exempt
 def clear_cart(request):
