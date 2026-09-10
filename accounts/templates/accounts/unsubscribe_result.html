@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unsubscribe – Hasafarm</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f6f9fc; display: flex; justify-content: center; padding: 60px 20px; }
+    .box { background: #fff; max-width: 480px; width: 100%; padding: 40px 32px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08); text-align: center; }
+    h1 { color: #2e7d32; font-size: 22px; margin-bottom: 16px; }
+    p { color: #555; line-height: 1.6; }
+    a { color: #2e7d32; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    {% if success %}
+      <h1>You've been unsubscribed 🌿</h1>
+      <p>{{ email }} will no longer receive marketing emails from Hasafarm. You'll still get order and shipping emails for anything you purchase.</p>
+    {% else %}
+      <h1>Link expired or invalid</h1>
+      <p>This unsubscribe link is no longer valid. Please contact <a href="mailto:contact@hasafarm.com">contact@hasafarm.com</a> and we'll remove you manually.</p>
+    {% endif %}
+  </div>
+</body>
+</html>

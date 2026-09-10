@@ -188,6 +188,9 @@ EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='contact@hasafarm.com')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Hasa Farm <contact@hasafarm.com>')
+# Used to build absolute links (unsubscribe, shop links) inside emails sent from management commands / cron,
+# where there is no request object to build the URL from.
+SITE_URL = config('SITE_URL', default='https://hasafarm.com')
 ADMIN_NOTIFICATION_EMAIL = config('ADMIN_NOTIFICATION_EMAIL', default='contact@hasafarm.com')
 
 

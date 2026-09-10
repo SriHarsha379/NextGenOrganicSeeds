@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>We miss you at Hasa Farm 🌱</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; padding: 20px; background-color: #f9f9f9; }
+    .container { max-width: 600px; background-color: #fff; margin: 0 auto; padding: 28px; border: 1px solid #eee; border-radius: 12px; }
+    .badge { display: inline-block; background: #e8f5e9; color: #2e7d32; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 16px; }
+    h2 { color: #2e7d32; margin-bottom: 8px; }
+    .cta { display: inline-block; margin-top: 20px; background: #2e7d32; color: #fff !important; text-decoration: none; padding: 13px 28px; border-radius: 30px; font-weight: 700; }
+    .footer { margin-top: 30px; font-size: 12px; color: #888; text-align: center; border-top: 1px solid #eee; padding-top: 16px; }
+    .footer a { color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <span class="badge">🌿 100% Organic &amp; Non-GMO</span>
+    <h2>Hi {{ name }}, your garden misses you!</h2>
+    <p>It's been a while since your last order from Hasa Farm. Your next batch of high-germination seeds is just a click away — and this season's fresh stock has just landed.</p>
+    <p>Here's a little something to bring you back:</p>
+    <p style="font-size:18px; font-weight:800; color:#f57c00;">Use code <span style="background:#fff3e0; padding:4px 10px; border-radius:6px;">COMEBACK10</span> for 10% off your next order</p>
+    <a href="{{ shop_url }}" class="cta">Shop Seeds Now</a>
+    <div class="footer">
+      <p>Hasa Farm · Grown &amp; packed in India</p>
+      <p><a href="{{ unsubscribe_url }}">Unsubscribe from marketing emails</a></p>
+    </div>
+  </div>
+</body>
+</html>

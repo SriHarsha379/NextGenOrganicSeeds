@@ -270,3 +270,30 @@ If you have any questions, just reply to this email — we're happy to help.
 
 def password_reset_done(request):
     return render(request, "accounts/password_reset_done.html")
+
+
+# ─────────────────────────── Marketing email unsubscribe ──────────────────────
+from django.core import signing
+from .models import MarketingEmailPreference
+
+UNSUBSCRIBE_SALT = "hasafarm-marketing-unsubscribe"
+
+
+def make_unsubscribe_token(email):
+    """Signed token so unsubscribe links can't be guessed/forged for other emails."""
+    return signing.dumps({"email": email}, salt=UNSUBSCRIBE_SALT)
+
+
+def unsubscribe(request, token):
+    try:
+        data = signing.loads(token, salt=UNSUBSCRIBE_SALT, max_age=60 * 60 * 24 * 90)  # 90-day link validity
+        email = data["email"]
+    except signing.BadSignature:
+        return render(request, "accounts/unsubscribe_result.html", {"success": False}, status=400)
+
+    pref, _ = MarketingEmailPreference.objects.get_or_create(email=email)
+    pref.unsubscribed = True
+    pref.unsubscribed_at = now()
+    pref.save(update_fields=["unsubscribed", "unsubscribed_at"])
+
+    return render(request, "accounts/unsubscribe_result.html", {"success": True, "email": email})

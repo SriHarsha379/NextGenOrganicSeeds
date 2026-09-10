@@ -1,15 +1,247 @@
-<!-- base.html -->
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seed Store</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ===== PRIMARY SEO (override per page via {% block title/meta %}) ===== -->
+  <title>{% block title %}Hasafarm – Buy Premium Organic Seeds Online in India{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Shop 100% organic vegetable & flower seeds online in India. High germination rate, fast nationwide delivery.{% endblock %}">
+  <meta name="keywords" content="{% block meta_keywords %}buy seeds online india, vegetable seeds, flower seeds, organic seeds, hasafarm{% endblock %}">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Hasafarm">
+  <link rel="canonical" href="{% block canonical %}https://www.hasafarm.com/{% endblock %}">
+
+  <!-- ===== OPEN GRAPH ===== -->
+  <meta property="og:title" content="{% block og_title %}Hasafarm – Buy Premium Seeds Online in India{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Shop 100% organic vegetable and flower seeds with fast delivery across India. High germination guaranteed.{% endblock %}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{% block og_url %}https://www.hasafarm.com/{% endblock %}">
+  <meta property="og:image" content="https://hasafarm.com/static/images/hasa_organic_seeds.png">
+  <meta property="og:site_name" content="Hasafarm">
+  <meta property="og:locale" content="en_IN">
+
+  <!-- ===== TWITTER CARD ===== -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% block twitter_title %}Hasafarm – Premium Seeds Online in India{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}Shop organic vegetable and flower seeds with fast delivery across India.{% endblock %}">
+  <meta name="twitter:image" content="https://hasafarm.com/static/images/hasa_organic_seeds.png">
+
+  <!-- ===== FAVICON ===== -->
+  <link rel="icon" href="{% static 'images/hasa_organic_seeds.png' %}" type="image/png">
+  <link rel="apple-touch-icon" href="{% static 'images/hasa_organic_seeds.png' %}">
+
+  <!-- ===== SCHEMA: Organization (site-wide, do not duplicate per page) ===== -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Hasafarm",
+    "url": "https://hasafarm.com",
+    "logo": "https://hasafarm.com/static/images/hasa_organic_seeds.png",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "email": "contact@hasafarm.com",
+      "contactType": "customer service"
+    },
+    "sameAs": [
+      "https://www.facebook.com/profile.php?id=61577475895648",
+      "https://www.instagram.com/hasafarm88/"
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Hasafarm",
+    "url": "https://hasafarm.com",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://hasafarm.com/search/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+  {% block schema_extra %}{% endblock %}
+
+  <!-- ===== GLOBAL STYLES (shared by every page) ===== -->
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+  <!-- ===== PAGE-SPECIFIC STYLES ===== -->
+  {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Navbar or header content here -->
+  <!-- ─── ANNOUNCEMENT BAR ─── -->
+  <div class="announcement-bar" role="banner">
+    🇮🇳 Grown &amp; packed in India
+  </div>
 
-    <!-- Main content section -->
-    {% block content %}{% endblock %}
+  <!-- ─── SEARCH BAR ─── -->
+  <div class="top-bar" role="search">
+    <form action="{% url 'search_seeds' %}" method="GET" class="search-form" aria-label="Search for seeds">
+      <input type="search" name="q" placeholder="Search for tomato, marigold, basil…" aria-label="Seed search">
+      <button type="submit" aria-label="Submit search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </form>
+  </div>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <a href="{% url 'seed_list' %}" class="logo-wrap" aria-label="Hasafarm home">
+      <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Hasafarm logo" width="44" height="44">
+      <span>HASA FARM</span>
+    </a>
+
+    <div class="nav-links">
+      <div class="dropdown">
+        <a href="#" aria-haspopup="true" aria-expanded="false">Vegetable Seeds</a>
+        <div class="dropdown-menu" role="menu">
+          <a href="{% url 'native_vegetable_seeds' %}" role="menuitem">Native Vegetable Seeds</a>
+          <a href="{% url 'leafy_vegetable_seeds' %}" role="menuitem">Leafy Vegetable Seeds</a>
+          <a href="{% url 'exotic_vegetable_seeds' %}" role="menuitem">Exotic Vegetable Seeds</a>
+        </div>
+      </div>
+      <div class="dropdown">
+        <a href="#" aria-haspopup="true" aria-expanded="false">Flower Seeds</a>
+        <div class="dropdown-menu" role="menu">
+          <a href="{% url 'winter_flower_seeds' %}" role="menuitem">Winter Flower Seeds</a>
+          <a href="{% url 'all_seasonal_flower_seeds' %}" role="menuitem">All Seasonal Flower Seeds</a>
+          <a href="{% url 'summer_flower_seeds' %}" role="menuitem">Summer Flower Seeds</a>
+        </div>
+      </div>
+
+      <a href="{% url 'food_products' %}">Food</a>
+      <a href="{% url 'view_cart' %}" id="cart-link" class="cart-btn" aria-label="View cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        Cart
+        <span id="cart-count" class="cart-count" aria-live="polite">{{ cart_count }}</span>
+      </a>
+    </div>
+
+    <button class="hamburger" id="hamburger-btn" aria-label="Toggle mobile menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- ─── MOBILE MENU ─── -->
+  <div class="mobile-menu" id="mobile-menu" role="navigation" aria-label="Mobile navigation">
+    <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
+    <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
+    <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
+    <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
+    <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flower Seeds</a>
+    <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+    <a href="{% url 'food_products' %}">Food Products</a>
+    <a href="{% url 'view_cart' %}">🛒 Cart</a>
+  </div>
+
+  <!-- ─── PAGE CONTENT ─── -->
+  {% block content %}{% endblock %}
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="{% static 'images/hasa_organic_seeds.png' %}" alt="Hasafarm Logo" width="48" height="48">
+        <p>Hasafarm brings you the finest organic seeds for your garden. Grown with love, delivered with care across India.</p>
+        <div class="social-row">
+          <a href="https://www.facebook.com/profile.php?id=61577475895648" target="_blank" rel="noopener noreferrer" aria-label="Hasafarm on Facebook">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook">
+          </a>
+          <a href="https://www.instagram.com/hasafarm88/" target="_blank" rel="noopener noreferrer" aria-label="Hasafarm on Instagram">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram">
+          </a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Vegetable Seeds</h4>
+        <a href="{% url 'native_vegetable_seeds' %}">Native Vegetable Seeds</a>
+        <a href="{% url 'leafy_vegetable_seeds' %}">Leafy Vegetable Seeds</a>
+        <a href="{% url 'exotic_vegetable_seeds' %}">Exotic Vegetable Seeds</a>
+      </div>
+      <div class="footer-col">
+        <h4>Flower Seeds</h4>
+        <a href="{% url 'winter_flower_seeds' %}">Winter Flower Seeds</a>
+        <a href="{% url 'all_seasonal_flower_seeds' %}">All Seasonal Flowers</a>
+        <a href="{% url 'summer_flower_seeds' %}">Summer Flower Seeds</a>
+      </div>
+      <div class="footer-col">
+        <h4>Food</h4>
+        <a href="{% url 'food_products' %}">Food Products</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+        <a href="{% url 'terms_conditions' %}">Terms &amp; Conditions</a>
+        <a href="{% url 'disclaimer' %}">Disclaimer</a>
+        <a href="{% url 'refund' %}">Refund Policy</a>
+        <a href="{% url 'shipping' %}">Shipping Policy</a>
+        <a href="mailto:contact@hasafarm.com">📧 contact@hasafarm.com</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Hasa Farm. All Rights Reserved.</span>
+      <span>Made with 🌿 in India</span>
+    </div>
+  </footer>
+
+  <!-- ─── LOGIN MODAL ─── -->
+  <div id="login-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+      <h3 id="modal-title">Sign in to Continue</h3>
+      <p>Please log in to add items to your cart and place orders.</p>
+      <div class="modal-actions">
+        <a href="/login/" class="modal-login-btn">Log In</a>
+        <button id="close-modal" class="modal-close-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── FLOATING WHATSAPP ─── -->
+  <a href="https://wa.me/919876543210?text=Hi%20Hasafarm!%20I%20need%20help%20choosing%20seeds%20%F0%9F%8C%B1"
+     class="wa-float" target="_blank" rel="noopener noreferrer"
+     aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+    <span>Need help choosing seeds? 🌱 Chat on WhatsApp</span>
+  </a>
+
+  <!-- ─── GLOBAL SCRIPTS (shared by every page) ─── -->
+  <script>
+    /* ── Hamburger ── */
+    const hamburger = document.getElementById('hamburger-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    hamburger.addEventListener('click', () => {
+      const open = mobileMenu.classList.toggle('open');
+      hamburger.setAttribute('aria-expanded', open);
+    });
+
+    /* ── Modal close ── */
+    document.getElementById('close-modal').addEventListener('click', () => {
+      document.getElementById('login-modal').style.display = 'none';
+    });
+    document.getElementById('login-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+    });
+
+    /* ── Live cart count on load ── */
+    fetch('/get-cart-count/')
+      .then(r => r.json())
+      .then(data => { document.getElementById('cart-count').textContent = data.cart_count; })
+      .catch(() => {});
+
+    /* ── Back-button reload to refresh stock ── */
+    if (performance.navigation.type === 2) { window.location.reload(true); }
+  </script>
+
+  <!-- ─── PAGE-SPECIFIC SCRIPTS ─── -->
+  {% block extra_js %}{% endblock %}
 </body>
 </html>
