@@ -37,7 +37,7 @@ class Order(models.Model):
         ('Refunded', 'Refunded'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # ✅ allow guests
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # preserve orders if user is deleted
     full_name = models.CharField(max_length=255)
     email = models.EmailField()
     phone = models.CharField(max_length=15)

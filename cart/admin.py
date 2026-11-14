@@ -1,4 +1,1 @@
-from django.contrib import admin
-from .models import Cart
-
-admin.site.register(Cart)
+# Cart is session-based — the DB Cart model is legacy and not shown in admin.

@@ -4,6 +4,6 @@ from .models import Seed
 @admin.register(Seed)
 class SeedAdmin(admin.ModelAdmin):
     list_display = ('name', 'category', 'price', 'stock')
-    search_fields = ('name', 'category')
+    search_fields = ('name', 'category__name')
     list_filter = ('category',)
 

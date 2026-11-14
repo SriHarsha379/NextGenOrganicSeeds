@@ -784,11 +784,35 @@ def phonepe_webhook(request):
 
     order.refresh_from_db()
 
-    # ── 7. Send notification emails (only when status actually changed) ───────
+    # ── 7. Restore stock on Failed/Cancelled ─────────────────────────────────
+    if status_changed and new_status in ("Failed", "Cancelled"):
+        _restore_order_stock(order)
+
+    # ── 8. Send notification emails (only when status actually changed) ───────
     if status_changed:
         _send_order_status_emails(order, new_status)
 
     return JsonResponse({"message": "Webhook handled"}, status=200)
+
+
+def _restore_order_stock(order):
+    """Return stock to each seed when a payment fails or is cancelled.
+    Uses select_for_update to prevent races with concurrent webhooks."""
+    try:
+        with transaction.atomic():
+            for item in (order.cart_items or []):
+                try:
+                    seed = Seed.objects.select_for_update().get(id=item["id"])
+                    qty = int(item.get("quantity", 1))
+                    seed.stock += qty
+                    seed.save(update_fields=["stock"])
+                except Seed.DoesNotExist:
+                    logger.warning("⚠️ Could not restore stock for missing seed id=%s", item.get("id"))
+                except Exception as exc:
+                    logger.error("❌ Stock restore error for seed id=%s: %s", item.get("id"), exc)
+        logger.info("✅ Stock restored for order #%s", order.id)
+    except Exception as e:
+        logger.error("❌ Failed to restore stock for order #%s: %s", order.id, e)
 
 
 def _send_order_status_emails(order, new_status):
