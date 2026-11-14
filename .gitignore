@@ -1,4 +1,11 @@
 # ======================
+# macOS / editor junk
+# ======================
+.DS_Store
+.coverage
+htmlcov/
+
+# ======================
 # Django secrets
 # ======================
 .env
@@ -6,6 +13,12 @@
 seedstore/.env
 seedstore/settings.py.save
 hasaorganicseeds
+
+# ======================
+# Data files (contain pricing — don't version)
+# ======================
+seeds_data.csv
+seeds_data.csv.save
 
 # ======================
 # Local databases
