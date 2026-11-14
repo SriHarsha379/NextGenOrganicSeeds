@@ -18,8 +18,12 @@
     <span class="badge">🌿 100% Organic &amp; Non-GMO</span>
     <h2>Hi {{ name }}, your garden misses you!</h2>
     <p>It's been a while since your last order from Hasa Farm. Your next batch of high-germination seeds is just a click away — and this season's fresh stock has just landed.</p>
+    {% if coupon_code %}
     <p>Here's a little something to bring you back:</p>
-    <p style="font-size:18px; font-weight:800; color:#f57c00;">Use code <span style="background:#fff3e0; padding:4px 10px; border-radius:6px;">COMEBACK10</span> for 10% off your next order</p>
+    <p style="font-size:18px; font-weight:800; color:#f57c00;">Use code <span style="background:#fff3e0; padding:4px 10px; border-radius:6px;">{{ coupon_code }}</span> for 10% off your next order</p>
+    {% else %}
+    <p>We've restocked our most popular seeds this season — come back and explore what's new.</p>
+    {% endif %}
     <a href="{{ shop_url }}" class="cta">Shop Seeds Now</a>
     <div class="footer">
       <p>Hasa Farm · Grown &amp; packed in India</p>

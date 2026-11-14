@@ -239,7 +239,10 @@ body {
 
                 <div class="order-actions">
                     <a href="{% url 'download_invoice' order.id %}" class="invoice">Download Invoice</a>
-                    <a href="{% url 'reorder' order.id %}" class="reorder">Reorder</a>
+                    <form method="post" action="{% url 'reorder' order.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="reorder" style="cursor:pointer;border:none;padding:10px 18px;border-radius:8px;background:#2ecc71;color:white;font-weight:500;">Reorder</button>
+                    </form>
                 </div>
             </div>
         {% endfor %}

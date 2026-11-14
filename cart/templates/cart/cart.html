@@ -236,7 +236,7 @@
         <ul id="cart-items">
             {% for item in cart_items %}
                 <li id="item-{{ item.seed.id }}">
-                    <img src="{{ item.seed.image.url }}" alt="{{ item.seed.name }}" width="80" height="80" style="border-radius: 5px;">
+                    {% if item.seed.image %}<img src="{{ item.seed.image.url }}" alt="{{ item.seed.name }}" width="80" height="80" style="border-radius: 5px;">{% endif %}
 
                     <div class="item-details">
                         <h2>{{ item.seed.name }}</h2>
@@ -249,7 +249,6 @@
                 </li>
             {% endfor %}
         </ul>
-<p>{{ item.seed.image_url }}</p>
 
 <div class="total-amount" id="total-amount" style="display: block;">
     <p>Items Total: ₹{{ total_amount }}</p>
