@@ -15,6 +15,16 @@ from pathlib import Path
 
 from decouple import config
 
+# ── Sentry error tracking (no-op if SENTRY_DSN is not set) ──────────────────
+_sentry_dsn = config("SENTRY_DSN", default="")
+if _sentry_dsn:
+    import sentry_sdk
+    sentry_sdk.init(
+        dsn=_sentry_dsn,
+        traces_sample_rate=0.1,   # 10% of transactions for performance monitoring
+        send_default_pii=False,   # never send user PII to Sentry
+    )
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 LOGIN_URL = '/accounts/login/'
@@ -59,7 +69,7 @@ CSRF_COOKIE_SECURE = not DEBUG
 SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
-SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_HSTS_PRELOAD = config('HSTS_PRELOAD', default=False, cast=bool)  # opt-in only
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 APPEND_SLASH = True
@@ -74,7 +84,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'products',
-    'users',
     'cart',
     'orders',
     'accounts',
@@ -150,7 +159,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -177,8 +186,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Session settings
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_AGE = 1209600  # 2 weeks (in seconds)
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = False
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.hostinger.com')
@@ -197,6 +206,8 @@ ADMIN_NOTIFICATION_EMAIL = config('ADMIN_NOTIFICATION_EMAIL', default='contact@h
 CSRF_TRUSTED_ORIGINS = [
     "https://hasafarm.com",
     "https://www.hasafarm.com",
+    "https://hasaorganicseeds.com",
+    "https://www.hasaorganicseeds.com",
     "https://147.93.28.237",
 ]
 
@@ -214,24 +225,31 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "django.log"),
+            "maxBytes": 5 * 1024 * 1024,  # 5 MB
+            "backupCount": 5,
+            "formatter": "verbose",
+        },
     },
     "root": {
-        "handlers": ["console"],
+        "handlers": ["console", "file"],
         "level": "WARNING",
     },
     "loggers": {
         "cart": {
-            "handlers": ["console"],
+            "handlers": ["console", "file"],
             "level": "INFO",
             "propagate": False,
         },
         "orders": {
-            "handlers": ["console"],
+            "handlers": ["console", "file"],
             "level": "INFO",
             "propagate": False,
         },
         "django.request": {
-            "handlers": ["console"],
+            "handlers": ["console", "file"],
             "level": "ERROR",
             "propagate": False,
         },

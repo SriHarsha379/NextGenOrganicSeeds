@@ -1,4 +1,8 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+
+
+def home_redirect(request):
+    return redirect('seed_list')
 from .models import Seed, Category
 from django.shortcuts import render, get_object_or_404
 

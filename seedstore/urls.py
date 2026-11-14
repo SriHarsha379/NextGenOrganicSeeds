@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 from cart.views import order_success, phonepe_webhook
-from users.views import home_redirect
+from products.views import home_redirect
 
 # 👇 ADD THESE TWO IMPORTS
 from django.conf import settings
