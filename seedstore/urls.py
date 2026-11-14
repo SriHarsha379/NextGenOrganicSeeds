@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.views.generic import TemplateView
 from django.urls import path, include
 
 from cart.views import order_success, phonepe_webhook
@@ -10,6 +11,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('', home_redirect, name='home'),
+    path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain'), name='robots'),
 
     # Built-in Django admin
     path('django-admin/', admin.site.urls),

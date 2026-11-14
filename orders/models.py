@@ -9,6 +9,7 @@ class Coupon(models.Model):
     active = models.BooleanField(default=True)
     valid_until = models.DateTimeField(help_text="Coupon stops working after this date/time.")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.code} ({self.percent_off}% off, valid until {self.valid_until:%Y-%m-%d})"

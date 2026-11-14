@@ -1,0 +1,19 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /django-admin/
+Disallow: /cart/
+Disallow: /orders/
+Disallow: /accounts/login/
+Disallow: /accounts/register/
+Disallow: /accounts/reset-password/
+Disallow: /phonepe/
+Disallow: /parse-order-data/
+
+# Allow product and informational pages
+Allow: /seeds/
+Allow: /seeds/privacy-policy/
+Allow: /seeds/terms-conditions/
+Allow: /seeds/shipping/
+Allow: /seeds/refund/
+
+Sitemap: https://hasafarm.com/sitemap.xml
