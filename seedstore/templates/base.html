@@ -186,7 +186,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2025 Hasa Farm. All Rights Reserved.</span>
+      <span>© 2026 Hasa Farm. All Rights Reserved.</span>
       <span>Made with 🌿 in India</span>
     </div>
   </footer>
@@ -197,14 +197,14 @@
       <h3 id="modal-title">Sign in to Continue</h3>
       <p>Please log in to add items to your cart and place orders.</p>
       <div class="modal-actions">
-        <a href="/login/" class="modal-login-btn">Log In</a>
+        <a href="{% url 'login' %}" class="modal-login-btn">Log In</a>
         <button id="close-modal" class="modal-close-btn">Cancel</button>
       </div>
     </div>
   </div>
 
   <!-- ─── FLOATING WHATSAPP ─── -->
-  <a href="https://wa.me/919876543210?text=Hi%20Hasafarm!%20I%20need%20help%20choosing%20seeds%20%F0%9F%8C%B1"
+  <a href="https://wa.me/917483847243?text=Hi%20Hasafarm!%20I%20need%20help%20choosing%20seeds%20%F0%9F%8C%B1"
      class="wa-float" target="_blank" rel="noopener noreferrer"
      aria-label="Chat on WhatsApp">
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -231,14 +231,11 @@
       if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
     });
 
-    /* ── Live cart count on load ── */
-    fetch('/get-cart-count/')
-      .then(r => r.json())
-      .then(data => { document.getElementById('cart-count').textContent = data.cart_count; })
-      .catch(() => {});
+    /* cart_count is passed via template context — no fetch needed */
 
     /* ── Back-button reload to refresh stock ── */
-    if (performance.navigation.type === 2) { window.location.reload(true); }
+    const navEntry = performance.getEntriesByType('navigation')[0];
+    if (navEntry && navEntry.type === 'back_forward') { window.location.reload(true); }
   </script>
 
   <!-- ─── PAGE-SPECIFIC SCRIPTS ─── -->
