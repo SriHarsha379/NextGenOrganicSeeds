@@ -107,6 +107,9 @@ def seed_edit(request, id):
 # ----- Delete Seed -----
 @admin_required
 def seed_delete(request, id):
+    if request.method != "POST":
+        from django.http import HttpResponseNotAllowed
+        return HttpResponseNotAllowed(["POST"])
     seed = get_object_or_404(Seed, id=id)
     seed.delete()
     return redirect('adminpanel:seed_list')

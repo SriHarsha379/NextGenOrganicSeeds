@@ -31,7 +31,6 @@ class ForgotPasswordForm(forms.Form):
     }))
 
     def clean_email(self):
-        email = self.cleaned_data['email']
-        if not User.objects.filter(email=email).exists():
-            raise forms.ValidationError("No account found with this email.")
-        return email
+        # Do not validate existence here — revealing whether an email is registered
+        # allows enumeration. The view always shows the same success message.
+        return self.cleaned_data['email']

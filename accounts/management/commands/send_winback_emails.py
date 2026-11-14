@@ -22,7 +22,7 @@ from django.utils.timezone import now
 
 from accounts.models import MarketingEmailPreference
 from accounts.views import make_unsubscribe_token
-from orders.models import Order
+from orders.models import Order, Coupon
 
 
 class Command(BaseCommand):
@@ -42,6 +42,10 @@ class Command(BaseCommand):
             help="Optional cap on how many emails to send in this run (useful for a first backfill run).",
         )
         parser.add_argument(
+            "--coupon", type=str, default=None,
+            help="Optional coupon code to include in the email (must already exist in DB).",
+        )
+        parser.add_argument(
             "--dry-run", action="store_true",
             help="Print who WOULD be emailed without actually sending anything.",
         )
@@ -51,6 +55,13 @@ class Command(BaseCommand):
         cooldown_days = options["cooldown"]
         limit = options["limit"]
         dry_run = options["dry_run"]
+        coupon_code = (options.get("coupon") or "").strip().upper() or None
+
+        if coupon_code:
+            if not Coupon.objects.filter(code=coupon_code, active=True).exists():
+                self.stderr.write(self.style.ERROR(f"Coupon '{coupon_code}' not found or inactive. Aborting."))
+                return
+            self.stdout.write(f"Using coupon: {coupon_code}")
 
         cutoff = now() - timedelta(days=days)
         cooldown_cutoff = now() - timedelta(days=cooldown_days)
@@ -97,11 +108,11 @@ class Command(BaseCommand):
                 continue
 
             if dry_run:
-                self.stdout.write(f"  [DRY RUN] would email {email} (last order {order.created_at:%Y-%m-%d})")
+                self.stdout.write(f"  [DRY RUN] would email {email} (last order {order.created_at:%Y-%m-%d}) coupon={coupon_code or 'none'}")
                 sent_count += 1
                 continue
 
-            self._send_winback_email(order, pref)
+            self._send_winback_email(order, pref, coupon_code=coupon_code)
             sent_count += 1
 
         self.stdout.write(self.style.SUCCESS(
@@ -109,20 +120,25 @@ class Command(BaseCommand):
             f"Skipped (cooldown): {skipped_cooldown}"
         ))
 
-    def _send_winback_email(self, order, pref):
+    def _send_winback_email(self, order, pref, coupon_code=None):
         email = pref.email
         token = make_unsubscribe_token(email)
         context = {
             "name": order.full_name.split(" ")[0] if order.full_name else "there",
             "shop_url": f"{settings.SITE_URL}/seeds/",
             "unsubscribe_url": f"{settings.SITE_URL}/accounts/unsubscribe/{token}/",
+            "coupon_code": coupon_code,
         }
         html_message = render_to_string("accounts/emails/winback_email.html", context)
         plain_message = strip_tags(html_message)
 
         try:
             send_mail(
-                subject="We miss you at Hasa Farm 🌱 Here's 10% off your next order",
+                subject=(
+                    f"We miss you at Hasa Farm 🌱 Here's {coupon_code} — a special offer for you"
+                    if coupon_code else
+                    "We miss you at Hasa Farm 🌱 Come back and explore our seeds"
+                ),
                 message=plain_message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[email],

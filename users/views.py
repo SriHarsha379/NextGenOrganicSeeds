@@ -1,9 +1,4 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib import messages
-from django.contrib.auth.models import User
-from .forms import CustomUserCreationForm
+from django.shortcuts import redirect
 
 
 # def signup(request):

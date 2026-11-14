@@ -203,7 +203,6 @@ def update_cart_quantity(request, item_id):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
-@csrf_exempt
 def process_order(request):
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
@@ -231,13 +230,21 @@ def process_order(request):
             data.get("country", "")
         ])).strip()
 
-        postal_charge = Decimal("80.00")
-        try:
-            base_amount = Decimal(str(data["total_amount"]))
-            if base_amount <= 0:
-                raise ValueError("Invalid total_amount")
-        except (ValueError, TypeError, KeyError):
-            return JsonResponse({"error": "Invalid amount format"}, status=400)
+        # Recompute from DB — never trust client total_amount
+        db_subtotal = Decimal("0.00")
+        for _item in data["cart_items"]:
+            try:
+                _seed = Seed.objects.get(id=_item["id"])
+            except Seed.DoesNotExist:
+                return JsonResponse({"error": f'Item not found: {_item.get("id")}'}, status=400)
+            _qty = int(_item.get("quantity", 1))
+            if _qty <= 0:
+                return JsonResponse({"error": f"Invalid quantity for {_seed.name}"}, status=400)
+            db_subtotal += _seed.price * _qty
+        if db_subtotal <= 0:
+            return JsonResponse({"error": "Cart is empty"}, status=400)
+        base_amount = db_subtotal
+        postal_charge = Decimal("0.00") if db_subtotal >= Decimal("499.00") else Decimal("80.00")
 
         # ✅ Step 2b: Coupon validation (server-side is the source of truth — never trust
         # any discount figure sent from the browser). Discount applies to product subtotal
@@ -896,17 +903,13 @@ def _send_order_status_emails(order, new_status):
 def retry_payment(request, phonepe_order_id):
     order = get_object_or_404(Order, phonepe_order_id__iexact=phonepe_order_id)
 
-    # 🔐 Guest session validation
-    session_guest_id = str(request.session.get("guest_order_id"))
-    if session_guest_id != str(order.id):
-        return HttpResponseForbidden("Unauthorized access to this guest order.")
-
-    # ✅ Retry logic
-    if order.payment_status != "Paid":
-        return redirect(order.payment_link or "home")
-
-    # Already paid — show success
-    return redirect("order_success", phonepe_order_id=order.phonepe_order_id)
+    is_owner = request.user.is_authenticated and order.user == request.user
+    is_guest = str(request.session.get("guest_order_id", "")) == str(order.id)
+    if not (is_owner or is_guest):
+        return HttpResponseForbidden("Unauthorized access to this order.")
+    if order.payment_status == "Paid":
+        return redirect("order_success", phonepe_order_id=order.phonepe_order_id)
+    return redirect(order.payment_link or "home")
 
 @login_required
 def my_orders(request):

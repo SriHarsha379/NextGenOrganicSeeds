@@ -1,9 +1,6 @@
 from django.shortcuts import render
 from .models import Seed, Category
-from cart.models import Cart  # Import the Cart model
 from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from .utils.phonepe_client import client
 
 
 
@@ -72,8 +69,18 @@ def wishlist(request):
     return render(request, 'wishlist.html')
 
 def render_seeds_by_category(request, category_name, template_name):
-    category = get_object_or_404(Category, name=category_name)
-    seeds = Seed.objects.filter(category=category)
+    # Some seeds were imported under variant spellings (e.g. "All Seasonal Flower"
+    # vs "All seasonal"). Query all matching categories case-insensitively so no
+    # products are silently hidden.
+    CATEGORY_ALIASES = {
+        "All seasonal": ["All seasonal", "All Seasonal Flower", "All Season Flower"],
+    }
+    names = CATEGORY_ALIASES.get(category_name, [category_name])
+    categories = Category.objects.filter(name__in=names)
+    if not categories.exists():
+        from django.http import Http404
+        raise Http404(f"Category '{category_name}' not found")
+    seeds = Seed.objects.filter(category__in=categories)
 
     cart = request.session.get('cart', {})
     unique_item_count = len(cart)

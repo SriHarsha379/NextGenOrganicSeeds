@@ -121,22 +121,7 @@ def user_logout(request):
     return redirect("seed_list")
 
 
-class AutoLogout:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        if request.user.is_authenticated:
-            last_activity = request.session.get('last_activity')
-            if last_activity:
-                idle_time = now() - last_activity
-                if idle_time > timedelta(seconds=3600):  # 1 hour timeout
-                    del request.session['last_activity']
-                    return redirect('logout')  # Redirect to logout page
-
-            request.session['last_activity'] = now()
-
-        return self.get_response(request)
+# AutoLogout middleware lives in accounts/middleware.py — removed broken duplicate.
 
 
 # Forgot Password View (Step 1)
@@ -172,8 +157,9 @@ def forgot_password(request):
             return redirect("/accounts/password_reset_done/")
 
         except get_user_model().DoesNotExist:
-            messages.error(request, "No account found with this email.")
-            return redirect("forgot_password")
+            # Don't reveal whether the email is registered — always show the same message.
+            messages.success(request, "If an account with that email exists, a reset link has been sent.")
+            return redirect("/accounts/password_reset_done/")
 
     return render(request, "accounts/forgot_password.html")
 

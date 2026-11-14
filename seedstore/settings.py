@@ -17,7 +17,7 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-LOGIN_URL = '/admin/login/'
+LOGIN_URL = '/accounts/login/'
 
 # ─────────────────────────── PhonePe ────────────────────────────────────────
 PHONEPE_CLIENT_ID = config("PHONEPE_CLIENT_ID")

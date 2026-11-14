@@ -78,10 +78,11 @@ def upi_payment(request):
 
 
 
+@login_required
 def payment_success(request):
-    # Here, you should verify the payment via UPI API before updating order status
-    orders = Order.objects.filter(user=request.user, status="Pending")
-    orders.update(status="Completed")
+    # LEGACY STUB — real payment confirmation is handled by the PhonePe webhook
+    # and the order_success view.  This endpoint intentionally no longer mutates
+    # any order state; it exists only to avoid 404s from old links.
     return render(request, "orders/payment_success.html")
 
 
@@ -101,6 +102,7 @@ def my_orders(request):
 
 
 
+@login_required
 def download_invoice(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
 
@@ -116,7 +118,7 @@ def download_invoice(request, order_id):
     y = height - 50
 
     # Logo
-    logo_path = os.path.join('E:/imp/python project/NextGenOrganicSeeds/static/images/hasa_organic_seeds.png')
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'hasa_organic_seeds.png')
     if os.path.exists(logo_path):
         p.drawImage(logo_path, (width - 130) / 2, y - 40, width=130, height=40, mask='auto')
 
@@ -191,6 +193,7 @@ def download_invoice(request, order_id):
 
 
 
+@login_required
 def reorder(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     # order.cart_items is a list of items; convert to dict with seed IDs as keys
